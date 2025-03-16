@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "./button";
 import { ShoppingCart, Menu } from "lucide-react";
@@ -8,8 +9,38 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./sheet";
+import { Badge } from "./badge";
+
+function getCartItemCount(): number {
+  if (typeof window === "undefined") return 0;
+  const items = localStorage.getItem("cart");
+  if (!items) return 0;
+  const cartItems = JSON.parse(items);
+  return cartItems.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
+}
 
 export function Navbar() {
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    // Initial cart count
+    setCartCount(getCartItemCount());
+
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      setCartCount(getCartItemCount());
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    // Also listen for our custom event for same-tab updates
+    window.addEventListener("cartUpdated", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("cartUpdated", handleStorageChange);
+    };
+  }, []);
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="container flex h-16 items-center">
@@ -70,6 +101,13 @@ export function Navbar() {
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
               </Button>
+              {cartCount > 0 && (
+                <Badge 
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-restaurant-yellow text-restaurant-black"
+                >
+                  {cartCount}
+                </Badge>
+              )}
             </a>
           </Link>
         </div>

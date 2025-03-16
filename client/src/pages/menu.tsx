@@ -15,6 +15,8 @@ function getCartItems(): Array<{id: number, name: string, price: number, quantit
 // Helper function to save cart items to localStorage
 function saveCartItems(items: Array<{id: number, name: string, price: number, quantity: number}>) {
   localStorage.setItem("cart", JSON.stringify(items));
+  // Dispatch a custom event to notify navbar of cart updates
+  window.dispatchEvent(new Event("cartUpdated"));
 }
 
 export default function Menu() {
