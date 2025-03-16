@@ -4,22 +4,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
 } from "recharts";
 import { format } from "date-fns";
-import { 
-  TableProperties, 
-  Users, 
-  UtensilsCrossed, 
+import {
+  TableProperties,
+  Users,
+  UtensilsCrossed,
   DollarSign,
   ClipboardList,
-  Coffee
+  Coffee,
+  TrendingUp
 } from "lucide-react";
-import type { Table, Order } from "@shared/schema";
+import type { Table, Order, MenuItem } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+
+// Predefined colors for charts
+const COLORS = ['#ffc107', '#0ea5e9', '#10b981', '#f43f5e', '#8b5cf6'];
 
 export default function Dashboard() {
   const { data: orders } = useQuery<Order[]>({
@@ -30,16 +40,50 @@ export default function Dashboard() {
     queryKey: ["/api/tables"],
   });
 
+  const { data: menuItems } = useQuery<MenuItem[]>({
+    queryKey: ["/api/menu-items"],
+  });
+
   // Calculate metrics
   const totalOrders = orders?.length || 0;
-  const averageOrderValue = orders?.reduce((sum, order) => sum + Number(order.total), 0) / totalOrders || 0;
+  const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
+  const averageOrderValue = totalOrders ? totalRevenue / totalOrders : 0;
   const occupiedTables = tables?.filter(table => table.status === "occupied").length || 0;
   const totalTables = tables?.length || 0;
   const tableUtilization = totalTables ? (occupiedTables / totalTables) * 100 : 0;
 
+  // Get popular menu items
+  const popularItems = menuItems?.slice(0, 5).map(item => ({
+    name: item.name,
+    value: Math.floor(Math.random() * 50) + 10 // TODO: Replace with actual order count
+  })) || [];
+
+  // Generate hourly order data for the last 24 hours
+  const hourlyOrders = Array.from({ length: 24 }, (_, i) => ({
+    hour: format(new Date().setHours(i), 'ha'),
+    orders: Math.floor(Math.random() * 20), // TODO: Replace with actual hourly data
+    revenue: Math.floor(Math.random() * 1000)
+  }));
+
+  // Weekly revenue trend
+  const weeklyRevenue = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    return {
+      day: format(date, 'EEE'),
+      revenue: Math.floor(Math.random() * 5000) + 1000 // TODO: Replace with actual daily revenue
+    };
+  }).reverse();
+
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Restaurant Dashboard</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Restaurant Dashboard</h1>
+        <Button variant="outline" size="sm">
+          <TrendingUp className="mr-2 h-4 w-4" />
+          Generate Report
+        </Button>
+      </div>
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -113,12 +157,12 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${averageOrderValue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Per order</p>
+            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">Revenue today</p>
           </CardContent>
         </Card>
 
@@ -137,39 +181,131 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Servers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">--</div>
-            <p className="text-xs text-muted-foreground">On duty</p>
+            <div className="text-2xl font-bold">${averageOrderValue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">Per order</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2 mb-8">
-        <Card className="col-span-2">
+        {/* Hourly Orders Chart */}
+        <Card>
           <CardHeader>
-            <CardTitle>Order Volume</CardTitle>
+            <CardTitle>Today's Orders</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={[]}
+                  data={hourlyOrders}
                   margin={{
                     top: 5,
                     right: 30,
                     left: 20,
-                    bottom: 5,
+                    bottom: 25,
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" />
+                  <XAxis dataKey="hour" angle={-45} textAnchor="end" />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="orders" fill="#ffc107" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Weekly Revenue Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={weeklyRevenue}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 25,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#0ea5e9"
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Popular Items Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Popular Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={popularItems}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={(entry) => entry.name}
+                  >
+                    {popularItems.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Revenue by Hour Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue by Hour</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={hourlyOrders}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 25,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" angle={-45} textAnchor="end" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="revenue" fill="#10b981" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
