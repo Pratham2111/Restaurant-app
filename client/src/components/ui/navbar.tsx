@@ -67,6 +67,9 @@ export function Navbar() {
               <Link href="/admin/tables">
                 <a className="text-lg font-medium">Table Management</a>
               </Link>
+              <Link href="/admin/menu">
+                <a className="text-lg font-medium">Menu Management</a>
+              </Link>
             </div>
           </SheetContent>
         </Sheet>
@@ -91,6 +94,11 @@ export function Navbar() {
           <Link href="/admin/tables">
             <a className="text-sm font-medium transition-colors hover:text-primary">
               Table Management
+            </a>
+          </Link>
+          <Link href="/admin/menu">
+            <a className="text-sm font-medium transition-colors hover:text-primary">
+              Menu Management
             </a>
           </Link>
         </div>

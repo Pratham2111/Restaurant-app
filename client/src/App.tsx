@@ -9,6 +9,7 @@ import Menu from "@/pages/menu";
 import Booking from "@/pages/booking";
 import Cart from "@/pages/cart";
 import TableManagement from "@/pages/admin/table-management";
+import MenuManagement from "@/pages/admin/menu-management";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
           <Route path="/booking" component={Booking} />
           <Route path="/cart" component={Cart} />
           <Route path="/admin/tables" component={TableManagement} />
+          <Route path="/admin/menu" component={MenuManagement} />
           <Route component={NotFound} />
         </Switch>
       </main>
