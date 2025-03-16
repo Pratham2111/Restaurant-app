@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
 import { Moon, Sun, LogOut } from "lucide-react";
 
@@ -15,6 +16,7 @@ export default function Account() {
   const { data: user, isLoading } = useQuery<User>({
     queryKey: ["/api/auth/me"],
     retry: false,
+    staleTime: 0,
     onError: () => {
       navigate("/login");
     }
@@ -23,12 +25,15 @@ export default function Account() {
   const handleLogout = async () => {
     try {
       await apiRequest("POST", "/api/auth/logout");
+      // Clear all queries and reset state
+      await queryClient.resetQueries();
       toast({
         title: "Success",
         description: "You have been logged out successfully."
       });
-      navigate("/login");
+      navigate("/");
     } catch (error) {
+      console.error("Logout failed:", error);
       toast({
         title: "Error",
         description: "Failed to logout. Please try again.",

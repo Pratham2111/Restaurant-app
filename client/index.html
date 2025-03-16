@@ -6,8 +6,10 @@
     <script>
       // Immediately check and apply the theme to prevent flicker
       let theme = localStorage.getItem("theme") || "light";
-      if (theme === "system") {
-        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      // Always default to light theme if not set
+      if (!theme || theme === "system") {
+        theme = "light";
+        localStorage.setItem("theme", theme);
       }
       document.documentElement.classList.add(theme);
     </script>
