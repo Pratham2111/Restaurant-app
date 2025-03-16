@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stage } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RotateCw } from 'lucide-react';
@@ -45,9 +45,9 @@ function ThreeDPreview() {
       camera={{ position: [0, 2, 8], fov: 50 }}
       gl={{ preserveDrawingBuffer: true }}
     >
-      <Stage environment="city" intensity={0.5}>
-        <FoodModel />
-      </Stage>
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[10, 10, 5]} intensity={1} />
+      <FoodModel />
       <OrbitControls
         autoRotate={autoRotate}
         autoRotateSpeed={4}
