@@ -79,9 +79,10 @@ export default function MenuManagement() {
   });
 
   function onSubmit(data: any) {
+    // Convert categoryId to number before submitting
     addItemMutation.mutate({
       ...data,
-      categoryId: parseInt(data.categoryId),
+      categoryId: Number(data.categoryId),
       price: data.price.toString()
     });
   }
