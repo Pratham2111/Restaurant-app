@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "./button";
-import { ShoppingCart, Menu } from "lucide-react";
+import { ShoppingCart, Menu, User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -9,6 +9,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./dropdown-menu";
 import { Badge } from "./badge";
 
 function getCartItemCount(): number {
@@ -95,7 +101,7 @@ export function Navbar() {
           </Link>
         </div>
 
-        <div className="flex-1 flex justify-end">
+        <div className="flex-1 flex justify-end items-center gap-2">
           <Link href="/cart">
             <a className="relative">
               <Button variant="ghost" size="icon">
@@ -110,6 +116,26 @@ export function Navbar() {
               )}
             </a>
           </Link>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/login">
+                  <a className="w-full cursor-pointer">Login</a>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/register">
+                  <a className="w-full cursor-pointer">Register</a>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </nav>
