@@ -27,7 +27,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
 // This would typically come from a cart store
-// For now we'll use localStorage to persist cart items
 interface CartItem {
   id: number;
   name: string;
@@ -43,6 +42,17 @@ function getCartItems(): CartItem[] {
 
 function saveCartItems(items: CartItem[]) {
   localStorage.setItem("cart", JSON.stringify(items));
+  // Dispatch both storage and custom event
+  window.dispatchEvent(new Event("cartUpdated"));
+  // Create a new storage event for cross-tab sync
+  if (typeof window !== "undefined") {
+    const event = new StorageEvent('storage', {
+      key: 'cart',
+      newValue: JSON.stringify(items),
+      storageArea: localStorage
+    });
+    window.dispatchEvent(event);
+  }
 }
 
 export default function Cart() {

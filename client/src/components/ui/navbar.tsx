@@ -67,18 +67,24 @@ export const Navbar: React.FC = () => {
     // Initial cart count
     setCartCount(getCartItemCount());
 
-    // Listen for storage changes
-    const handleStorageChange = () => {
+    // Listen for storage changes (cross-tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'cart') {
+        setCartCount(getCartItemCount());
+      }
+    };
+
+    // Listen for custom cartUpdated event (same-tab)
+    const handleCartUpdate = () => {
       setCartCount(getCartItemCount());
     };
 
     window.addEventListener("storage", handleStorageChange);
-    // Also listen for our custom event for same-tab updates
-    window.addEventListener("cartUpdated", handleStorageChange);
+    window.addEventListener("cartUpdated", handleCartUpdate);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("cartUpdated", handleStorageChange);
+      window.removeEventListener("cartUpdated", handleCartUpdate);
     };
   }, []);
 
@@ -143,7 +149,7 @@ export const Navbar: React.FC = () => {
                 <ShoppingCart className="h-5 w-5" />
               </Button>
               {cartCount > 0 && (
-                <Badge 
+                <Badge
                   className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-restaurant-yellow text-restaurant-black"
                 >
                   {cartCount}
