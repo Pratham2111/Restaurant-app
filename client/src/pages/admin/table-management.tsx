@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertTableSchema } from "@shared/schema";
 import {
   Card,
   CardContent,
@@ -10,20 +13,51 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { Table, Server } from "@shared/schema";
 
 export default function TableManagement() {
   const [selectedSection, setSelectedSection] = useState<string>("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const form = useForm({
+    resolver: zodResolver(insertTableSchema),
+    defaultValues: {
+      name: "",
+      section: "main",
+      seats: 2,
+      shape: "round",
+      status: "available",
+      isActive: true,
+      minimumSpend: "0",
+      notes: ""
+    }
+  });
 
   const { data: tables, isLoading: loadingTables } = useQuery<Table[]>({
     queryKey: ["/api/tables"],
@@ -31,6 +65,33 @@ export default function TableManagement() {
 
   const { data: servers, isLoading: loadingServers } = useQuery<Server[]>({
     queryKey: ["/api/servers/active"],
+  });
+
+  const createTableMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/tables", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to create table');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      toast({
+        title: "Table Created",
+        description: "New table has been added successfully."
+      });
+      form.reset();
+      setDialogOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create table. Please try again.",
+        variant: "destructive"
+      });
+    }
   });
 
   const updateTableStatusMutation = useMutation({
@@ -80,6 +141,10 @@ export default function TableManagement() {
     },
   });
 
+  function onSubmit(data: any) {
+    createTableMutation.mutate(data);
+  }
+
   if (loadingTables || loadingServers) {
     return <div className="container py-8">Loading...</div>;
   }
@@ -108,17 +173,108 @@ export default function TableManagement() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Table Management</h1>
-        <Button
-          onClick={() => {
-            // TODO: Implement add new table functionality
-            toast({
-              title: "Coming Soon",
-              description: "Add new table functionality will be available soon.",
-            });
-          }}
-        >
-          Add New Table
-        </Button>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>Add New Table</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Table</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Table Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="section"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Section</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select section" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="main">Main</SelectItem>
+                          <SelectItem value="outdoor">Outdoor</SelectItem>
+                          <SelectItem value="private">Private</SelectItem>
+                          <SelectItem value="bar">Bar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="seats"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Number of Seats</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="1" 
+                          max="12"
+                          {...field}
+                          onChange={e => field.onChange(parseInt(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="shape"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Table Shape</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select shape" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="round">Round</SelectItem>
+                          <SelectItem value="square">Square</SelectItem>
+                          <SelectItem value="rectangular">Rectangular</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                  disabled={createTableMutation.isPending}
+                >
+                  {createTableMutation.isPending ? "Creating..." : "Create Table"}
+                </Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="mb-6">
