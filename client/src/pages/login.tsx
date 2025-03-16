@@ -51,7 +51,8 @@ export default function Login() {
         title: "Success",
         description: "You have been logged in successfully.",
       });
-      window.location.reload(); // Reload to update auth state
+      // Navigate to home page instead of reloading
+      navigate("/");
     },
     onError: (error: Error) => {
       toast({
