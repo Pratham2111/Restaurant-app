@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,14 +11,22 @@ import {
   ResponsiveContainer
 } from "recharts";
 import { format } from "date-fns";
-import { TableProperties, Users, UtensilsCrossed, DollarSign } from "lucide-react";
+import { 
+  TableProperties, 
+  Users, 
+  UtensilsCrossed, 
+  DollarSign,
+  ClipboardList,
+  Coffee
+} from "lucide-react";
+import type { Table, Order } from "@shared/schema";
 
 export default function Dashboard() {
-  const { data: orders } = useQuery({
+  const { data: orders } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
   });
 
-  const { data: tables } = useQuery({
+  const { data: tables } = useQuery<Table[]>({
     queryKey: ["/api/tables"],
   });
 
@@ -32,6 +41,64 @@ export default function Dashboard() {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8">Restaurant Dashboard</h1>
 
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <Link href="/admin/tables">
+          <a>
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TableProperties className="h-5 w-5" />
+                  Table Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Manage tables, sections, and assignments
+                </p>
+              </CardContent>
+            </Card>
+          </a>
+        </Link>
+
+        <Link href="/admin/menu">
+          <a>
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Coffee className="h-5 w-5" />
+                  Menu Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Update menu items and categories
+                </p>
+              </CardContent>
+            </Card>
+          </a>
+        </Link>
+
+        <Link href="/admin/orders">
+          <a>
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5" />
+                  Order Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  View and manage customer orders
+                </p>
+              </CardContent>
+            </Card>
+          </a>
+        </Link>
+      </div>
+
+      {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -80,6 +147,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2 mb-8">
         <Card className="col-span-2">
           <CardHeader>

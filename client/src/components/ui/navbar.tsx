@@ -65,13 +65,7 @@ export function Navbar() {
                 <a className="text-lg font-medium">Book a Table</a>
               </Link>
               <Link href="/admin/dashboard">
-                <a className="text-lg font-medium">Dashboard</a>
-              </Link>
-              <Link href="/admin/tables">
-                <a className="text-lg font-medium">Table Management</a>
-              </Link>
-              <Link href="/admin/menu">
-                <a className="text-lg font-medium">Menu Management</a>
+                <a className="text-lg font-medium">Restaurant Dashboard</a>
               </Link>
             </div>
           </SheetContent>
@@ -96,17 +90,7 @@ export function Navbar() {
           </Link>
           <Link href="/admin/dashboard">
             <a className="text-sm font-medium transition-colors hover:text-primary">
-              Dashboard
-            </a>
-          </Link>
-          <Link href="/admin/tables">
-            <a className="text-sm font-medium transition-colors hover:text-primary">
-              Table Management
-            </a>
-          </Link>
-          <Link href="/admin/menu">
-            <a className="text-sm font-medium transition-colors hover:text-primary">
-              Menu Management
+              Restaurant Dashboard
             </a>
           </Link>
         </div>
