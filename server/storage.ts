@@ -98,6 +98,13 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async createMenuItem(item: InsertMenuItem): Promise<MenuItem> {
+    const id = this.currentIds.menuItem++;
+    const newItem = { ...item, id };
+    this.menuItems.set(id, newItem);
+    return newItem;
+  }
+
   async getTables(): Promise<Table[]> {
     return Array.from(this.tables.values());
   }

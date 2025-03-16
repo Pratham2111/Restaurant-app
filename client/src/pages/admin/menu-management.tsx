@@ -58,10 +58,18 @@ export default function MenuManagement() {
 
   const addItemMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/menu-items", {
+      // Ensure proper type conversions
+      const menuItemData = {
         ...data,
-        price: data.price.toString()
-      });
+        categoryId: Number(data.categoryId),
+        price: data.price.toString(), // Ensure price is sent as string
+      };
+
+      const res = await apiRequest("POST", "/api/menu-items", menuItemData);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to add menu item');
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -72,10 +80,10 @@ export default function MenuManagement() {
       });
       form.reset();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to add menu item. Please try again.",
+        description: error.message || "Failed to add menu item. Please try again.",
         variant: "destructive"
       });
     }
