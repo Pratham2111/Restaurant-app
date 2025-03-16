@@ -1,6 +1,8 @@
 import {
   type Category, type MenuItem, type Table, type Booking, type Order,
-  type InsertCategory, type InsertMenuItem, type InsertTable, type InsertBooking, type InsertOrder
+  type TableAssignment, type Server,
+  type InsertCategory, type InsertMenuItem, type InsertTable, type InsertBooking, 
+  type InsertOrder, type InsertTableAssignment, type InsertServer
 } from "@shared/schema";
 
 export interface IStorage {
@@ -13,6 +15,11 @@ export interface IStorage {
   
   // Tables
   getTables(): Promise<Table[]>;
+  getTableById(id: number): Promise<Table | undefined>;
+  getTablesBySection(section: string): Promise<Table[]>;
+  getTablesByStatus(status: string): Promise<Table[]>;
+  updateTableStatus(id: number, status: string): Promise<Table>;
+  createTable(table: InsertTable): Promise<Table>;
   getAvailableTables(date: Date): Promise<Table[]>;
   
   // Bookings
@@ -22,19 +29,34 @@ export interface IStorage {
   // Orders
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: number): Promise<Order | undefined>;
+
+  // Server Management
+  getServers(): Promise<Server[]>;
+  getActiveServers(): Promise<Server[]>;
+  createServer(server: InsertServer): Promise<Server>;
+
+  // Table Assignment Management
+  getTableAssignments(status?: string): Promise<TableAssignment[]>;
+  createTableAssignment(assignment: InsertTableAssignment): Promise<TableAssignment>;
+  updateTableAssignment(id: number, endTime: Date): Promise<TableAssignment>;
+  getActiveAssignmentsByServer(serverId: number): Promise<TableAssignment[]>;
 }
 
 export class MemStorage implements IStorage {
   private categories: Map<number, Category>;
   private menuItems: Map<number, MenuItem>;
   private tables: Map<number, Table>;
+  private servers: Map<number, Server>;
+  private tableAssignments: Map<number, TableAssignment>;
   private bookings: Map<number, Booking>;
   private orders: Map<number, Order>;
-  
+
   private currentIds: {
     category: number;
     menuItem: number;
     table: number;
+    server: number;
+    tableAssignment: number;
     booking: number;
     order: number;
   };
@@ -43,18 +65,21 @@ export class MemStorage implements IStorage {
     this.categories = new Map();
     this.menuItems = new Map();
     this.tables = new Map();
+    this.servers = new Map();
+    this.tableAssignments = new Map();
     this.bookings = new Map();
     this.orders = new Map();
-    
+
     this.currentIds = {
       category: 1,
       menuItem: 1,
       table: 1,
+      server: 1,
+      tableAssignment: 1,
       booking: 1,
       order: 1
     };
 
-    // Initialize with sample data
     this.initSampleData();
   }
 
@@ -74,6 +99,38 @@ export class MemStorage implements IStorage {
 
   async getTables(): Promise<Table[]> {
     return Array.from(this.tables.values());
+  }
+
+  async getTableById(id: number): Promise<Table | undefined> {
+    return this.tables.get(id);
+  }
+
+  async getTablesBySection(section: string): Promise<Table[]> {
+    return Array.from(this.tables.values()).filter(
+      table => table.section === section
+    );
+  }
+
+  async getTablesByStatus(status: string): Promise<Table[]> {
+    return Array.from(this.tables.values()).filter(
+      table => table.status === status
+    );
+  }
+
+  async updateTableStatus(id: number, status: string): Promise<Table> {
+    const table = this.tables.get(id);
+    if (!table) throw new Error("Table not found");
+
+    const updatedTable = { ...table, status };
+    this.tables.set(id, updatedTable);
+    return updatedTable;
+  }
+
+  async createTable(table: InsertTable): Promise<Table> {
+    const id = this.currentIds.table++;
+    const newTable = { ...table, id };
+    this.tables.set(id, newTable);
+    return newTable;
   }
 
   async getAvailableTables(date: Date): Promise<Table[]> {
@@ -112,8 +169,54 @@ export class MemStorage implements IStorage {
     return this.orders.get(id);
   }
 
+  async getServers(): Promise<Server[]> {
+    return Array.from(this.servers.values());
+  }
+
+  async getActiveServers(): Promise<Server[]> {
+    return Array.from(this.servers.values()).filter(
+      server => server.isActive
+    );
+  }
+
+  async createServer(server: InsertServer): Promise<Server> {
+    const id = this.currentIds.server++;
+    const newServer = { ...server, id };
+    this.servers.set(id, newServer);
+    return newServer;
+  }
+
+  async getTableAssignments(status?: string): Promise<TableAssignment[]> {
+    const assignments = Array.from(this.tableAssignments.values());
+    return status 
+      ? assignments.filter(assignment => assignment.status === status)
+      : assignments;
+  }
+
+  async createTableAssignment(assignment: InsertTableAssignment): Promise<TableAssignment> {
+    const id = this.currentIds.tableAssignment++;
+    const newAssignment = { ...assignment, id };
+    this.tableAssignments.set(id, newAssignment);
+    return newAssignment;
+  }
+
+  async updateTableAssignment(id: number, endTime: Date): Promise<TableAssignment> {
+    const assignment = this.tableAssignments.get(id);
+    if (!assignment) throw new Error("Assignment not found");
+
+    const updatedAssignment = { ...assignment, endTime, status: 'completed' };
+    this.tableAssignments.set(id, updatedAssignment);
+    return updatedAssignment;
+  }
+
+  async getActiveAssignmentsByServer(serverId: number): Promise<TableAssignment[]> {
+    return Array.from(this.tableAssignments.values()).filter(
+      assignment => assignment.serverId === serverId && assignment.status === 'active'
+    );
+  }
+
+
   private initSampleData() {
-    // Sample Categories
     const categories: InsertCategory[] = [
       {
         name: "Appetizers",
@@ -142,7 +245,6 @@ export class MemStorage implements IStorage {
       this.categories.set(id, { ...category, id });
     });
 
-    // Sample Menu Items
     const menuItems: InsertMenuItem[] = [
       {
         categoryId: 1,
@@ -158,7 +260,6 @@ export class MemStorage implements IStorage {
         price: "24.99",
         imageUrl: "https://images.unsplash.com/photo-1564486054184-1c26aa52b1c3"
       }
-      // Add more items as needed
     ];
 
     menuItems.forEach(item => {
@@ -166,16 +267,52 @@ export class MemStorage implements IStorage {
       this.menuItems.set(id, { ...item, id });
     });
 
-    // Sample Tables
     const tables: InsertTable[] = [
-      { name: "Table 1", seats: 2 },
-      { name: "Table 2", seats: 4 },
-      { name: "Table 3", seats: 6 }
+      { 
+        name: "Table 1",
+        section: "main",
+        seats: 2,
+        shape: "round",
+        status: "available",
+        isActive: true,
+        minimumSpend: "0",
+        notes: "Near window"
+      },
+      { 
+        name: "Table 2",
+        section: "main",
+        seats: 4,
+        shape: "square",
+        status: "available",
+        isActive: true,
+        minimumSpend: "0",
+        notes: "Center area"
+      },
+      { 
+        name: "Table 3",
+        section: "outdoor",
+        seats: 6,
+        shape: "rectangular",
+        status: "available",
+        isActive: true,
+        minimumSpend: "0",
+        notes: "Patio seating"
+      }
     ];
 
     tables.forEach(table => {
       const id = this.currentIds.table++;
       this.tables.set(id, { ...table, id });
+    });
+
+    const servers: InsertServer[] = [
+      { name: "John Smith", code: "JS001", isActive: true },
+      { name: "Sarah Johnson", code: "SJ002", isActive: true }
+    ];
+
+    servers.forEach(server => {
+      const id = this.currentIds.server++;
+      this.servers.set(id, { ...server, id });
     });
   }
 }

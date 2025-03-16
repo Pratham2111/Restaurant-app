@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import Menu from "@/pages/menu";
 import Booking from "@/pages/booking";
 import Cart from "@/pages/cart";
+import TableManagement from "@/pages/admin/table-management";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
           <Route path="/menu" component={Menu} />
           <Route path="/booking" component={Booking} />
           <Route path="/cart" component={Cart} />
+          <Route path="/admin/tables" component={TableManagement} />
           <Route component={NotFound} />
         </Switch>
       </main>
