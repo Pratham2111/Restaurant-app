@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
-import { Square, Circle, RectangleHorizontal } from "lucide-react";
+import { Square, Circle, RectangleHorizontal, AlertCircle } from "lucide-react";
 import type { Table } from "@shared/schema";
 
 export default function Booking() {
@@ -38,16 +38,12 @@ export default function Booking() {
     }
   });
 
-  const { data: availableTables } = useQuery<Table[]>({
-    queryKey: ["/api/tables/available", selectedDate?.toISOString()],
-    queryFn: async () => {
-      if (!selectedDate) return [];
-      const res = await fetch(`/api/tables/available?date=${selectedDate.toISOString()}`);
-      if (!res.ok) throw new Error("Failed to fetch available tables");
-      return res.json();
-    },
+  const { data: tables, isLoading: loadingTables } = useQuery<Table[]>({
+    queryKey: ["/api/tables"],
     enabled: !!selectedDate,
   });
+
+  const availableTables = tables?.filter(table => table.status === "available");
 
   const bookingMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -126,6 +122,32 @@ export default function Booking() {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'available':
+        return 'bg-green-100 text-green-800';
+      case 'occupied':
+        return 'bg-red-100 text-red-800';
+      case 'reserved':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'maintenance':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (loadingTables) {
+    return (
+      <div className="container py-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">Book a Table</h1>
+          <div className="text-center">Loading tables...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-8">
       <div className="max-w-4xl mx-auto">
@@ -143,39 +165,61 @@ export default function Booking() {
             />
           </div>
 
-          {selectedDate && (
+          {selectedDate && tables && (
             <div>
               <h2 className="text-lg font-semibold mb-4">2. Choose a Table</h2>
               <div className="grid grid-cols-2 gap-4">
-                {availableTables?.map(table => (
-                  <Card
-                    key={table.id}
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                      selectedTableId === table.id
-                        ? 'ring-2 ring-restaurant-yellow'
-                        : ''
-                    }`}
-                    onClick={() => {
-                      setSelectedTableId(table.id);
-                      form.setValue('tableId', table.id);
-                    }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-medium">{table.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {table.seats} seats
-                          </p>
+                {tables.map(table => {
+                  const isAvailable = table.status === 'available';
+                  return (
+                    <Card
+                      key={table.id}
+                      className={`relative transition-all duration-200 ${
+                        isAvailable 
+                          ? 'cursor-pointer hover:shadow-lg'
+                          : 'opacity-60 cursor-not-allowed'
+                      } ${
+                        selectedTableId === table.id && isAvailable
+                          ? 'ring-2 ring-restaurant-yellow'
+                          : ''
+                      }`}
+                      onClick={() => {
+                        if (isAvailable) {
+                          setSelectedTableId(table.id);
+                          form.setValue('tableId', table.id);
+                        }
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-medium">{table.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {table.seats} seats
+                            </p>
+                          </div>
+                          {getTableIcon(table.shape)}
                         </div>
-                        {getTableIcon(table.shape)}
-                      </div>
-                      <div className={`text-xs px-2 py-1 rounded-full inline-block ${getSectionColor(table.section)}`}>
-                        {table.section}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <div className="flex gap-2 flex-wrap">
+                          <span className={`text-xs px-2 py-1 rounded-full ${getSectionColor(table.section)}`}>
+                            {table.section}
+                          </span>
+                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(table.status)}`}>
+                            {table.status}
+                          </span>
+                        </div>
+                        {!isAvailable && (
+                          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                              <AlertCircle className="h-4 w-4" />
+                              <span>Not Available</span>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           )}
