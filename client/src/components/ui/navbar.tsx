@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "./button";
 import { ShoppingCart, Menu, User } from "lucide-react";
@@ -17,15 +17,15 @@ import {
 } from "./dropdown-menu";
 import { Badge } from "./badge";
 
-function getCartItemCount(): number {
+const getCartItemCount = (): number => {
   if (typeof window === "undefined") return 0;
   const items = localStorage.getItem("cart");
   if (!items) return 0;
   const cartItems = JSON.parse(items);
   return cartItems.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
-}
+};
 
-export function Navbar() {
+export const Navbar: React.FC = () => {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
@@ -140,4 +140,4 @@ export function Navbar() {
       </div>
     </nav>
   );
-}
+};
