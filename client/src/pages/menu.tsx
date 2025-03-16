@@ -5,9 +5,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import type { Category, MenuItem } from "@shared/schema";
 
+// Helper function to get cart items from localStorage
+function getCartItems(): Array<{id: number, name: string, price: number, quantity: number}> {
+  if (typeof window === "undefined") return [];
+  const items = localStorage.getItem("cart");
+  return items ? JSON.parse(items) : [];
+}
+
+// Helper function to save cart items to localStorage
+function saveCartItems(items: Array<{id: number, name: string, price: number, quantity: number}>) {
+  localStorage.setItem("cart", JSON.stringify(items));
+}
+
 export default function Menu() {
   const { toast } = useToast();
-  
+
   const { data: categories, isLoading: loadingCategories } = useQuery<Category[]>({
     queryKey: ["/api/categories"]
   });
@@ -38,7 +50,29 @@ export default function Menu() {
   }
 
   const handleAddToCart = (item: MenuItem) => {
-    // In a real app, this would dispatch to a cart store
+    const currentCart = getCartItems();
+    const existingItem = currentCart.find(cartItem => cartItem.id === item.id);
+
+    let newCart;
+    if (existingItem) {
+      // If item exists, increase quantity
+      newCart = currentCart.map(cartItem => 
+        cartItem.id === item.id 
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      );
+    } else {
+      // If item doesn't exist, add it with quantity 1
+      newCart = [...currentCart, {
+        id: item.id,
+        name: item.name,
+        price: Number(item.price),
+        quantity: 1
+      }];
+    }
+
+    saveCartItems(newCart);
+
     toast({
       title: "Added to cart",
       description: `${item.name} has been added to your cart.`
@@ -51,7 +85,7 @@ export default function Menu() {
         <div key={category.id} className="mb-12">
           <h2 className="text-3xl font-bold mb-6">{category.name}</h2>
           <p className="text-muted-foreground mb-8">{category.description}</p>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {menuItems
               ?.filter(item => item.categoryId === category.id)
@@ -76,7 +110,7 @@ export default function Menu() {
                     </p>
                     <Button 
                       onClick={() => handleAddToCart(item)}
-                      className="w-full"
+                      className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
                     >
                       Add to Cart
                     </Button>
