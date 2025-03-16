@@ -64,6 +64,9 @@ export function Navbar() {
               <Link href="/booking">
                 <a className="text-lg font-medium">Book a Table</a>
               </Link>
+              <Link href="/admin/dashboard">
+                <a className="text-lg font-medium">Dashboard</a>
+              </Link>
               <Link href="/admin/tables">
                 <a className="text-lg font-medium">Table Management</a>
               </Link>
@@ -89,6 +92,11 @@ export function Navbar() {
           <Link href="/booking">
             <a className="text-sm font-medium transition-colors hover:text-primary">
               Book a Table
+            </a>
+          </Link>
+          <Link href="/admin/dashboard">
+            <a className="text-sm font-medium transition-colors hover:text-primary">
+              Dashboard
             </a>
           </Link>
           <Link href="/admin/tables">

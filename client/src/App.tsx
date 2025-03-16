@@ -10,6 +10,7 @@ import Booking from "@/pages/booking";
 import Cart from "@/pages/cart";
 import TableManagement from "@/pages/admin/table-management";
 import MenuManagement from "@/pages/admin/menu-management";
+import Dashboard from "@/pages/admin/dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/cart" component={Cart} />
           <Route path="/admin/tables" component={TableManagement} />
           <Route path="/admin/menu" component={MenuManagement} />
+          <Route path="/admin/dashboard" component={Dashboard} />
           <Route component={NotFound} />
         </Switch>
       </main>
