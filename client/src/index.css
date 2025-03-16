@@ -5,12 +5,22 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+  }
+
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 0 0% 100%;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-background text-foreground transition-colors duration-300;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -25,5 +35,23 @@
 
   .btn-outline {
     @apply border-2 border-restaurant-black text-restaurant-black hover:bg-restaurant-black hover:text-restaurant-yellow transition-colors;
+  }
+
+  /* Theme transition classes */
+  .theme-transition {
+    @apply transition-all duration-300;
+  }
+
+  /* Add smooth transitions for theme toggle */
+  .sun-icon, .moon-icon {
+    @apply transition-all duration-300;
+  }
+
+  .sun-icon {
+    @apply rotate-0 scale-100 dark:-rotate-90 dark:scale-0;
+  }
+
+  .moon-icon {
+    @apply absolute rotate-90 scale-0 dark:rotate-0 dark:scale-100;
   }
 }
