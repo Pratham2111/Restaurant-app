@@ -35,11 +35,12 @@ export const Navbar: React.FC = () => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  const { data: user } = useQuery<UserType>({
+  const { data: user, isLoading } = useQuery<UserType>({
     queryKey: ["/api/auth/me"],
     retry: false,
     staleTime: 0,
-    cacheTime: 0
+    enabled: true, // Always enabled to check auth state
+    onError: () => {} // Silence 401 errors when not logged in
   });
 
   const handleLogout = async () => {
@@ -49,8 +50,8 @@ export const Navbar: React.FC = () => {
         title: "Success",
         description: "You have been logged out successfully."
       });
-      // Invalidate the auth query
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Clear all queries and refetch auth state
+      await queryClient.resetQueries();
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -158,7 +159,7 @@ export const Navbar: React.FC = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {user ? (
+              {!isLoading && user ? (
                 <>
                   <DropdownMenuItem asChild>
                     <Link href="/account">
