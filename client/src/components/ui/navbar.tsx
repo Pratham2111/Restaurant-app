@@ -39,8 +39,7 @@ export const Navbar: React.FC = () => {
     queryKey: ["/api/auth/me"],
     retry: false,
     staleTime: 0,
-    enabled: true, // Always enabled to check auth state
-    onError: () => {} // Silence 401 errors when not logged in
+    enabled: true,
   });
 
   const handleLogout = async () => {
@@ -90,29 +89,29 @@ export const Navbar: React.FC = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="container flex h-16 items-center">
+      <div className="container flex h-14 sm:h-16 items-center px-4">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" className="md:hidden">
+            <Button variant="ghost" className="md:hidden mr-2">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left">
+          <SheetContent side="left" className="w-[80%] sm:w-[300px]">
             <SheetHeader>
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-4 mt-4">
               <Link href="/">
-                <a className="text-lg font-medium">Home</a>
+                <a className="text-base sm:text-lg font-medium">Home</a>
               </Link>
               <Link href="/menu">
-                <a className="text-lg font-medium">Menu</a>
+                <a className="text-base sm:text-lg font-medium">Menu</a>
               </Link>
               <Link href="/booking">
-                <a className="text-lg font-medium">Book a Table</a>
+                <a className="text-base sm:text-lg font-medium">Book a Table</a>
               </Link>
               <Link href="/admin/dashboard">
-                <a className="text-lg font-medium">Restaurant Dashboard</a>
+                <a className="text-base sm:text-lg font-medium">Restaurant Dashboard</a>
               </Link>
             </div>
           </SheetContent>
@@ -120,11 +119,11 @@ export const Navbar: React.FC = () => {
 
         <div className="mr-4 hidden md:flex">
           <Link href="/">
-            <a className="text-xl font-bold">La Maison</a>
+            <a className="text-lg sm:text-xl font-bold">La Maison</a>
           </Link>
         </div>
 
-        <div className="hidden md:flex items-center space-x-6 mx-6">
+        <div className="hidden md:flex items-center space-x-4 lg:space-x-6 mx-4 lg:mx-6">
           <Link href="/menu">
             <a className="text-sm font-medium transition-colors hover:text-primary">
               Menu
@@ -142,15 +141,15 @@ export const Navbar: React.FC = () => {
           </Link>
         </div>
 
-        <div className="flex-1 flex justify-end items-center gap-2">
+        <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
           <Link href="/cart">
             <a className="relative">
-              <Button variant="ghost" size="icon">
-                <ShoppingCart className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               {cartCount > 0 && (
                 <Badge
-                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-restaurant-yellow text-restaurant-black"
+                  className="absolute -top-2 -right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 flex items-center justify-center bg-restaurant-yellow text-restaurant-black text-xs sm:text-sm"
                 >
                   {cartCount}
                 </Badge>
@@ -160,11 +159,11 @@ export const Navbar: React.FC = () => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                <User className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-[200px]">
               {!isLoading && user ? (
                 <>
                   <DropdownMenuItem asChild>

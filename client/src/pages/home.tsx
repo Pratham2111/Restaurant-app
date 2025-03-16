@@ -76,7 +76,7 @@ export default function Home() {
     <div className="relative">
       {/* Hero Carousel Section */}
       <Carousel
-        className="w-full h-[600px]"
+        className="w-full h-[400px] sm:h-[500px] md:h-[600px]"
         opts={{
           align: "start",
           loop: true,
@@ -93,29 +93,29 @@ export default function Home() {
           {heroImages.map((image, index) => (
             <CarouselItem key={index}>
               <div
-                className="h-[600px] bg-cover bg-center relative"
+                className="h-[400px] sm:h-[500px] md:h-[600px] bg-cover bg-center relative"
                 style={{
                   backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${image.url})`,
                 }}
               >
-                <div className="container h-full flex items-center">
+                <div className="container h-full flex items-center px-4">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                     className="max-w-2xl text-white"
                   >
-                    <h1 className="text-5xl font-bold mb-6 text-restaurant-yellow">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-restaurant-yellow">
                       {image.title}
                     </h1>
-                    <p className="text-xl mb-8 font-light">
+                    <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 font-light">
                       {image.description}
                     </p>
-                    <div className="flex gap-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
                       <Link href="/menu">
                         <Button
                           size="lg"
-                          className="bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                          className="w-full sm:w-auto bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
                         >
                           View Menu
                         </Button>
@@ -124,7 +124,7 @@ export default function Home() {
                         <Button
                           size="lg"
                           variant="outline"
-                          className="bg-transparent text-white border-white hover:bg-white/10"
+                          className="w-full sm:w-auto bg-transparent text-white border-white hover:bg-white/10"
                         >
                           Book a Table
                         </Button>
@@ -139,18 +139,18 @@ export default function Home() {
       </Carousel>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12 text-restaurant-black">
+      <section className="py-12 sm:py-16 md:py-20 bg-white">
+        <div className="container px-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-restaurant-black">
             Why Choose La Maison
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
-                  <feature.icon className="w-10 h-10 mx-auto mb-4 text-restaurant-yellow" />
-                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
+                  <feature.icon className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-4 text-restaurant-yellow" />
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -159,16 +159,16 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12 text-restaurant-black">
+      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
+        <div className="container px-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-restaurant-black">
             What Our Guests Say
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="bg-white hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
-                  <p className="text-lg mb-4 italic text-muted-foreground">
+                  <p className="text-base sm:text-lg mb-4 italic text-muted-foreground">
                     "{testimonial.text}"
                   </p>
                   <p className="font-semibold text-restaurant-black">
@@ -182,12 +182,12 @@ export default function Home() {
       </section>
 
       {/* Restaurant Information */}
-      <section className="py-20 bg-restaurant-black text-white">
-        <div className="container">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      <section className="py-12 sm:py-16 md:py-20 bg-restaurant-black text-white">
+        <div className="container px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold mb-6 text-restaurant-yellow">Visit Us</h2>
-              <p className="text-lg mb-4">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-restaurant-yellow">Visit Us</h2>
+              <p className="text-base sm:text-lg mb-4">
                 123 Gourmet Street
                 <br />
                 Culinary District
@@ -196,12 +196,12 @@ export default function Home() {
               </p>
               <Button
                 size="lg"
-                className="bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                className="w-full sm:w-auto bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
               >
                 Get Directions
               </Button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <img
                 src="https://images.unsplash.com/photo-1466978913421-dad2ebd01d17"
                 alt="Restaurant interior"
