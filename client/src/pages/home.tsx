@@ -31,7 +31,11 @@ export default function Home() {
                 </Button>
               </Link>
               <Link href="/booking">
-                <Button size="lg" variant="outline" className="bg-white/90 text-black border-white hover:bg-white hover:text-black hover:border-white">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="bg-white/90 text-black border-white transition-all duration-300 hover:bg-white hover:text-black hover:border-white hover:scale-105 hover:shadow-lg"
+                >
                   Book a Table
                 </Button>
               </Link>
