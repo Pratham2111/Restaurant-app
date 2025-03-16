@@ -13,6 +13,7 @@ import MenuManagement from "@/pages/admin/menu-management";
 import Dashboard from "@/pages/admin/dashboard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import Account from "@/pages/account";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/admin/dashboard" component={Dashboard} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+          <Route path="/account" component={Account} />
           <Route component={NotFound} />
         </Switch>
       </main>
