@@ -58,7 +58,10 @@ export default function MenuManagement() {
 
   const addItemMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/menu-items", data);
+      const res = await apiRequest("POST", "/api/menu-items", {
+        ...data,
+        price: data.price.toString()
+      });
       return res.json();
     },
     onSuccess: () => {
@@ -79,12 +82,7 @@ export default function MenuManagement() {
   });
 
   function onSubmit(data: any) {
-    // Convert categoryId to number before submitting
-    addItemMutation.mutate({
-      ...data,
-      categoryId: Number(data.categoryId),
-      price: data.price.toString()
-    });
+    addItemMutation.mutate(data);
   }
 
   if (loadingCategories || loadingItems) {
@@ -117,8 +115,8 @@ export default function MenuManagement() {
                       <FormItem>
                         <FormLabel>Category</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          value={field.value.toString()}
+                          onValueChange={(value) => field.onChange(Number(value))}
+                          value={field.value ? field.value.toString() : ""}
                         >
                           <FormControl>
                             <SelectTrigger>
