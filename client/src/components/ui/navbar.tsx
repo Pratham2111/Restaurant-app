@@ -20,6 +20,7 @@ import { Badge } from "./badge";
 import type { User as UserType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 const getCartItemCount = (): number => {
   if (typeof window === "undefined") return 0;
@@ -37,7 +38,8 @@ export const Navbar: React.FC = () => {
   const { data: user } = useQuery<UserType>({
     queryKey: ["/api/auth/me"],
     retry: false,
-    onError: () => {}
+    staleTime: 0,
+    cacheTime: 0
   });
 
   const handleLogout = async () => {
@@ -45,9 +47,10 @@ export const Navbar: React.FC = () => {
       await apiRequest("POST", "/api/auth/logout");
       toast({
         title: "Success",
-        description: "You have been logged out successfully.",
+        description: "You have been logged out successfully."
       });
-      // Navigate to home page instead of reloading
+      // Invalidate the auth query
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
 
 const loginSchema = z.object({
@@ -46,12 +46,13 @@ export default function Login() {
       }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "You have been logged in successfully.",
       });
-      // Navigate to home page instead of reloading
+      // Invalidate auth query and navigate
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       navigate("/");
     },
     onError: (error: Error) => {
