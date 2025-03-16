@@ -1,88 +1,107 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem, 
-  CarouselNext, 
-  CarouselPrevious 
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  CarouselApi,
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, UtensilsCrossed, Wine, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 const heroImages = [
   {
     url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
     title: "Welcome to La Maison",
-    description: "Experience exquisite dining in an elegant atmosphere"
+    description: "Experience exquisite dining in an elegant atmosphere",
   },
   {
     url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0",
     title: "Culinary Excellence",
-    description: "Savor our chef's masterful creations"
+    description: "Savor our chef's masterful creations",
   },
   {
     url: "https://images.unsplash.com/photo-1559339352-11d035aa65de",
     title: "Perfect Ambiance",
-    description: "Create memorable moments in our sophisticated setting"
-  }
+    description: "Create memorable moments in our sophisticated setting",
+  },
 ];
 
 const features = [
   {
     icon: UtensilsCrossed,
     title: "Fine Dining",
-    description: "Experience culinary excellence with our master chefs"
+    description: "Experience culinary excellence with our master chefs",
   },
   {
     icon: Wine,
     title: "Premium Bar",
-    description: "Extensive selection of wines and craft cocktails"
+    description: "Extensive selection of wines and craft cocktails",
   },
   {
     icon: Users,
     title: "Private Events",
-    description: "Perfect venue for special occasions and gatherings"
+    description: "Perfect venue for special occasions and gatherings",
   },
   {
     icon: Clock,
     title: "Reservations",
-    description: "Book your table for a memorable dining experience"
-  }
+    description: "Book your table for a memorable dining experience",
+  },
 ];
 
 const testimonials = [
   {
     text: "An unforgettable dining experience. The food was exceptional and the service impeccable.",
-    author: "Emily Thompson"
+    author: "Emily Thompson",
   },
   {
     text: "The atmosphere is sophisticated yet welcoming. Perfect for special occasions.",
-    author: "Michael Chen"
+    author: "Michael Chen",
   },
   {
     text: "Best fine dining restaurant in the city. The wine selection is outstanding.",
-    author: "Sarah Johnson"
-  }
+    author: "Sarah Johnson",
+  },
 ];
 
 export default function Home() {
+  const [api, setApi] = useState<CarouselApi>();
+
   return (
     <div className="relative">
       {/* Hero Carousel Section */}
-      <Carousel className="w-full h-[600px]">
+      <Carousel
+        className="w-full h-[600px]"
+        opts={{
+          align: "start",
+          loop: true,
+        }}
+        plugins={[
+          Autoplay({
+            delay: 5000,
+            stopOnInteraction: false,
+          }),
+        ]}
+        setApi={setApi}
+      >
         <CarouselContent>
           {heroImages.map((image, index) => (
             <CarouselItem key={index}>
-              <div 
+              <div
                 className="h-[600px] bg-cover bg-center relative"
                 style={{
-                  backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${image.url})`
+                  backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${image.url})`,
                 }}
               >
                 <div className="container h-full flex items-center">
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
@@ -96,14 +115,17 @@ export default function Home() {
                     </p>
                     <div className="flex gap-4">
                       <Link href="/menu">
-                        <Button size="lg" className="bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90">
+                        <Button
+                          size="lg"
+                          className="bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                        >
                           View Menu
                         </Button>
                       </Link>
                       <Link href="/booking">
-                        <Button 
-                          size="lg" 
-                          variant="outline" 
+                        <Button
+                          size="lg"
+                          variant="outline"
                           className="bg-transparent text-white border-white hover:bg-white/10"
                         >
                           Book a Table
@@ -116,8 +138,8 @@ export default function Home() {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-4" />
-        <CarouselNext className="right-4" />
+        <CarouselPrevious className="left-4 bg-white/80 hover:bg-white" />
+        <CarouselNext className="right-4 bg-white/80 hover:bg-white" />
       </Carousel>
 
       {/* Features Section */}
@@ -170,11 +192,13 @@ export default function Home() {
             <div>
               <h2 className="text-3xl font-bold mb-6 text-restaurant-yellow">Visit Us</h2>
               <p className="text-lg mb-4">
-                123 Gourmet Street<br />
-                Culinary District<br />
+                123 Gourmet Street
+                <br />
+                Culinary District
+                <br />
                 Opening Hours: Mon-Sun 11:00 AM - 11:00 PM
               </p>
-              <Button 
+              <Button
                 size="lg"
                 className="bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
               >
@@ -182,12 +206,12 @@ export default function Home() {
               </Button>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <img 
+              <img
                 src="https://images.unsplash.com/photo-1466978913421-dad2ebd01d17"
                 alt="Restaurant interior"
                 className="rounded-lg object-cover w-full h-48 hover:opacity-90 transition-opacity"
               />
-              <img 
+              <img
                 src="https://images.unsplash.com/photo-1424847651672-bf20a4b0982b"
                 alt="Restaurant dish"
                 className="rounded-lg object-cover w-full h-48 hover:opacity-90 transition-opacity"
