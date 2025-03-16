@@ -31,7 +31,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link href="/booking">
-                <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-black">
+                <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/20 hover:text-white hover:border-white/80">
                   Book a Table
                 </Button>
               </Link>
