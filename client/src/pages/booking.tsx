@@ -40,6 +40,12 @@ export default function Booking() {
 
   const { data: availableTables } = useQuery<Table[]>({
     queryKey: ["/api/tables/available", selectedDate?.toISOString()],
+    queryFn: async () => {
+      if (!selectedDate) return [];
+      const res = await fetch(`/api/tables/available?date=${selectedDate.toISOString()}`);
+      if (!res.ok) throw new Error("Failed to fetch available tables");
+      return res.json();
+    },
     enabled: !!selectedDate,
   });
 
@@ -229,9 +235,9 @@ export default function Booking() {
                     <FormItem>
                       <FormLabel>Number of Guests</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          min="1" 
+                        <Input
+                          type="number"
+                          min="1"
                           max="10"
                           {...field}
                           onChange={e => field.onChange(parseInt(e.target.value))}
@@ -242,8 +248,8 @@ export default function Booking() {
                   )}
                 />
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
                   disabled={bookingMutation.isPending}
                 >
