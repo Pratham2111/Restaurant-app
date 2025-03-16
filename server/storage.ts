@@ -12,6 +12,7 @@ export interface IStorage {
   // Menu Items
   getMenuItems(): Promise<MenuItem[]>;
   getMenuItemsByCategory(categoryId: number): Promise<MenuItem[]>;
+  createMenuItem(item: InsertMenuItem): Promise<MenuItem>;
   
   // Tables
   getTables(): Promise<Table[]>;

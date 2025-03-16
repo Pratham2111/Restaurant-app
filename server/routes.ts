@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { 
   insertBookingSchema, insertOrderSchema, 
   insertTableSchema, insertServerSchema,
-  insertTableAssignmentSchema 
+  insertTableAssignmentSchema,
+  insertMenuItemSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
 
@@ -24,6 +25,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       : await storage.getMenuItems();
       
     res.json(items);
+  });
+
+  app.post("/api/menu-items", async (req, res) => {
+    try {
+      const menuItem = insertMenuItemSchema.parse(req.body);
+      const result = await storage.createMenuItem(menuItem);
+      res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid menu item data", errors: error.errors });
+      } else {
+        console.error("Failed to create menu item:", error);
+        res.status(500).json({ message: "Failed to create menu item" });
+      }
+    }
   });
 
   // Enhanced Table Management Routes
