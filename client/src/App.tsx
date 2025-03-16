@@ -20,7 +20,7 @@ function Router() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-16">
+      <main className="pt-16 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/menu" component={Menu} />

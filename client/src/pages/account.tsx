@@ -43,7 +43,7 @@ export default function Account() {
   };
 
   if (isLoading) {
-    return <div className="container py-8">Loading...</div>;
+    return <div className="flex justify-center py-8">Loading...</div>;
   }
 
   if (!user) {
@@ -51,8 +51,8 @@ export default function Account() {
   }
 
   return (
-    <div className="container max-w-md py-16">
-      <Card>
+    <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] py-8 px-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl">My Account</CardTitle>
           <ThemeToggle />

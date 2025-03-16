@@ -170,225 +170,227 @@ export default function TableManagement() {
   };
 
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Table Management</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add New Table</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Table</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Table Name</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="section"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Section</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+    <div className="flex flex-col items-center py-8 px-4">
+      <div className="w-full max-w-7xl">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">Table Management</h1>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Add New Table</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Table</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Table Name</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select section" />
-                          </SelectTrigger>
+                          <Input {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="section"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Section</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select section" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="main">Main</SelectItem>
+                            <SelectItem value="outdoor">Outdoor</SelectItem>
+                            <SelectItem value="private">Private</SelectItem>
+                            <SelectItem value="bar">Bar</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="seats"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Number of Seats</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="12"
+                            {...field}
+                            onChange={e => field.onChange(parseInt(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="shape"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Table Shape</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select shape" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="round">Round</SelectItem>
+                            <SelectItem value="square">Square</SelectItem>
+                            <SelectItem value="rectangular">Rectangular</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                    disabled={createTableMutation.isPending}
+                  >
+                    {createTableMutation.isPending ? "Creating..." : "Create Table"}
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <div className="mb-6">
+          <Select
+            value={selectedSection}
+            onValueChange={setSelectedSection}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select section" />
+            </SelectTrigger>
+            <SelectContent>
+              {sections.map(section => (
+                <SelectItem key={section} value={section}>
+                  {section.charAt(0).toUpperCase() + section.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTables?.map(table => (
+            <Card key={table.id}>
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  <span>{table.name}</span>
+                  <Badge className={getStatusColor(table.status)}>
+                    {table.status}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Section: {table.section}</p>
+                    <p className="text-sm text-muted-foreground">Seats: {table.seats}</p>
+                    <p className="text-sm text-muted-foreground">Shape: {table.shape}</p>
+                  </div>
+
+                  <Tabs defaultValue="status" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="status">Status</TabsTrigger>
+                      <TabsTrigger value="assign">Assign</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="status">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          size="sm"
+                          variant={table.status === "available" ? "default" : "outline"}
+                          onClick={() => updateTableStatusMutation.mutate({
+                            tableId: table.id,
+                            status: "available"
+                          })}
+                        >
+                          Available
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={table.status === "occupied" ? "default" : "outline"}
+                          onClick={() => updateTableStatusMutation.mutate({
+                            tableId: table.id,
+                            status: "occupied"
+                          })}
+                        >
+                          Occupied
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={table.status === "reserved" ? "default" : "outline"}
+                          onClick={() => updateTableStatusMutation.mutate({
+                            tableId: table.id,
+                            status: "reserved"
+                          })}
+                        >
+                          Reserved
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={table.status === "maintenance" ? "default" : "outline"}
+                          onClick={() => updateTableStatusMutation.mutate({
+                            tableId: table.id,
+                            status: "maintenance"
+                          })}
+                        >
+                          Maintenance
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="assign">
+                      <Select
+                        onValueChange={(value) => {
+                          createAssignmentMutation.mutate({
+                            tableId: table.id,
+                            serverId: parseInt(value)
+                          });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Assign server" />
+                        </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="main">Main</SelectItem>
-                          <SelectItem value="outdoor">Outdoor</SelectItem>
-                          <SelectItem value="private">Private</SelectItem>
-                          <SelectItem value="bar">Bar</SelectItem>
+                          {servers?.map(server => (
+                            <SelectItem key={server.id} value={server.id.toString()}>
+                              {server.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="seats"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Number of Seats</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          min="1" 
-                          max="12"
-                          {...field}
-                          onChange={e => field.onChange(parseInt(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="shape"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Table Shape</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select shape" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="round">Round</SelectItem>
-                          <SelectItem value="square">Square</SelectItem>
-                          <SelectItem value="rectangular">Rectangular</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
-                  disabled={createTableMutation.isPending}
-                >
-                  {createTableMutation.isPending ? "Creating..." : "Create Table"}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="mb-6">
-        <Select
-          value={selectedSection}
-          onValueChange={setSelectedSection}
-        >
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Select section" />
-          </SelectTrigger>
-          <SelectContent>
-            {sections.map(section => (
-              <SelectItem key={section} value={section}>
-                {section.charAt(0).toUpperCase() + section.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTables?.map(table => (
-          <Card key={table.id}>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>{table.name}</span>
-                <Badge className={getStatusColor(table.status)}>
-                  {table.status}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Section: {table.section}</p>
-                  <p className="text-sm text-muted-foreground">Seats: {table.seats}</p>
-                  <p className="text-sm text-muted-foreground">Shape: {table.shape}</p>
+                    </TabsContent>
+                  </Tabs>
                 </div>
-
-                <Tabs defaultValue="status" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="status">Status</TabsTrigger>
-                    <TabsTrigger value="assign">Assign</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="status">
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        size="sm"
-                        variant={table.status === "available" ? "default" : "outline"}
-                        onClick={() => updateTableStatusMutation.mutate({ 
-                          tableId: table.id, 
-                          status: "available" 
-                        })}
-                      >
-                        Available
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={table.status === "occupied" ? "default" : "outline"}
-                        onClick={() => updateTableStatusMutation.mutate({ 
-                          tableId: table.id, 
-                          status: "occupied" 
-                        })}
-                      >
-                        Occupied
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={table.status === "reserved" ? "default" : "outline"}
-                        onClick={() => updateTableStatusMutation.mutate({ 
-                          tableId: table.id, 
-                          status: "reserved" 
-                        })}
-                      >
-                        Reserved
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={table.status === "maintenance" ? "default" : "outline"}
-                        onClick={() => updateTableStatusMutation.mutate({ 
-                          tableId: table.id, 
-                          status: "maintenance" 
-                        })}
-                      >
-                        Maintenance
-                      </Button>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="assign">
-                    <Select
-                      onValueChange={(value) => {
-                        createAssignmentMutation.mutate({
-                          tableId: table.id,
-                          serverId: parseInt(value)
-                        });
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Assign server" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {servers?.map(server => (
-                          <SelectItem key={server.id} value={server.id.toString()}>
-                            {server.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
