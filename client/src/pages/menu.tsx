@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { MenuItemCard } from "@/components/ui/menu-item-card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -74,19 +72,19 @@ export default function Menu() {
     return (
       <div className="container py-8">
         <div className="flex flex-col gap-6">
-          <Skeleton className="h-12 w-full max-w-sm" />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1 animate-pulse bg-muted h-10 rounded-md" />
+            <div className="w-[180px] animate-pulse bg-muted h-10 rounded-md" />
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array(6).fill(0).map((_, i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-4 w-[250px]" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-[200px] w-full mb-4" />
-                  <Skeleton className="h-4 w-[200px] mb-2" />
-                  <Skeleton className="h-4 w-[150px]" />
-                </CardContent>
-              </Card>
+              <div key={i} className="animate-pulse">
+                <div className="aspect-video bg-muted rounded-t-lg" />
+                <div className="p-4 space-y-4">
+                  <div className="h-4 bg-muted rounded w-3/4" />
+                  <div className="h-4 bg-muted rounded w-1/2" />
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -143,32 +141,11 @@ export default function Menu() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems?.map(item => (
-          <Card key={item.id} className="overflow-hidden group">
-            <div className="aspect-video w-full overflow-hidden">
-              <img 
-                src={item.imageUrl}
-                alt={item.name}
-                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-              />
-            </div>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>{item.name}</span>
-                <span className="text-lg">${Number(item.price).toFixed(2)}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4 line-clamp-2">
-                {item.description}
-              </p>
-              <Button 
-                onClick={() => handleAddToCart(item)}
-                className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
-              >
-                Add to Cart
-              </Button>
-            </CardContent>
-          </Card>
+          <MenuItemCard
+            key={item.id}
+            item={item}
+            onAddToCart={handleAddToCart}
+          />
         ))}
       </div>
 
