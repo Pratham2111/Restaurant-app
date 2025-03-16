@@ -20,20 +20,22 @@ function Router() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-16 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/menu" component={Menu} />
-          <Route path="/booking" component={Booking} />
-          <Route path="/cart" component={Cart} />
-          <Route path="/admin/tables" component={TableManagement} />
-          <Route path="/admin/menu" component={MenuManagement} />
-          <Route path="/admin/dashboard" component={Dashboard} />
-          <Route path="/login" component={Login} />
-          <Route path="/register" component={Register} />
-          <Route path="/account" component={Account} />
-          <Route component={NotFound} />
-        </Switch>
+      <main className="pt-16">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/menu" component={Menu} />
+            <Route path="/booking" component={Booking} />
+            <Route path="/cart" component={Cart} />
+            <Route path="/admin/tables" component={TableManagement} />
+            <Route path="/admin/menu" component={MenuManagement} />
+            <Route path="/admin/dashboard" component={Dashboard} />
+            <Route path="/login" component={Login} />
+            <Route path="/register" component={Register} />
+            <Route path="/account" component={Account} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </main>
     </div>
   );

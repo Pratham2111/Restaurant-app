@@ -88,8 +88,8 @@ export const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="container flex h-14 sm:h-16 items-center px-4">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="max-w-[1440px] mx-auto flex h-14 sm:h-16 items-center px-4">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" className="md:hidden mr-2">
@@ -193,6 +193,6 @@ export const Navbar: React.FC = () => {
           </DropdownMenu>
         </div>
       </div>
-    </nav>
+    </div>
   );
 };

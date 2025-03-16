@@ -74,7 +74,7 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {/* Hero Carousel Section */}
+      {/* Hero Carousel Section - Full width with centered content */}
       <Carousel
         className="w-full h-[400px] sm:h-[500px] md:h-[600px]"
         opts={{
@@ -98,7 +98,7 @@ export default function Home() {
                   backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${image.url})`,
                 }}
               >
-                <div className="container h-full flex items-center px-4">
+                <div className="max-w-[1440px] mx-auto h-full flex items-center px-4">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -139,8 +139,8 @@ export default function Home() {
       </Carousel>
 
       {/* Features Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
-        <div className="container px-4">
+      <section className="w-full py-12 sm:py-16 md:py-20 bg-white">
+        <div className="max-w-[1440px] mx-auto px-4">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-restaurant-black">
             Why Choose La Maison
           </h2>
@@ -159,8 +159,8 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
-        <div className="container px-4">
+      <section className="w-full py-12 sm:py-16 md:py-20 bg-gray-50">
+        <div className="max-w-[1440px] mx-auto px-4">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-restaurant-black">
             What Our Guests Say
           </h2>
@@ -182,8 +182,8 @@ export default function Home() {
       </section>
 
       {/* Restaurant Information */}
-      <section className="py-12 sm:py-16 md:py-20 bg-restaurant-black text-white">
-        <div className="container px-4">
+      <section className="w-full py-12 sm:py-16 md:py-20 bg-restaurant-black text-white">
+        <div className="max-w-[1440px] mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-restaurant-yellow">Visit Us</h2>
