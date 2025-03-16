@@ -1,19 +1,24 @@
 import {
   type Category, type MenuItem, type Table, type Booking, type Order,
-  type TableAssignment, type Server,
+  type TableAssignment, type Server, type User,
   type InsertCategory, type InsertMenuItem, type InsertTable, type InsertBooking, 
-  type InsertOrder, type InsertTableAssignment, type InsertServer
+  type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser
 } from "@shared/schema";
 
 export interface IStorage {
   // Categories
   getCategories(): Promise<Category[]>;
-  
+
   // Menu Items
   getMenuItems(): Promise<MenuItem[]>;
   getMenuItemsByCategory(categoryId: number): Promise<MenuItem[]>;
   createMenuItem(item: InsertMenuItem): Promise<MenuItem>;
-  
+
+  // Users
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
+  createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
+
   // Tables
   getTables(): Promise<Table[]>;
   getTableById(id: number): Promise<Table | undefined>;
@@ -22,11 +27,11 @@ export interface IStorage {
   updateTableStatus(id: number, status: string): Promise<Table>;
   createTable(table: InsertTable): Promise<Table>;
   getAvailableTables(date: Date): Promise<Table[]>;
-  
+
   // Bookings
   createBooking(booking: InsertBooking): Promise<Booking>;
   getBookings(): Promise<Booking[]>;
-  
+
   // Orders
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: number): Promise<Order | undefined>;
@@ -51,6 +56,7 @@ export class MemStorage implements IStorage {
   private tableAssignments: Map<number, TableAssignment>;
   private bookings: Map<number, Booking>;
   private orders: Map<number, Order>;
+  private users: Map<number, User>;
 
   private currentIds: {
     category: number;
@@ -60,6 +66,7 @@ export class MemStorage implements IStorage {
     tableAssignment: number;
     booking: number;
     order: number;
+    user: number;
   };
 
   constructor() {
@@ -70,6 +77,7 @@ export class MemStorage implements IStorage {
     this.tableAssignments = new Map();
     this.bookings = new Map();
     this.orders = new Map();
+    this.users = new Map();
 
     this.currentIds = {
       category: 1,
@@ -78,10 +86,33 @@ export class MemStorage implements IStorage {
       server: 1,
       tableAssignment: 1,
       booking: 1,
-      order: 1
+      order: 1,
+      user: 1
     };
 
     this.initSampleData();
+  }
+
+  // User Management Methods
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.email === email);
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async createUser(userData: Omit<InsertUser, "confirmPassword">): Promise<User> {
+    const id = this.currentIds.user++;
+    const now = new Date();
+    const user: User = {
+      ...userData,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.users.set(id, user);
+    return user;
   }
 
   async getCategories(): Promise<Category[]> {

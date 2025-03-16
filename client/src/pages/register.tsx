@@ -1,7 +1,8 @@
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "wouter";
+import { insertUserSchema } from "@shared/schema";
+import { Link, useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,23 +15,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-
-const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-type RegisterForm = z.infer<typeof registerSchema>;
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Register() {
   const { toast } = useToast();
-  const form = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
+  const [, navigate] = useLocation();
+
+  const form = useForm({
+    resolver: zodResolver(insertUserSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -39,13 +31,33 @@ export default function Register() {
     },
   });
 
-  function onSubmit(data: RegisterForm) {
-    // TODO: Implement registration functionality
-    console.log(data);
-    toast({
-      title: "Coming Soon",
-      description: "Registration functionality will be implemented soon.",
-    });
+  const registerMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/auth/register", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to register');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Your account has been created successfully. Please login.",
+      });
+      navigate("/login");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to register. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  function onSubmit(data: any) {
+    registerMutation.mutate(data);
   }
 
   return (
@@ -116,8 +128,12 @@ export default function Register() {
                 )}
               />
 
-              <Button type="submit" className="w-full">
-                Register
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={registerMutation.isPending}
+              >
+                {registerMutation.isPending ? "Creating Account..." : "Register"}
               </Button>
 
               <p className="text-center text-sm text-muted-foreground">

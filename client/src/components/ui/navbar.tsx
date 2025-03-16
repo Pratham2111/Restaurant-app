@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "./button";
 import { ShoppingCart, Menu, User } from "lucide-react";
 import {
@@ -16,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 import { Badge } from "./badge";
+import type { User as UserType } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
 const getCartItemCount = (): number => {
   if (typeof window === "undefined") return 0;
@@ -27,6 +30,22 @@ const getCartItemCount = (): number => {
 
 export const Navbar: React.FC = () => {
   const [cartCount, setCartCount] = useState(0);
+  const [, navigate] = useLocation();
+
+  const { data: user } = useQuery<UserType>({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+    onError: () => {}
+  });
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest("POST", "/api/auth/logout");
+      window.location.reload(); // Refresh to clear all states
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   useEffect(() => {
     // Initial cart count
@@ -124,16 +143,31 @@ export const Navbar: React.FC = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href="/login">
-                  <a className="w-full cursor-pointer">Login</a>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/register">
-                  <a className="w-full cursor-pointer">Register</a>
-                </Link>
-              </DropdownMenuItem>
+              {user ? (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account">
+                      <a className="w-full cursor-pointer">My Account</a>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    Logout
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/login">
+                      <a className="w-full cursor-pointer">Login</a>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/register">
+                      <a className="w-full cursor-pointer">Register</a>
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

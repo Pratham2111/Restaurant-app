@@ -68,6 +68,15 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at").notNull()
 });
 
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(menuCategories);
 export const insertMenuItemSchema = createInsertSchema(menuItems);
 export const insertTableSchema = createInsertSchema(tables).extend({
@@ -91,6 +100,13 @@ export const insertOrderSchema = createInsertSchema(orders).extend({
 
 export const insertTableAssignmentSchema = createInsertSchema(tableAssignments);
 export const insertServerSchema = createInsertSchema(servers);
+export const insertUserSchema = createInsertSchema(users).extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 export type Category = typeof menuCategories.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;
@@ -99,6 +115,7 @@ export type Booking = typeof bookings.$inferSelect;
 export type Order = typeof orders.$inferSelect;
 export type TableAssignment = typeof tableAssignments.$inferSelect;
 export type Server = typeof servers.$inferSelect;
+export type User = typeof users.$inferSelect;
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
@@ -107,3 +124,4 @@ export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type InsertTableAssignment = z.infer<typeof insertTableAssignmentSchema>;
 export type InsertServer = z.infer<typeof insertServerSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
