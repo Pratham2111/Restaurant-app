@@ -6,7 +6,8 @@ import {
   insertTableSchema, insertServerSchema,
   insertTableAssignmentSchema,
   insertMenuItemSchema,
-  insertUserSchema
+  insertUserSchema,
+  insertEventSchema // Assuming this schema is defined elsewhere
 } from "@shared/schema";
 import { ZodError } from "zod";
 import bcrypt from "bcryptjs";
@@ -302,6 +303,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     res.json(order);
+  });
+
+  // Events Routes
+  app.get("/api/events", async (_req, res) => {
+    const events = await storage.getEvents();
+    res.json(events);
+  });
+
+  app.post("/api/events", async (req, res) => {
+    try {
+      const event = insertEventSchema.parse(req.body);
+      const result = await storage.createEvent(event);
+      res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      } else {
+        console.error("Failed to create event:", error);
+        res.status(500).json({ message: "Failed to create event" });
+      }
+    }
   });
 
   const httpServer = createServer(app);
