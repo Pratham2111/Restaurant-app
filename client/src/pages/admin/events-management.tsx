@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
-import { Pencil, Trash2, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Loader2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Event } from "@shared/schema";
 import {
@@ -41,11 +41,20 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function EventsManagement() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterFeatured, setFilterFeatured] = useState<string>("all");
+  const [filterDateRange, setFilterDateRange] = useState<"all" | "upcoming" | "past">("all");
   const { toast } = useToast();
 
   const form = useForm({
@@ -73,6 +82,28 @@ export default function EventsManagement() {
 
   const { data: events, isLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"]
+  });
+
+  // Filter events based on search and filters
+  const filteredEvents = events?.filter(event => {
+    const matchesSearch = 
+      searchQuery === "" ||
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFeatured = 
+      filterFeatured === "all" ||
+      (filterFeatured === "featured" && event.featured) ||
+      (filterFeatured === "non-featured" && !event.featured);
+
+    const eventDate = new Date(event.date);
+    const today = new Date();
+    const matchesDateRange =
+      filterDateRange === "all" ||
+      (filterDateRange === "upcoming" && eventDate >= today) ||
+      (filterDateRange === "past" && eventDate < today);
+
+    return matchesSearch && matchesFeatured && matchesDateRange;
   });
 
   const addEventMutation = useMutation({
@@ -297,7 +328,60 @@ export default function EventsManagement() {
               </CardContent>
             </Card>
 
-            <div>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Event Filters</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search events..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <FormLabel>Featured Status</FormLabel>
+                      <Select
+                        value={filterFeatured}
+                        onValueChange={setFilterFeatured}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filter by featured" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Events</SelectItem>
+                          <SelectItem value="featured">Featured Only</SelectItem>
+                          <SelectItem value="non-featured">Non-Featured Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <FormLabel>Date Range</FormLabel>
+                      <Select
+                        value={filterDateRange}
+                        onValueChange={setFilterDateRange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filter by date" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Dates</SelectItem>
+                          <SelectItem value="upcoming">Upcoming Events</SelectItem>
+                          <SelectItem value="past">Past Events</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Events List</CardTitle>
@@ -320,7 +404,7 @@ export default function EventsManagement() {
                         exit={{ opacity: 0 }}
                         className="space-y-4"
                       >
-                        {events?.map(event => (
+                        {filteredEvents?.map(event => (
                           <motion.div
                             key={event.id}
                             initial={{ opacity: 0, y: 20 }}
@@ -395,7 +479,7 @@ export default function EventsManagement() {
                     )}
                   </AnimatePresence>
 
-                  {!isLoading && events?.length === 0 && (
+                  {!isLoading && filteredEvents?.length === 0 && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
