@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label"; // Added import for Label component
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, Loader2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -289,7 +290,7 @@ export default function EventsManagement() {
                     />
 
                     <div className="space-y-2">
-                      <FormLabel>Event Date</FormLabel>
+                      <Label>Event Date</Label>
                       <Calendar
                         mode="single"
                         selected={selectedDate}
@@ -346,7 +347,7 @@ export default function EventsManagement() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <FormLabel>Featured Status</FormLabel>
+                      <Label>Featured Status</Label> {/*FormLabel changed to Label*/}
                       <Select
                         value={filterFeatured}
                         onValueChange={setFilterFeatured}
@@ -363,7 +364,7 @@ export default function EventsManagement() {
                     </div>
 
                     <div className="space-y-2">
-                      <FormLabel>Date Range</FormLabel>
+                      <Label>Date Range</Label> {/*FormLabel changed to Label*/}
                       <Select
                         value={filterDateRange}
                         onValueChange={setFilterDateRange}
