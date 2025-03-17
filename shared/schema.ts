@@ -133,7 +133,15 @@ export const events = pgTable("events", {
 });
 
 export const insertCategorySchema = createInsertSchema(menuCategories);
-export const insertMenuItemSchema = createInsertSchema(menuItems);
+export const insertMenuItemSchema = createInsertSchema(menuItems).extend({
+  nutritionInfo: z.array(z.string()).optional().default([]),
+  ingredients: z.array(z.string()).optional().default([]),
+  allergens: z.array(z.string()).optional().default([]),
+  chefsStory: z.string().optional().default(""),
+  preparationTime: z.string().optional().default(""),
+  spicyLevel: z.string().optional().default(""),
+  servingSize: z.string().optional().default("")
+});
 export const insertTableSchema = createInsertSchema(tables).extend({
   section: z.enum(['main', 'outdoor', 'private', 'bar']),
   shape: z.enum(['round', 'square', 'rectangular']),
