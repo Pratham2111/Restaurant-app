@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertEventSchema } from "@shared/schema";
@@ -32,6 +32,7 @@ import type { Event } from "@shared/schema";
 export default function EventsManagement() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
+  const queryClient = new QueryClient(); // Import and initialize queryClient
 
   const form = useForm({
     resolver: zodResolver(insertEventSchema),
@@ -54,6 +55,7 @@ export default function EventsManagement() {
       return res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
         title: "Success",
         description: "Event has been added successfully"
