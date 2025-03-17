@@ -76,22 +76,7 @@ export default function Cart() {
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Format the order data properly before sending
-      const formattedData = {
-        ...data,
-        items: data.items.map((item: CartItem) => ({
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price.toString()
-        }))
-      };
-
-      const res = await apiRequest("POST", "/api/orders", formattedData);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to place order');
-      }
+      const res = await apiRequest("POST", "/api/orders", data);
       return res.json();
     },
     onSuccess: (data) => {
@@ -105,10 +90,10 @@ export default function Cart() {
       // Redirect to home
       navigate("/");
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
         title: "Failed to Place Order",
-        description: error.message || "There was an error processing your order. Please try again.",
+        description: "There was an error processing your order. Please try again.",
         variant: "destructive"
       });
     }
@@ -138,7 +123,6 @@ export default function Cart() {
     0
   );
 
-  // Update the onSubmit function
   function onSubmit(data: any) {
     if (cartItems.length === 0) {
       toast({
@@ -149,19 +133,16 @@ export default function Cart() {
       return;
     }
 
-    // Format order data with correct types
-    const orderData = {
+    orderMutation.mutate({
       ...data,
       items: cartItems.map(item => ({
-        id: Number(item.id),
-        name: String(item.name),
-        price: Number(item.price),
-        quantity: Number(item.quantity)
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
       })),
-      total: Number(total.toFixed(2))
-    };
-
-    orderMutation.mutate(orderData);
+      total: total.toFixed(2)
+    });
   }
 
   if (cartItems.length === 0) {

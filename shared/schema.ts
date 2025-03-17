@@ -91,10 +91,9 @@ export const bookings = pgTable("bookings", {
   guestCount: integer("guest_count").notNull()
 });
 
-// Update the orders schema to properly handle items
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  items: json("items").notNull(),  // Change to json type for complex objects
+  items: text("items").array().notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   status: text("status").notNull(),
   customerName: text("customer_name").notNull(),
@@ -166,12 +165,11 @@ export const insertBookingSchema = createInsertSchema(bookings).extend({
   date: z.string().transform(str => new Date(str))
 });
 
-// Keep the insert schema validation
 export const insertOrderSchema = createInsertSchema(orders).extend({
   items: z.array(z.object({
     id: z.number(),
-    name: z.string(),
     quantity: z.number(),
+    name: z.string(),
     price: z.number()
   }))
 });

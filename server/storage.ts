@@ -250,24 +250,31 @@ export class DatabaseStorage implements IStorage {
   }
   async createOrder(order: InsertOrder): Promise<Order> {
     try {
-      // Format the order data with proper type handling
+      // Format the items for proper storage
+      const formattedItems = order.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: Number(item.price)
+      }));
+
       const orderData = {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
-        items: order.items.map(item => ({
-          id: Number(item.id),
-          name: String(item.name),
-          quantity: Number(item.quantity),
-          price: Number(item.price)
-        })),
-        total: order.total,
+        items: formattedItems,
+        total: order.total.toString(),
         status: 'pending',
         createdAt: new Date()
       };
 
       const [newOrder] = await db.insert(orders).values(orderData).returning();
-      return newOrder;
+
+      // Ensure items are properly parsed when returning
+      return {
+        ...newOrder,
+        items: formattedItems
+      };
     } catch (error) {
       console.error('Error creating order:', error);
       throw new Error('Failed to create order');
@@ -277,7 +284,22 @@ export class DatabaseStorage implements IStorage {
   async getOrder(id: number): Promise<Order | undefined> {
     try {
       const [order] = await db.select().from(orders).where(eq(orders.id, id));
-      return order;
+      if (!order) return undefined;
+
+      // Parse items and ensure proper structure
+      const items = Array.isArray(order.items) 
+        ? order.items.map(item => ({
+            id: Number(item.id),
+            name: String(item.name),
+            quantity: Number(item.quantity),
+            price: Number(item.price)
+          }))
+        : [];
+
+      return {
+        ...order,
+        items
+      };
     } catch (error) {
       console.error('Error fetching order:', error);
       throw new Error('Failed to fetch order');
@@ -286,7 +308,24 @@ export class DatabaseStorage implements IStorage {
 
   async getOrders(): Promise<Order[]> {
     try {
-      return await db.select().from(orders);
+      const ordersList = await db.select().from(orders);
+
+      return ordersList.map(order => {
+        // Parse items and ensure proper structure
+        const items = Array.isArray(order.items)
+          ? order.items.map(item => ({
+              id: Number(item.id),
+              name: String(item.name),
+              quantity: Number(item.quantity),
+              price: Number(item.price)
+            }))
+          : [];
+
+        return {
+          ...order,
+          items
+        };
+      });
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw new Error('Failed to fetch orders');
@@ -300,7 +339,21 @@ export class DatabaseStorage implements IStorage {
         .set({ status })
         .where(eq(orders.id, id))
         .returning();
-      return updatedOrder;
+
+      // Parse items and ensure proper structure
+      const items = Array.isArray(updatedOrder.items)
+        ? updatedOrder.items.map(item => ({
+            id: Number(item.id),
+            name: String(item.name),
+            quantity: Number(item.quantity),
+            price: Number(item.price)
+          }))
+        : [];
+
+      return {
+        ...updatedOrder,
+        items
+      };
     } catch (error) {
       console.error('Error updating order status:', error);
       throw new Error('Failed to update order status');
