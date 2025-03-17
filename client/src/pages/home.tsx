@@ -257,33 +257,62 @@ export default function Home() {
             </motion.p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {specialDishes.map((dish, index) => (
-              <motion.div
-                key={dish.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-              >
-                <Card className="overflow-hidden group">
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={dish.imageUrl}
-                      alt={dish.name}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-semibold">{dish.name}</h3>
-                      <span className="text-restaurant-yellow font-semibold">${Number(dish.price).toFixed(2)}</span>
-                    </div>
-                    <p className="text-muted-foreground">{dish.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          <Carousel
+            className="w-full"
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            plugins={[
+              Autoplay({
+                delay: 4000,
+                stopOnInteraction: false,
+              }),
+            ]}
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {specialDishes.map((dish, index) => (
+                <CarouselItem 
+                  key={dish.id}
+                  className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.2 }}
+                    className="h-full"
+                  >
+                    <Card className="overflow-hidden group h-full">
+                      <div className="aspect-[4/3] overflow-hidden">
+                        <img
+                          src={dish.imageUrl}
+                          alt={dish.name}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-xl font-semibold">{dish.name}</h3>
+                          <span className="text-restaurant-yellow font-semibold">${Number(dish.price).toFixed(2)}</span>
+                        </div>
+                        <p className="text-muted-foreground">{dish.description}</p>
+                        <div className="mt-4">
+                          <Link href="/menu">
+                            <Button
+                              variant="outline"
+                              className="w-full hover:bg-restaurant-yellow hover:text-restaurant-black transition-colors"
+                            >
+                              View Details
+                            </Button>
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
         </div>
       </section>
 
