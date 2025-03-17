@@ -25,7 +25,8 @@ import {
   Coffee,
   TrendingUp,
   CalendarRange,
-  ClipboardList
+  ClipboardList,
+  PartyPopper
 } from "lucide-react";
 import type { Table, Order, MenuItem, Booking } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -106,7 +107,7 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 mb-8">
             <Link href="/admin/tables">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -118,7 +119,7 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Manage tables and bookings
+                      Manage tables and seating
                     </p>
                   </CardContent>
                 </Card>
@@ -173,6 +174,24 @@ export default function Dashboard() {
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
                       View and manage table reservations
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
+
+            <Link href="/admin/events">
+              <a>
+                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <PartyPopper className="h-5 w-5" />
+                      Events Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Manage restaurant events and promotions
                     </p>
                   </CardContent>
                 </Card>
