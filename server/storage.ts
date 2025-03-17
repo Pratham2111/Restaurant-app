@@ -507,7 +507,28 @@ export class MemStorage implements IStorage {
         description: "Grilled bread rubbed with garlic and topped with tomatoes",
         price: "8.99",
         imageUrl: "https://images.unsplash.com/photo-1565895405137-3ca0cc5088c8",
-        isSpecial: true
+        isSpecial: true,
+        nutritionInfo: [
+          "Calories: 220 kcal",
+          "Protein: 5g",
+          "Carbohydrates: 25g",
+          "Fat: 12g",
+          "Fiber: 3g"
+        ],
+        ingredients: [
+          "Fresh crusty bread",
+          "Ripe tomatoes",
+          "Fresh basil",
+          "Extra virgin olive oil",
+          "Garlic cloves",
+          "Sea salt",
+          "Black pepper"
+        ],
+        chefsStory: "This classic Bruschetta recipe was inspired by my summers in Tuscany. Every morning, I would visit the local markets to select the ripest tomatoes and freshest basil. The key to perfect bruschetta lies in the quality of the bread and the tomatoes - each ingredient tells its own story of the Italian countryside.",
+        preparationTime: "15-20 minutes",
+        spicyLevel: "Not Spicy",
+        allergens: ["Wheat", "Gluten"],
+        servingSize: "3-4 pieces per serving"
       },
       {
         categoryId: 2,
@@ -515,7 +536,29 @@ export class MemStorage implements IStorage {
         description: "Fresh Atlantic salmon with herbs and lemon",
         price: "24.99",
         imageUrl: "https://images.unsplash.com/photo-1564486054184-1c26aa52b1c3",
-        isSpecial: true
+        isSpecial: true,
+        nutritionInfo: [
+          "Calories: 450 kcal",
+          "Protein: 46g",
+          "Omega-3: 4.4g",
+          "Fat: 28g",
+          "Vitamin D: 100% DV"
+        ],
+        ingredients: [
+          "Fresh Atlantic salmon",
+          "Fresh dill",
+          "Lemon",
+          "Garlic",
+          "Olive oil",
+          "Sea salt",
+          "Black pepper",
+          "Fresh herbs"
+        ],
+        chefsStory: "During my time in Norway, I learned the art of preparing salmon from local fishermen. This recipe combines traditional Nordic techniques with modern flavors. We source our salmon from sustainable fisheries, ensuring each fillet tells a story of both flavor and responsibility.",
+        preparationTime: "25-30 minutes",
+        spicyLevel: "Not Spicy",
+        allergens: ["Fish"],
+        servingSize: "1 6oz fillet per serving"
       },
       {
         categoryId: 2,
@@ -523,7 +566,29 @@ export class MemStorage implements IStorage {
         description: "Premium Japanese Wagyu beef with truffle sauce",
         price: "89.99",
         imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947",
-        isSpecial: true
+        isSpecial: true,
+        nutritionInfo: [
+          "Calories: 650 kcal",
+          "Protein: 48g",
+          "Fat: 52g",
+          "Iron: 35% DV",
+          "Zinc: 50% DV"
+        ],
+        ingredients: [
+          "A5 Wagyu beef",
+          "Black truffle",
+          "Garlic",
+          "Thyme",
+          "Rosemary",
+          "Butter",
+          "Sea salt",
+          "Black pepper"
+        ],
+        chefsStory: "My journey to master Wagyu preparation took me to the heart of Japan, where I trained under Master Chef Tanaka. He taught me that preparing Wagyu is not just cooking - it's an art form that requires patience, respect for the ingredient, and precision. Each steak is carefully selected and aged to perfection.",
+        preparationTime: "35-40 minutes",
+        spicyLevel: "Not Spicy",
+        allergens: ["Dairy"],
+        servingSize: "8oz per serving"
       },
       {
         categoryId: 3,
@@ -531,7 +596,29 @@ export class MemStorage implements IStorage {
         description: "Warm chocolate soufflé with vanilla ice cream",
         price: "12.99",
         imageUrl: "https://images.unsplash.com/photo-1511911063855-2bf39afa5b2e",
-        isSpecial: true
+        isSpecial: true,
+        nutritionInfo: [
+          "Calories: 380 kcal",
+          "Protein: 8g",
+          "Carbohydrates: 45g",
+          "Fat: 22g",
+          "Iron: 15% DV"
+        ],
+        ingredients: [
+          "Dark chocolate (70% cocoa)",
+          "Fresh eggs",
+          "Butter",
+          "Sugar",
+          "Vanilla extract",
+          "Flour",
+          "Cocoa powder",
+          "Salt"
+        ],
+        chefsStory: "This soufflé recipe is the result of years of perfecting the technique in Paris. I learned the secrets of the perfect rise from a 3-star Michelin pastry chef. The key lies in the quality of the chocolate and the precise timing - each soufflé is made to order, ensuring a perfect, warm center that flows like liquid gold.",
+        preparationTime: "20-25 minutes",
+        spicyLevel: "Not Spicy",
+        allergens: ["Eggs", "Dairy", "Gluten"],
+        servingSize: "1 soufflé per person"
       },
       {
         categoryId: 2,
@@ -539,7 +626,29 @@ export class MemStorage implements IStorage {
         description: "Classic French dish with lobster in rich cream sauce",
         price: "59.99",
         imageUrl: "https://images.unsplash.com/photo-1533422902779-aff35862e462",
-        isSpecial: true
+        isSpecial: true,
+        nutritionInfo: [
+          "Calories: 520 kcal",
+          "Protein: 42g",
+          "Fat: 35g",
+          "Calcium: 25% DV",
+          "Vitamin B12: 80% DV"
+        ],
+        ingredients: [
+          "Fresh whole lobster",
+          "Heavy cream",
+          "Gruyère cheese",
+          "Mushrooms",
+          "Shallots",
+          "Brandy",
+          "Dijon mustard",
+          "Fresh tarragon"
+        ],
+        chefsStory: "I mastered this classic French dish during my tenure at a historic Parisian restaurant. The recipe dates back to the 19th century, and we maintain its authentic preparation while adding our own modern twist. Each lobster is carefully selected from local fishermen who we've worked with for generations.",
+        preparationTime: "45-50 minutes",
+        spicyLevel: "Not Spicy",
+        allergens: ["Shellfish", "Dairy", "Alcohol"],
+        servingSize: "1 whole lobster per serving"
       }
     ];
 
