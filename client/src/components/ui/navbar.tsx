@@ -21,6 +21,7 @@ import type { User as UserType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 const getCartItemCount = (): number => {
   if (typeof window === "undefined") return 0;
@@ -34,6 +35,7 @@ export const Navbar: React.FC = () => {
   const [cartCount, setCartCount] = useState(0);
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { translate } = useSiteSettings();
 
   const { data: user, isLoading } = useQuery<UserType>({
     queryKey: ["/api/auth/me"],
@@ -46,16 +48,16 @@ export const Navbar: React.FC = () => {
     try {
       await apiRequest("POST", "/api/auth/logout");
       toast({
-        title: "Success",
-        description: "You have been logged out successfully."
+        title: translate("Success"),
+        description: translate("You have been logged out successfully.")
       });
       await queryClient.resetQueries();
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
       toast({
-        title: "Error",
-        description: "Failed to logout. Please try again.",
+        title: translate("Error"),
+        description: translate("Failed to logout. Please try again."),
         variant: "destructive"
       });
     }
@@ -94,26 +96,26 @@ export const Navbar: React.FC = () => {
           </SheetTrigger>
           <SheetContent side="left" className="w-[80%] sm:w-[300px]">
             <SheetHeader>
-              <SheetTitle>Menu</SheetTitle>
+              <SheetTitle>{translate("Menu")}</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-4 mt-4">
               <Link href="/">
-                <a className="text-base sm:text-lg font-medium">Home</a>
+                <a className="text-base sm:text-lg font-medium">{translate("Home")}</a>
               </Link>
               <Link href="/menu">
-                <a className="text-base sm:text-lg font-medium">Menu</a>
+                <a className="text-base sm:text-lg font-medium">{translate("Menu")}</a>
               </Link>
               <Link href="/booking">
-                <a className="text-base sm:text-lg font-medium">Book a Table</a>
+                <a className="text-base sm:text-lg font-medium">{translate("Book a Table")}</a>
               </Link>
               <Link href="/events">
-                <a className="text-base sm:text-lg font-medium">Events</a>
+                <a className="text-base sm:text-lg font-medium">{translate("Events")}</a>
               </Link>
               <Link href="/admin/dashboard">
-                <a className="text-base sm:text-lg font-medium">Restaurant Dashboard</a>
+                <a className="text-base sm:text-lg font-medium">{translate("Restaurant Dashboard")}</a>
               </Link>
               <Link href="/admin/users">
-                <a className="text-base sm:text-lg font-medium">User Management</a>
+                <a className="text-base sm:text-lg font-medium">{translate("User Management")}</a>
               </Link>
             </div>
           </SheetContent>
@@ -128,22 +130,22 @@ export const Navbar: React.FC = () => {
         <div className="hidden md:flex items-center space-x-4 lg:space-x-6 mx-4 lg:mx-6">
           <Link href="/menu">
             <a className="text-sm font-medium transition-colors hover:text-primary">
-              Menu
+              {translate("Menu")}
             </a>
           </Link>
           <Link href="/booking">
             <a className="text-sm font-medium transition-colors hover:text-primary">
-              Book a Table
+              {translate("Book a Table")}
             </a>
           </Link>
           <Link href="/events">
             <a className="text-sm font-medium transition-colors hover:text-primary">
-              Events
+              {translate("Events")}
             </a>
           </Link>
           <Link href="/admin/dashboard">
             <a className="text-sm font-medium transition-colors hover:text-primary">
-              Restaurant Dashboard
+              {translate("Restaurant Dashboard")}
             </a>
           </Link>
         </div>
@@ -175,23 +177,23 @@ export const Navbar: React.FC = () => {
                 <>
                   <DropdownMenuItem asChild>
                     <Link href="/account">
-                      <a className="w-full cursor-pointer">My Account</a>
+                      <a className="w-full cursor-pointer">{translate("My Account")}</a>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout}>
-                    Logout
+                    {translate("Logout")}
                   </DropdownMenuItem>
                 </>
               ) : (
                 <>
                   <DropdownMenuItem asChild>
                     <Link href="/login">
-                      <a className="w-full cursor-pointer">Login</a>
+                      <a className="w-full cursor-pointer">{translate("Login")}</a>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/register">
-                      <a className="w-full cursor-pointer">Register</a>
+                      <a className="w-full cursor-pointer">{translate("Register")}</a>
                     </Link>
                   </DropdownMenuItem>
                 </>

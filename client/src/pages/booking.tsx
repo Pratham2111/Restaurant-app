@@ -20,11 +20,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Square, Circle, RectangleHorizontal, AlertCircle } from "lucide-react";
 import type { Table } from "@shared/schema";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 export default function Booking() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTableId, setSelectedTableId] = useState<number>(0);
   const { toast } = useToast();
+  const { translate } = useSiteSettings();
 
   const form = useForm({
     resolver: zodResolver(insertBookingSchema),
@@ -52,8 +54,8 @@ export default function Booking() {
     },
     onSuccess: () => {
       toast({
-        title: "Booking Confirmed",
-        description: "Your table has been successfully booked!"
+        title: translate("Booking Confirmed"),
+        description: translate("Your table has been successfully booked!")
       });
       form.reset();
       setSelectedDate(undefined);
@@ -61,8 +63,8 @@ export default function Booking() {
     },
     onError: () => {
       toast({
-        title: "Booking Failed",
-        description: "There was an error booking your table. Please try again.",
+        title: translate("Booking Failed"),
+        description: translate("There was an error booking your table. Please try again."),
         variant: "destructive"
       });
     }
@@ -71,8 +73,8 @@ export default function Booking() {
   function onSubmit(data: any) {
     if (!selectedDate) {
       toast({
-        title: "Select a Date",
-        description: "Please select a date for your booking",
+        title: translate("Select a Date"),
+        description: translate("Please select a date for your booking"),
         variant: "destructive"
       });
       return;
@@ -80,8 +82,8 @@ export default function Booking() {
 
     if (!selectedTableId) {
       toast({
-        title: "Select a Table",
-        description: "Please select a table for your booking",
+        title: translate("Select a Table"),
+        description: translate("Please select a table for your booking"),
         variant: "destructive"
       });
       return;
@@ -142,7 +144,7 @@ export default function Booking() {
   if (loadingTables) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-center">Loading tables...</div>
+        <div className="text-center">{translate("Loading tables...")}</div>
       </div>
     );
   }
@@ -150,11 +152,11 @@ export default function Booking() {
   return (
     <div className="w-full">
       <div className="bg-background py-8">
-        <h1 className="text-3xl font-bold mb-8">Book a Table</h1>
+        <h1 className="text-3xl font-bold mb-8">{translate("Book a Table")}</h1>
 
         <div className="grid md:grid-cols-2 gap-8">
           <div>
-            <h2 className="text-lg font-semibold mb-4">1. Select a Date</h2>
+            <h2 className="text-lg font-semibold mb-4">{translate("1. Select a Date")}</h2>
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -166,7 +168,7 @@ export default function Booking() {
 
           {selectedDate && tables && (
             <div>
-              <h2 className="text-lg font-semibold mb-4">2. Choose a Table</h2>
+              <h2 className="text-lg font-semibold mb-4">{translate("2. Choose a Table")}</h2>
               <div className="grid grid-cols-2 gap-4">
                 {tables.map(table => {
                   const isAvailable = table.status === 'available';
@@ -194,24 +196,24 @@ export default function Booking() {
                           <div>
                             <p className="font-medium">{table.name}</p>
                             <p className="text-sm text-muted-foreground">
-                              {table.seats} seats
+                              {table.seats} {translate("seats")}
                             </p>
                           </div>
                           {getTableIcon(table.shape)}
                         </div>
                         <div className="flex gap-2 flex-wrap">
                           <span className={`text-xs px-2 py-1 rounded-full ${getSectionColor(table.section)}`}>
-                            {table.section}
+                            {translate(table.section)}
                           </span>
                           <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(table.status)}`}>
-                            {table.status}
+                            {translate(table.status)}
                           </span>
                         </div>
                         {!isAvailable && (
                           <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
                             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                               <AlertCircle className="h-4 w-4" />
-                              <span>Not Available</span>
+                              <span>{translate("Not Available")}</span>
                             </div>
                           </div>
                         )}
@@ -226,7 +228,7 @@ export default function Booking() {
 
         {selectedDate && selectedTableId > 0 && (
           <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-4">3. Enter Your Details</h2>
+            <h2 className="text-lg font-semibold mb-4">{translate("3. Enter Your Details")}</h2>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -234,7 +236,7 @@ export default function Booking() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>{translate("Your Name")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -248,7 +250,7 @@ export default function Booking() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{translate("Your Email")}</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
                       </FormControl>
@@ -262,7 +264,7 @@ export default function Booking() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone</FormLabel>
+                      <FormLabel>{translate("Your Phone")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -276,7 +278,7 @@ export default function Booking() {
                   name="guestCount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Number of Guests</FormLabel>
+                      <FormLabel>{translate("Number of Guests")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -296,7 +298,7 @@ export default function Booking() {
                   className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
                   disabled={bookingMutation.isPending}
                 >
-                  {bookingMutation.isPending ? "Booking..." : "Book Table"}
+                  {bookingMutation.isPending ? translate("Booking...") : translate("Confirm Booking")}
                 </Button>
               </form>
             </Form>

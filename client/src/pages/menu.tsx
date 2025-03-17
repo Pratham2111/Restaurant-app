@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Search } from "lucide-react";
 import type { Category, MenuItem } from "@shared/schema";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 // Helper function to get cart items from localStorage
 function getCartItems(): Array<{id: number, name: string, price: number, quantity: number}> {
@@ -36,6 +37,7 @@ export default function Menu() {
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { translate, formatCurrency } = useSiteSettings();
 
   const { data: categories, isLoading: loadingCategories } = useQuery<Category[]>({
     queryKey: ["/api/categories"]
@@ -68,8 +70,8 @@ export default function Menu() {
     saveCartItems(newCart);
 
     toast({
-      title: "Added to cart",
-      description: `${item.name} has been added to your cart.`
+      title: translate("Added to cart"),
+      description: translate(`${item.name} has been added to your cart.`)
     });
   };
 
@@ -109,16 +111,16 @@ export default function Menu() {
       <PageSection className="bg-background py-8">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="max-w-4xl mx-auto mb-8">
-            <h1 className="text-4xl font-bold text-center mb-4">Our Menu</h1>
+            <h1 className="text-4xl font-bold text-center mb-4">{translate("Our Menu")}</h1>
             <p className="text-muted-foreground text-center mb-8">
-              Discover our delicious selection of dishes
+              {translate("Discover our delicious selection of dishes")}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search menu items..."
+                  placeholder={translate("Search menu items...")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -129,16 +131,16 @@ export default function Menu() {
                 onValueChange={setSelectedCategory}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={translate("Select category")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="all">{translate("All Categories")}</SelectItem>
                   {categories?.map(category => (
                     <SelectItem
                       key={category.id}
                       value={category.id.toString()}
                     >
-                      {category.name}
+                      {translate(category.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -159,19 +161,19 @@ export default function Menu() {
                 <div className="aspect-video w-full overflow-hidden">
                   <img 
                     src={item.imageUrl}
-                    alt={item.name}
+                    alt={translate(item.name)}
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
                 </div>
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
-                    <span>{item.name}</span>
-                    <span className="text-lg">${Number(item.price).toFixed(2)}</span>
+                    <span>{translate(item.name)}</span>
+                    <span className="text-lg">{formatCurrency(Number(item.price))}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4 line-clamp-2">
-                    {item.description}
+                    {translate(item.description)}
                   </p>
                   <Button 
                     onClick={(e) => {
@@ -180,7 +182,7 @@ export default function Menu() {
                     }}
                     className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
                   >
-                    Add to Cart
+                    {translate("Add to Cart")}
                   </Button>
                 </CardContent>
               </Card>
@@ -189,7 +191,7 @@ export default function Menu() {
 
           {filteredItems?.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No menu items found matching your search.</p>
+              <p className="text-muted-foreground">{translate("No menu items found matching your search.")}</p>
             </div>
           )}
         </div>
