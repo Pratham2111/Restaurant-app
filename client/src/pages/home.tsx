@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Parallax, ParallaxBanner, ParallaxBannerLayer } from 'react-scroll-parallax';
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import {
   Carousel,
   CarouselContent,
@@ -79,6 +80,16 @@ const testimonials = [
     image: "https://ui-avatars.com/api/?name=Sarah+Johnson&background=random"
   },
 ];
+
+const mapStyles = {
+  height: "400px",
+  width: "100%"
+};
+
+const defaultCenter = {
+  lat: 40.7128,
+  lng: -74.0060
+};
 
 export default function Home() {
   const [api, setApi] = useState<CarouselApi>();
@@ -173,10 +184,10 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {features.map((feature, index) => (
-              <Parallax 
-                key={index} 
-                speed={5} 
-                translateY={[0, 15]} 
+              <Parallax
+                key={index}
+                speed={5}
+                translateY={[0, 15]}
                 className="h-full"
               >
                 <Card className="text-center hover:shadow-lg transition-shadow h-full">
@@ -197,7 +208,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section with Parallax */}
-      <section className="w-full py-12 sm:py-16 md:py-20 bg-muted relative overflow-hidden">
+      <section className="w-full py-12 sm:py-16 md:py-20 bg-background/50 relative overflow-hidden">
         <Parallax speed={10} className="absolute inset-0">
           <div className="absolute inset-0 opacity-5">
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-restaurant-yellow rounded-full blur-3xl" />
@@ -256,24 +267,45 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Map Section */}
+      <section className="w-full py-12 bg-background relative overflow-hidden">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 text-foreground">
+            Find Us Here
+          </h2>
+          <div className="rounded-xl overflow-hidden shadow-lg">
+            <LoadScript googleMapsApiKey={import.meta.env.GOOGLE_MAPS_API_KEY}>
+              <GoogleMap
+                mapContainerStyle={mapStyles}
+                zoom={13}
+                center={defaultCenter}
+              >
+                <Marker position={defaultCenter} />
+              </GoogleMap>
+            </LoadScript>
+          </div>
+        </div>
+      </section>
+
+
       {/* Footer */}
-      <footer className="w-full bg-restaurant-black text-white">
+      <footer className="w-full bg-background border-t">
         <div className="max-w-[1440px] mx-auto px-4 py-12 sm:py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Restaurant Info */}
             <div>
               <h3 className="text-xl font-bold mb-4 text-restaurant-yellow">La Maison</h3>
-              <p className="text-gray-300 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Experience exquisite dining in an elegant atmosphere. Our passion for culinary excellence drives every dish we serve.
               </p>
               <div className="flex gap-4">
-                <a href="#" className="text-white hover:text-restaurant-yellow transition-colors">
+                <a href="#" className="text-muted-foreground hover:text-restaurant-yellow transition-colors">
                   <Facebook className="w-5 h-5" />
                 </a>
-                <a href="#" className="text-white hover:text-restaurant-yellow transition-colors">
+                <a href="#" className="text-muted-foreground hover:text-restaurant-yellow transition-colors">
                   <Instagram className="w-5 h-5" />
                 </a>
-                <a href="#" className="text-white hover:text-restaurant-yellow transition-colors">
+                <a href="#" className="text-muted-foreground hover:text-restaurant-yellow transition-colors">
                   <Twitter className="w-5 h-5" />
                 </a>
               </div>
@@ -282,7 +314,7 @@ export default function Home() {
             {/* Opening Hours */}
             <div>
               <h3 className="text-xl font-bold mb-4 text-restaurant-yellow">Opening Hours</h3>
-              <ul className="space-y-2 text-gray-300">
+              <ul className="space-y-2 text-muted-foreground">
                 <li className="flex justify-between">
                   <span>Monday - Friday</span>
                   <span>11:00 AM - 11:00 PM</span>
@@ -301,7 +333,7 @@ export default function Home() {
             {/* Contact Info */}
             <div>
               <h3 className="text-xl font-bold mb-4 text-restaurant-yellow">Contact</h3>
-              <ul className="space-y-2 text-gray-300">
+              <ul className="space-y-2 text-muted-foreground">
                 <li>123 Gourmet Street</li>
                 <li>Culinary District</li>
                 <li>Phone: (555) 123-4567</li>
@@ -312,14 +344,14 @@ export default function Home() {
             {/* Newsletter */}
             <div>
               <h3 className="text-xl font-bold mb-4 text-restaurant-yellow">Newsletter</h3>
-              <p className="text-gray-300 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Subscribe to our newsletter for special offers and updates.
               </p>
               <div className="flex gap-2">
                 <Input
                   type="email"
                   placeholder="Enter your email"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  className="bg-background border-input"
                 />
                 <Button className="bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90">
                   <Mail className="w-4 h-4" />
@@ -329,7 +361,7 @@ export default function Home() {
           </div>
 
           {/* Bottom Bar */}
-          <div className="mt-12 pt-8 border-t border-white/10 text-center text-gray-400">
+          <div className="mt-12 pt-8 border-t border-border text-center text-muted-foreground">
             <p>&copy; {new Date().getFullYear()} La Maison. All rights reserved.</p>
           </div>
         </div>
