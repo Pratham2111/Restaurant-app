@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { PageSection } from "@/components/ui/page-section";
 import { useToast } from "@/hooks/use-toast";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
@@ -146,144 +147,148 @@ export default function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="container py-8">
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-4">Your Cart is Empty</h2>
-              <p className="text-muted-foreground mb-6">
-                Add some delicious items to your cart to get started
-              </p>
-              <Button onClick={() => navigate("/menu")}>
-                View Menu
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <PageSection className="bg-background py-8">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-4">Your Cart is Empty</h2>
+                <p className="text-muted-foreground mb-6">
+                  Add some delicious items to your cart to get started
+                </p>
+                <Button onClick={() => navigate("/menu")}>
+                  View Menu
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </PageSection>
     );
   }
 
   return (
-    <div className="container py-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+    <div className="w-full">
+      <PageSection className="bg-background py-8">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-8">Your Cart</h1>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Order Items</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {cartItems.map(item => (
-                  <div key={item.id} className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        ${item.price} × {item.quantity}
-                      </p>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Order Items</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {cartItems.map(item => (
+                    <div key={item.id} className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">{item.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          ${item.price} × {item.quantity}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => updateQuantity(item.id, -1)}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="w-8 text-center">{item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => updateQuantity(item.id, 1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeItem(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                  ))}
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <span className="font-medium">Total</span>
+                  <span className="font-bold">${total.toFixed(2)}</span>
+                </CardFooter>
+              </Card>
+            </div>
+
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Checkout</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="customerName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="customerEmail"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="customerPhone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Separator />
+
                       <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => updateQuantity(item.id, -1)}
+                        type="submit"
+                        className="w-full"
+                        disabled={orderMutation.isPending}
                       >
-                        <Minus className="h-4 w-4" />
+                        {orderMutation.isPending ? "Processing..." : "Place Order"}
                       </Button>
-                      <span className="w-8 text-center">{item.quantity}</span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => updateQuantity(item.id, 1)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeItem(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <span className="font-medium">Total</span>
-                <span className="font-bold">${total.toFixed(2)}</span>
-              </CardFooter>
-            </Card>
-          </div>
-
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Checkout</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="customerName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="customerEmail"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="customerPhone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Separator />
-
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={orderMutation.isPending}
-                    >
-                      {orderMutation.isPending ? "Processing..." : "Place Order"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-      </div>
+      </PageSection>
     </div>
   );
 }
