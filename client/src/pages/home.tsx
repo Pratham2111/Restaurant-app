@@ -3,18 +3,20 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Parallax, ParallaxBanner, ParallaxBannerLayer } from 'react-scroll-parallax';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { useQuery } from "@tanstack/react-query";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselApi,
 } from "@/components/ui/carousel";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Clock, UtensilsCrossed, Wine, Users, Star, Facebook, Instagram, Twitter, Mail } from "lucide-react";
+import { Clock, UtensilsCrossed, Wine, Users, Star, Facebook, Instagram, Twitter, Mail, Phone, ChefHat, Award } from "lucide-react";
 import { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import type { MenuItem } from "@shared/schema";
 
 const heroImages = [
   {
@@ -91,8 +93,50 @@ const defaultCenter = {
   lng: -74.0060
 };
 
+const specialDishes = [
+  {
+    name: "Truffle Risotto",
+    description: "Creamy Arborio rice with black truffle and Parmesan",
+    image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371",
+    price: "$32"
+  },
+  {
+    name: "Wagyu Steak",
+    description: "Premium Japanese Wagyu with seasonal vegetables",
+    image: "https://images.unsplash.com/photo-1544025162-d76694265947",
+    price: "$85"
+  },
+  {
+    name: "Lobster Thermidor",
+    description: "Fresh lobster in rich cream sauce",
+    image: "https://images.unsplash.com/photo-1533422902779-aff35862e462",
+    price: "$65"
+  }
+];
+
+const stats = [
+  { number: "15+", label: "Years of Excellence" },
+  { number: "50+", label: "Award-Winning Dishes" },
+  { number: "200+", label: "Wine Selections" },
+  { number: "1000+", label: "Happy Customers Monthly" }
+];
+
+const galleryImages = [
+  "https://images.unsplash.com/photo-1414235077428-338989a2e8c0",
+  "https://images.unsplash.com/photo-1559339352-11d035aa65de",
+  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
+  "https://images.unsplash.com/photo-1544025162-d76694265947",
+  "https://images.unsplash.com/photo-1533422902779-aff35862e462",
+  "https://images.unsplash.com/photo-1476124369491-e7addf5db371"
+];
+
 export default function Home() {
   const [api, setApi] = useState<CarouselApi>();
+
+  const { data: featuredMenuItems } = useQuery<MenuItem[]>({
+    queryKey: ["/api/menu-items"],
+    select: (items) => items.slice(0, 3) // Get first 3 items for featured section
+  });
 
   return (
     <div className="relative">
@@ -203,6 +247,221 @@ export default function Home() {
                 </Card>
               </Parallax>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* New Special Dishes Section */}
+      <section className="w-full py-16 bg-background relative overflow-hidden">
+        <Parallax speed={5} className="absolute inset-0">
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-restaurant-yellow rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
+          </div>
+        </Parallax>
+
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="text-center mb-12">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl font-bold mb-4"
+            >
+              Our Special Dishes
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-muted-foreground"
+            >
+              Exquisite creations from our master chefs
+            </motion.p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {specialDishes.map((dish, index) => (
+              <motion.div
+                key={dish.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+              >
+                <Card className="overflow-hidden group">
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                      src={dish.image}
+                      alt={dish.name}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-semibold">{dish.name}</h3>
+                      <span className="text-restaurant-yellow font-semibold">{dish.price}</span>
+                    </div>
+                    <p className="text-muted-foreground">{dish.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Chef's Recommendations Section */}
+      <section className="w-full py-16 bg-background/50 relative overflow-hidden">
+        <Parallax speed={10} className="absolute inset-0">
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-restaurant-yellow rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
+          </div>
+        </Parallax>
+
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="flex items-center justify-center mb-12">
+            <ChefHat className="w-8 h-8 text-restaurant-yellow mr-3" />
+            <h2 className="text-3xl font-bold">Chef's Recommendations</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {featuredMenuItems?.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+              >
+                <Card className="overflow-hidden h-full group">
+                  <div className="aspect-video overflow-hidden">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-semibold">{item.name}</h3>
+                      <span className="text-restaurant-yellow font-semibold">${Number(item.price).toFixed(2)}</span>
+                    </div>
+                    <p className="text-muted-foreground">{item.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="w-full py-16 bg-restaurant-yellow/10 relative overflow-hidden">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="text-center"
+              >
+                <div className="mb-2 inline-flex justify-center items-center w-12 h-12 rounded-full bg-restaurant-yellow/20">
+                  <Award className="w-6 h-6 text-restaurant-yellow" />
+                </div>
+                <h3 className="text-3xl font-bold text-restaurant-yellow mb-2">{stat.number}</h3>
+                <p className="text-muted-foreground">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery Section */}
+      <section className="w-full py-16 bg-background relative overflow-hidden">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="text-center mb-12">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl font-bold mb-4"
+            >
+              Our Gallery
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-muted-foreground"
+            >
+              A visual journey through our culinary excellence
+            </motion.p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {galleryImages.map((image, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="aspect-square overflow-hidden rounded-lg"
+              >
+                <img
+                  src={image}
+                  alt={`Gallery image ${index + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Reservation CTA Section */}
+      <section className="w-full py-16 bg-restaurant-yellow/10 relative overflow-hidden">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl font-bold mb-4"
+            >
+              Make a Reservation
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-muted-foreground mb-8"
+            >
+              Book your table now for an unforgettable dining experience
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Link href="/booking">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                >
+                  Book a Table
+                </Button>
+              </Link>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => window.location.href = 'tel:+15551234567'}
+              >
+                <Phone className="mr-2 h-4 w-4" />
+                Call Us
+              </Button>
+            </motion.div>
           </div>
         </div>
       </section>
