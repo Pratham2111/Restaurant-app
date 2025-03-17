@@ -6,7 +6,7 @@ import {
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
   users, menuItems, menuCategories, tables, events, servers, tableAssignments,
-  loyaltyTiers, loyaltyPoints, loyaltyRewards
+  loyaltyTiers, loyaltyPoints, loyaltyRewards, bookings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
@@ -219,7 +219,25 @@ export class DatabaseStorage implements IStorage {
     await db.delete(events).where(eq(events.id, id));
   }
 
-  async createBooking(booking: InsertBooking): Promise<Booking> { throw new Error("Not implemented"); }
+  async createBooking(booking: InsertBooking): Promise<Booking> {
+    try {
+      const [newBooking] = await db
+        .insert(bookings)
+        .values({
+          tableId: booking.tableId,
+          date: booking.date,
+          name: booking.name,
+          email: booking.email,
+          phone: booking.phone,
+          guestCount: booking.guestCount
+        })
+        .returning();
+      return newBooking;
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      throw new Error('Failed to create booking');
+    }
+  }
   async getBookings(): Promise<Booking[]> { throw new Error("Not implemented"); }
   async createOrder(order: InsertOrder): Promise<Order> { throw new Error("Not implemented"); }
   async getOrder(id: number): Promise<Order | undefined> { throw new Error("Not implemented"); }
@@ -254,7 +272,7 @@ export class DatabaseStorage implements IStorage {
   async updateTableAssignment(id: number, endTime: Date): Promise<TableAssignment> {
     const [updatedAssignment] = await db
       .update(tableAssignments)
-      .set({ 
+      .set({
         endTime,
         status: 'completed'
       })
@@ -326,7 +344,7 @@ export class DatabaseStorage implements IStorage {
 
     const [updatedUser] = await db
       .update(users)
-      .set({ 
+      .set({
         totalPoints: user.totalPoints + pointsToAdd,
         updatedAt: new Date()
       })
@@ -339,7 +357,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserTier(userId: number, tierId: number): Promise<User> {
     const [updatedUser] = await db
       .update(users)
-      .set({ 
+      .set({
         currentTierId: tierId,
         updatedAt: new Date()
       })
