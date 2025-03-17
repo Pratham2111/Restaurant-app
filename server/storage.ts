@@ -250,11 +250,21 @@ export class DatabaseStorage implements IStorage {
   }
   async createOrder(order: InsertOrder): Promise<Order> {
     try {
+      // Format the order items to ensure proper storage
+      const formattedItems = Array.isArray(order.items)
+        ? order.items.map(item => ({
+            id: Number(item.id),
+            name: String(item.name),
+            quantity: Number(item.quantity),
+            price: Number(item.price)
+          }))
+        : [];
+
       const orderData = {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
-        items: order.items,
+        items: JSON.stringify(formattedItems), // Convert items array to JSON string
         total: order.total,
         status: order.status || 'pending',
         createdAt: new Date()
@@ -262,9 +272,10 @@ export class DatabaseStorage implements IStorage {
 
       const [newOrder] = await db.insert(orders).values(orderData).returning();
 
+      // Return the order with parsed items
       return {
         ...newOrder,
-        items: Array.isArray(newOrder.items) ? newOrder.items : []
+        items: formattedItems
       };
     } catch (error) {
       console.error('Error creating order:', error);
@@ -279,7 +290,7 @@ export class DatabaseStorage implements IStorage {
 
       return {
         ...order,
-        items: Array.isArray(order.items) ? order.items : []
+        items: Array.isArray(order.items) ? JSON.parse(order.items) : []
       };
     } catch (error) {
       console.error('Error fetching order:', error);
@@ -292,7 +303,7 @@ export class DatabaseStorage implements IStorage {
       const ordersList = await db.select().from(orders);
       return ordersList.map(order => ({
         ...order,
-        items: Array.isArray(order.items) ? order.items : []
+        items: Array.isArray(order.items) ? JSON.parse(order.items) : []
       }));
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -310,7 +321,7 @@ export class DatabaseStorage implements IStorage {
 
       return {
         ...updatedOrder,
-        items: Array.isArray(updatedOrder.items) ? updatedOrder.items : []
+        items: Array.isArray(updatedOrder.items) ? JSON.parse(updatedOrder.items) : []
       };
     } catch (error) {
       console.error('Error updating order status:', error);

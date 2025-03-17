@@ -73,18 +73,8 @@ export default function Cart() {
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Format the order data properly before sending
-      const formattedData = {
-        customerName: data.customerName,
-        customerEmail: data.customerEmail,
-        customerPhone: data.customerPhone,
-        items: data.items,
-        total: data.total,
-        status: "pending",
-        createdAt: new Date().toISOString()
-      };
-
-      const res = await apiRequest("POST", "/api/orders", formattedData);
+      console.log("Submitting order data:", data); // Debug log
+      const res = await apiRequest("POST", "/api/orders", data);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || 'Failed to place order');
@@ -103,6 +93,7 @@ export default function Cart() {
       navigate("/");
     },
     onError: (error: Error) => {
+      console.error("Order submission error:", error); // Debug log
       toast({
         title: "Failed to Place Order",
         description: error.message || "There was an error processing your order. Please try again.",
@@ -135,7 +126,7 @@ export default function Cart() {
     0
   );
 
-  function onSubmit(data: any) {
+  async function onSubmit(data: any) {
     if (cartItems.length === 0) {
       toast({
         title: "Cart is Empty",
@@ -150,17 +141,13 @@ export default function Cart() {
       customerName: data.customerName,
       customerEmail: data.customerEmail,
       customerPhone: data.customerPhone,
-      items: cartItems.map(item => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price.toString()
-      })),
+      items: cartItems,
       total: total.toString(),
       status: "pending",
       createdAt: new Date().toISOString()
     };
 
+    console.log("Order Data:", orderData); // Debug log
     orderMutation.mutate(orderData);
   }
 
