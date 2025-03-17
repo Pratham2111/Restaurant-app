@@ -6,7 +6,8 @@ import {
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
   users, menuItems, menuCategories, tables, events, servers, tableAssignments,
-  loyaltyTiers, loyaltyPoints, loyaltyRewards, bookings, siteSettings, type SiteSettings, type InsertSiteSettings
+  loyaltyTiers, loyaltyPoints, loyaltyRewards, bookings, siteSettings, type SiteSettings, type InsertSiteSettings,
+  orders // Add orders import
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
@@ -256,16 +257,26 @@ export class DatabaseStorage implements IStorage {
     return order;
   }
   async getOrders(): Promise<Order[]> {
-    return db.select().from(orders);
+    try {
+      return await db.select().from(orders);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw new Error('Failed to fetch orders');
+    }
   }
 
   async updateOrderStatus(id: number, status: string): Promise<Order> {
-    const [updatedOrder] = await db
-      .update(orders)
-      .set({ status })
-      .where(eq(orders.id, id))
-      .returning();
-    return updatedOrder;
+    try {
+      const [updatedOrder] = await db
+        .update(orders)
+        .set({ status })
+        .where(eq(orders.id, id))
+        .returning();
+      return updatedOrder;
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      throw new Error('Failed to update order status');
+    }
   }
 
   async getServers(): Promise<Server[]> {
@@ -395,43 +406,59 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSiteSettings(): Promise<SiteSettings> {
-    const [settings] = await db.select().from(siteSettings);
-    return settings || {
-      id: 1,
-      language: "en",
-      country: "US",
-      currency: "USD",
-      translations: {},
-      privacyPolicy: "",
-      cookiePolicy: "",
-      termsConditions: "",
-      updatedAt: new Date()
-    };
+    try {
+      const [settings] = await db.select().from(siteSettings);
+      if (!settings) {
+        // Return default settings if none exist
+        return {
+          id: 1,
+          language: "en",
+          country: "US",
+          currency: "USD",
+          translations: {},
+          privacyPolicy: "",
+          cookiePolicy: "",
+          termsConditions: "",
+          updatedAt: new Date()
+        };
+      }
+      return settings;
+    } catch (error) {
+      console.error('Error fetching site settings:', error);
+      throw new Error('Failed to fetch site settings');
+    }
   }
 
   async updateSiteSettings(settings: InsertSiteSettings): Promise<SiteSettings> {
-    const [existingSettings] = await db.select().from(siteSettings);
+    try {
+      const [existingSettings] = await db.select().from(siteSettings);
 
-    if (existingSettings) {
-      const [updatedSettings] = await db
-        .update(siteSettings)
-        .set({
-          ...settings,
-          updatedAt: new Date()
-        })
-        .where(eq(siteSettings.id, existingSettings.id))
-        .returning();
-      return updatedSettings;
-    } else {
-      const [newSettings] = await db
-        .insert(siteSettings)
-        .values({
-          ...settings,
-          id: 1,
-          updatedAt: new Date()
-        })
-        .returning();
-      return newSettings;
+      if (existingSettings) {
+        // Update existing settings
+        const [updatedSettings] = await db
+          .update(siteSettings)
+          .set({
+            ...settings,
+            updatedAt: new Date()
+          })
+          .where(eq(siteSettings.id, existingSettings.id))
+          .returning();
+        return updatedSettings;
+      } else {
+        // Create new settings
+        const [newSettings] = await db
+          .insert(siteSettings)
+          .values({
+            ...settings,
+            id: 1,
+            updatedAt: new Date()
+          })
+          .returning();
+        return newSettings;
+      }
+    } catch (error) {
+      console.error('Error updating site settings:', error);
+      throw new Error('Failed to update site settings');
     }
   }
 }
