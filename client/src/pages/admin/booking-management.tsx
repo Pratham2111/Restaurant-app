@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 
-interface Booking {
+type Booking = {
   id: number;
   table_id: number;
   date: string;
@@ -34,14 +34,14 @@ interface Booking {
   email: string;
   phone: string;
   guest_count: number;
-}
+};
 
-interface Table {
+type Table = {
   id: number;
   name: string;
   section: string;
   seats: number;
-}
+};
 
 export default function BookingManagement() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,9 +55,12 @@ export default function BookingManagement() {
     queryKey: ["/api/tables"],
   });
 
+  console.log("Bookings data:", bookings); // Debug log
+  console.log("Tables data:", tables); // Debug log
+
   const getTableName = (tableId: number) => {
     const table = tables?.find(t => t.id === tableId);
-    return table?.name || "Unknown Table";
+    return table ? table.name : `Table ${tableId}`;
   };
 
   const filteredBookings = bookings?.filter(booking => {
@@ -74,10 +77,12 @@ export default function BookingManagement() {
     return matchesSearch && matchesDate;
   });
 
+  console.log("Filtered bookings:", filteredBookings); // Debug log
+
   if (loadingBookings) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
-        <Loader2 className="h-8 w-8 animate-spin text-restaurant-yellow" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -126,28 +131,29 @@ export default function BookingManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredBookings?.map((booking) => (
-                      <TableRow key={booking.id}>
-                        <TableCell>
-                          {format(new Date(booking.date), "PPP")}
-                        </TableCell>
-                        <TableCell>{getTableName(booking.table_id)}</TableCell>
-                        <TableCell>{booking.name}</TableCell>
-                        <TableCell>
-                          <div>
-                            <div>{booking.email}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {booking.phone}
+                    {filteredBookings && filteredBookings.length > 0 ? (
+                      filteredBookings.map((booking) => (
+                        <TableRow key={booking.id}>
+                          <TableCell>
+                            {format(new Date(booking.date), "PPP")}
+                          </TableCell>
+                          <TableCell>{getTableName(booking.table_id)}</TableCell>
+                          <TableCell>{booking.name}</TableCell>
+                          <TableCell>
+                            <div>
+                              <div>{booking.email}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {booking.phone}
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{booking.guest_count}</TableCell>
-                      </TableRow>
-                    ))}
-                    {filteredBookings?.length === 0 && (
+                          </TableCell>
+                          <TableCell>{booking.guest_count}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center py-8">
-                          No bookings found
+                          {loadingBookings ? "Loading bookings..." : "No bookings found"}
                         </TableCell>
                       </TableRow>
                     )}
