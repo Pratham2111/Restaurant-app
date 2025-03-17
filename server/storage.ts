@@ -5,7 +5,7 @@ import {
   type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser,
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
-  users, menuItems
+  users, menuItems, menuCategories
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -119,10 +119,26 @@ export class DatabaseStorage implements IStorage {
       .where(eq(menuItems.categoryId, categoryId));
   }
 
-  async getCategories(): Promise<Category[]> { throw new Error("Not implemented"); }
-  async createMenuItem(item: InsertMenuItem): Promise<MenuItem> { throw new Error("Not implemented"); }
-  async updateMenuItem(id: number, item: InsertMenuItem): Promise<MenuItem> { throw new Error("Not implemented"); }
-  async deleteMenuItem(id: number): Promise<void> { throw new Error("Not implemented"); }
+  async getCategories(): Promise<Category[]> {
+    return db.select().from(menuCategories);
+  }
+  async createMenuItem(item: InsertMenuItem): Promise<MenuItem> {
+    const [menuItem] = await db.insert(menuItems).values(item).returning();
+    return menuItem;
+  }
+
+  async updateMenuItem(id: number, item: InsertMenuItem): Promise<MenuItem> {
+    const [updatedItem] = await db
+      .update(menuItems)
+      .set(item)
+      .where(eq(menuItems.id, id))
+      .returning();
+    return updatedItem;
+  }
+
+  async deleteMenuItem(id: number): Promise<void> {
+    await db.delete(menuItems).where(eq(menuItems.id, id));
+  }
   async getTables(): Promise<Table[]> { throw new Error("Not implemented"); }
   async getTableById(id: number): Promise<Table | undefined> { throw new Error("Not implemented"); }
   async getTablesBySection(section: string): Promise<Table[]> { throw new Error("Not implemented"); }
