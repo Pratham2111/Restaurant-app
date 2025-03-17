@@ -435,6 +435,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Bookings
+  app.get("/api/bookings", async (_req, res) => {
+    try {
+      const bookings = await storage.getBookings();
+      res.json(bookings);
+    } catch (error) {
+      console.error("Failed to fetch bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
   app.post("/api/bookings", async (req, res) => {
     try {
       const booking = insertBookingSchema.parse(req.body);
