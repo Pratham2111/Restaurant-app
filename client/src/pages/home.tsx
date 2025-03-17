@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { Parallax, ParallaxBanner, ParallaxBannerLayer } from 'react-scroll-parallax';
 import {
   Carousel,
   CarouselContent,
@@ -84,7 +85,7 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {/* Hero Carousel Section */}
+      {/* Hero Carousel Section with Parallax */}
       <section className="w-full">
         <Carousel
           className="w-full h-[400px] sm:h-[500px] md:h-[600px]"
@@ -103,116 +104,153 @@ export default function Home() {
           <CarouselContent>
             {heroImages.map((image, index) => (
               <CarouselItem key={index}>
-                <div
-                  className="h-[400px] sm:h-[500px] md:h-[600px] bg-cover bg-center relative"
-                  style={{
-                    backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${image.url})`,
-                  }}
-                >
-                  <div className="max-w-[1440px] mx-auto h-full flex items-center px-4">
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8 }}
-                      className="max-w-2xl text-white"
-                    >
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-restaurant-yellow">
-                        {image.title}
-                      </h1>
-                      <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 font-light">
-                        {image.description}
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        <Link href="/menu">
-                          <Button
-                            size="lg"
-                            className="w-full sm:w-auto bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
-                          >
-                            View Menu
-                          </Button>
-                        </Link>
-                        <Link href="/booking">
-                          <Button
-                            size="lg"
-                            variant="outline"
-                            className="w-full sm:w-auto bg-transparent text-white border-white hover:bg-white/10"
-                          >
-                            Book a Table
-                          </Button>
-                        </Link>
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
+                <ParallaxBanner className="h-[400px] sm:h-[500px] md:h-[600px]">
+                  <ParallaxBannerLayer
+                    image={image.url}
+                    speed={-20}
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${image.url})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                  <ParallaxBannerLayer speed={-10}>
+                    <div className="max-w-[1440px] mx-auto h-full flex items-center px-4">
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                        className="max-w-2xl text-white"
+                      >
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-restaurant-yellow">
+                          {image.title}
+                        </h1>
+                        <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 font-light">
+                          {image.description}
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <Link href="/menu">
+                            <Button
+                              size="lg"
+                              className="w-full sm:w-auto bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                            >
+                              View Menu
+                            </Button>
+                          </Link>
+                          <Link href="/booking">
+                            <Button
+                              size="lg"
+                              variant="outline"
+                              className="w-full sm:w-auto bg-transparent text-white border-white hover:bg-white/10"
+                            >
+                              Book a Table
+                            </Button>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </ParallaxBannerLayer>
+                </ParallaxBanner>
               </CarouselItem>
             ))}
           </CarouselContent>
         </Carousel>
       </section>
 
-      {/* Features Section */}
-      <section className="w-full py-12 sm:py-16 md:py-20 bg-background">
-        <div className="max-w-[1440px] mx-auto px-4">
+      {/* Features Section with Parallax */}
+      <section className="w-full py-12 sm:py-16 md:py-20 bg-background relative overflow-hidden">
+        <Parallax speed={5} className="absolute inset-0">
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-restaurant-yellow rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-restaurant-yellow rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2" />
+          </div>
+        </Parallax>
+
+        <div className="max-w-[1440px] mx-auto px-4 relative">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-foreground">
             Why Choose La Maison
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <feature.icon className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-4 text-restaurant-yellow" />
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <Parallax 
+                key={index} 
+                speed={5} 
+                translateY={[0, 15]} 
+                className="h-full"
+              >
+                <Card className="text-center hover:shadow-lg transition-shadow h-full">
+                  <CardContent className="pt-6">
+                    <feature.icon className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-4 text-restaurant-yellow" />
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Parallax>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="w-full py-12 sm:py-16 md:py-20 bg-muted">
-        <div className="max-w-[1440px] mx-auto px-4">
+      {/* Testimonials Section with Parallax */}
+      <section className="w-full py-12 sm:py-16 md:py-20 bg-muted relative overflow-hidden">
+        <Parallax speed={10} className="absolute inset-0">
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-restaurant-yellow rounded-full blur-3xl" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-restaurant-yellow rounded-full blur-3xl" />
+          </div>
+        </Parallax>
+
+        <div className="max-w-[1440px] mx-auto px-4 relative">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-foreground">
             What Our Guests Say
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((testimonial, index) => (
-              <motion.div
+              <Parallax
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
+                speed={index % 2 === 0 ? 5 : -5}
+                translateY={[0, 20]}
               >
-                <Card className="bg-background hover:shadow-lg transition-all duration-300 h-full">
-                  <CardContent className="pt-6 flex flex-col h-full">
-                    <div className="flex items-center gap-4 mb-4">
-                      <img
-                        src={testimonial.image}
-                        alt={testimonial.author}
-                        className="w-12 h-12 rounded-full"
-                      />
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          {testimonial.author}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {testimonial.role}
-                        </p>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="bg-background hover:shadow-lg transition-all duration-300 h-full backdrop-blur-lg bg-opacity-90">
+                    <CardContent className="pt-6 flex flex-col h-full">
+                      <div className="flex items-center gap-4 mb-4">
+                        <img
+                          src={testimonial.image}
+                          alt={testimonial.author}
+                          className="w-12 h-12 rounded-full ring-2 ring-restaurant-yellow"
+                        />
+                        <div>
+                          <p className="font-semibold text-foreground">
+                            {testimonial.author}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {testimonial.role}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex mb-4">
-                      {Array(testimonial.rating).fill(0).map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-restaurant-yellow text-restaurant-yellow" />
-                      ))}
-                    </div>
-                    <p className="text-base sm:text-lg mb-4 italic text-muted-foreground flex-grow">
-                      "{testimonial.text}"
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                      <div className="flex mb-4">
+                        {Array(testimonial.rating).fill(0).map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-restaurant-yellow text-restaurant-yellow" />
+                        ))}
+                      </div>
+                      <p className="text-base sm:text-lg mb-4 italic text-muted-foreground flex-grow">
+                        "{testimonial.text}"
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Parallax>
             ))}
           </div>
         </div>
