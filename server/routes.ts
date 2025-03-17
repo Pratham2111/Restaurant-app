@@ -378,6 +378,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/events/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const event = insertEventSchema.parse(req.body);
+      const result = await storage.updateEvent(id, event);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      } else {
+        console.error("Failed to update event:", error);
+        res.status(500).json({ message: "Failed to update event" });
+      }
+    }
+  });
+
+  app.delete("/api/events/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      await storage.deleteEvent(id);
+      res.json({ message: "Event deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+      res.status(500).json({ message: "Failed to delete event" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -55,6 +55,8 @@ export interface IStorage {
   // Events
   getEvents(): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
+  updateEvent(id: number, event: InsertEvent): Promise<Event>;
+  deleteEvent(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -319,6 +321,30 @@ export class MemStorage implements IStorage {
     };
     this.events.set(id, newEvent);
     return newEvent;
+  }
+
+  async updateEvent(id: number, event: InsertEvent): Promise<Event> {
+    const existingEvent = this.events.get(id);
+    if (!existingEvent) {
+      throw new Error("Event not found");
+    }
+
+    const now = new Date();
+    const updatedEvent = {
+      ...existingEvent,
+      ...event,
+      id,
+      updatedAt: now
+    };
+    this.events.set(id, updatedEvent);
+    return updatedEvent;
+  }
+
+  async deleteEvent(id: number): Promise<void> {
+    if (!this.events.has(id)) {
+      throw new Error("Event not found");
+    }
+    this.events.delete(id);
   }
 
   private initSampleData() {

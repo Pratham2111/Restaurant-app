@@ -33,6 +33,7 @@ import type { Event } from "@shared/schema";
 
 export default function EventsManagement() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const { toast } = useToast();
 
   const form = useForm({
@@ -77,6 +78,71 @@ export default function EventsManagement() {
     }
   });
 
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      const res = await apiRequest("PATCH", `/api/events/${id}`, data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update event');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({
+        title: "Success",
+        description: "Event has been updated successfully"
+      });
+      setEditingEvent(null);
+      form.reset();
+      setSelectedDate(undefined);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update event. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/events/${id}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to delete event');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({
+        title: "Success",
+        description: "Event has been deleted successfully"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete event. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleEditClick = (event: Event) => {
+    setEditingEvent(event);
+    form.reset({
+      title: event.title,
+      description: event.description,
+      imageUrl: event.imageUrl,
+      featured: event.featured,
+      date: event.date
+    });
+    setSelectedDate(new Date(event.date));
+  };
+
   function onSubmit(data: any) {
     if (!selectedDate) {
       toast({
@@ -87,117 +153,117 @@ export default function EventsManagement() {
       return;
     }
 
-    addEventMutation.mutate({
+    const eventData = {
       ...data,
       date: selectedDate.toISOString()
-    });
+    };
+
+    if (editingEvent) {
+      updateEventMutation.mutate({ id: editingEvent.id, data: eventData });
+    } else {
+      addEventMutation.mutate(eventData);
+    }
   }
 
   return (
     <div className="w-full">
       <PageSection className="bg-background py-8">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold">Events Management</h1>
-          </div>
-
           <div className="grid lg:grid-cols-2 gap-8">
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add New Event</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+            <Card>
+              <CardHeader>
+                <CardTitle>{editingEvent ? "Edit Event" : "Add New Event"}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Image URL</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="featured"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between">
+                          <FormLabel>Featured Event</FormLabel>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="space-y-2">
+                      <FormLabel>Event Date</FormLabel>
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="rounded-md border"
                       />
+                    </div>
 
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="imageUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Image URL</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="featured"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center justify-between">
-                            <FormLabel>Featured Event</FormLabel>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="space-y-2">
-                        <FormLabel>Event Date</FormLabel>
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          className="rounded-md border"
-                        />
-                      </div>
-
-                      <Button
-                        type="submit"
-                        className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
-                        disabled={addEventMutation.isPending}
-                      >
-                        {addEventMutation.isPending ? (
-                          <span className="flex items-center">
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Adding Event...
-                          </span>
-                        ) : (
-                          "Add Event"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={addEventMutation.isPending || updateEventMutation.isPending}
+                    >
+                      {(addEventMutation.isPending || updateEventMutation.isPending) ? (
+                        <span className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {editingEvent ? "Updating..." : "Adding Event..."}
+                        </span>
+                      ) : (
+                        editingEvent ? "Update Event" : "Add Event"
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
 
             <div>
               <Card>
@@ -251,26 +317,26 @@ export default function EventsManagement() {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => {
-                                        toast({
-                                          title: "Coming Soon",
-                                          description: "Edit functionality will be available soon."
-                                        });
-                                      }}
+                                      onClick={() => handleEditClick(event)}
                                     >
                                       <Pencil className="h-4 w-4" />
                                     </Button>
+
                                     <Button
                                       variant="ghost"
                                       size="icon"
                                       onClick={() => {
-                                        toast({
-                                          title: "Coming Soon",
-                                          description: "Delete functionality will be available soon."
-                                        });
+                                        if (confirm("Are you sure you want to delete this event?")) {
+                                          deleteEventMutation.mutate(event.id);
+                                        }
                                       }}
+                                      disabled={deleteEventMutation.isPending}
                                     >
-                                      <Trash2 className="h-4 w-4" />
+                                      {deleteEventMutation.isPending ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="h-4 w-4" />
+                                      )}
                                     </Button>
                                   </div>
                                 </div>
