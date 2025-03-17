@@ -250,13 +250,23 @@ export class DatabaseStorage implements IStorage {
   }
   async createOrder(order: InsertOrder): Promise<Order> {
     try {
-      // Ensure proper JSON stringification of items array
+      // Format the items array correctly before saving
       const orderData = {
         ...order,
-        items: JSON.stringify(order.items)
+        items: Array.isArray(order.items) 
+          ? JSON.stringify(order.items.map(item => ({
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price
+            })))
+          : JSON.stringify([]),
+        status: order.status || 'pending',
+        createdAt: new Date()
       };
 
       const [newOrder] = await db.insert(orders).values(orderData).returning();
+
       return {
         ...newOrder,
         items: JSON.parse(newOrder.items as string)
