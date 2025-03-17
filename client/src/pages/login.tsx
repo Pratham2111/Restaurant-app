@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
+import { PageSection } from "@/components/ui/page-section";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -51,7 +52,6 @@ export default function Login() {
         title: "Success",
         description: "You have been logged in successfully.",
       });
-      // Invalidate auth query and navigate
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       navigate("/");
     },
@@ -69,65 +69,67 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-      <div className="w-full max-w-md px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-            <CardDescription className="text-center">
-              Login to your account to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="Enter your email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    <PageSection className="bg-background min-h-[calc(100vh-4rem)]">
+      <div className="flex items-center justify-center">
+        <div className="w-full max-w-md px-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
+              <CardDescription className="text-center">
+                Login to your account to continue
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Enter your email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Enter your password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Enter your password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={loginMutation.isPending}
-                >
-                  {loginMutation.isPending ? "Logging in..." : "Login"}
-                </Button>
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={loginMutation.isPending}
+                  >
+                    {loginMutation.isPending ? "Logging in..." : "Login"}
+                  </Button>
 
-                <p className="text-center text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <Link href="/register">
-                    <a className="text-primary hover:underline">Register</a>
-                  </Link>
-                </p>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Don't have an account?{" "}
+                    <Link href="/register">
+                      <a className="text-primary hover:underline">Register</a>
+                    </Link>
+                  </p>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </PageSection>
   );
 }

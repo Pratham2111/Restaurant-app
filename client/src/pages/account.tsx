@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { PageSection } from "@/components/ui/page-section";
 import type { User } from "@shared/schema";
 import { Moon, Sun, LogOut } from "lucide-react";
 
@@ -25,7 +26,6 @@ export default function Account() {
   const handleLogout = async () => {
     try {
       await apiRequest("POST", "/api/auth/logout");
-      // Clear all queries and reset state
       await queryClient.resetQueries();
       toast({
         title: "Success",
@@ -43,7 +43,11 @@ export default function Account() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center py-8">Loading...</div>;
+    return (
+      <PageSection className="bg-background py-8">
+        <div className="flex justify-center">Loading...</div>
+      </PageSection>
+    );
   }
 
   if (!user) {
@@ -51,42 +55,44 @@ export default function Account() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] py-8 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl">My Account</CardTitle>
-          <ThemeToggle />
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
-            <p className="text-lg">{user.name}</p>
-          </div>
+    <PageSection className="bg-background min-h-[calc(100vh-4rem)] py-8">
+      <div className="flex justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-2xl">My Account</CardTitle>
+            <ThemeToggle />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
+              <p className="text-lg">{user.name}</p>
+            </div>
 
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
-            <p className="text-lg">{user.email}</p>
-          </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
+              <p className="text-lg">{user.email}</p>
+            </div>
 
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Member Since</h3>
-            <p className="text-lg">
-              {new Date(user.createdAt).toLocaleDateString()}
-            </p>
-          </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground">Member Since</h3>
+              <p className="text-lg">
+                {new Date(user.createdAt).toLocaleDateString()}
+              </p>
+            </div>
 
-          <div className="pt-4 border-t">
-            <Button 
-              variant="destructive"
-              className="w-full"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            <div className="pt-4 border-t">
+              <Button 
+                variant="destructive"
+                className="w-full"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </PageSection>
   );
 }
