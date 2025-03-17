@@ -26,7 +26,8 @@ import {
   TrendingUp,
   CalendarRange,
   ClipboardList,
-  PartyPopper
+  PartyPopper,
+  Settings
 } from "lucide-react";
 import type { Table, Order, MenuItem, Booking } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -144,18 +145,18 @@ export default function Dashboard() {
               </a>
             </Link>
 
-            <Link href="/admin/users">
+            <Link href="/admin/settings">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      User Management
+                      <Settings className="h-5 w-5" />
+                      Site Settings
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Manage user accounts and permissions
+                      Configure language and currency
                     </p>
                   </CardContent>
                 </Card>
