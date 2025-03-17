@@ -238,7 +238,9 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Failed to create booking');
     }
   }
-  async getBookings(): Promise<Booking[]> { throw new Error("Not implemented"); }
+  async getBookings(): Promise<Booking[]> {
+    return db.select().from(bookings);
+  }
   async createOrder(order: InsertOrder): Promise<Order> { throw new Error("Not implemented"); }
   async getOrder(id: number): Promise<Order | undefined> { throw new Error("Not implemented"); }
   async getServers(): Promise<Server[]> {
