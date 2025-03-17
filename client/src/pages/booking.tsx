@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Square, Circle, RectangleHorizontal, AlertCircle } from "lucide-react";
-import { PageSection } from "@/components/ui/page-section";
 import type { Table } from "@shared/schema";
 
 export default function Booking() {
@@ -111,15 +110,17 @@ export default function Booking() {
   const getSectionColor = (section: string) => {
     switch (section) {
       case 'main':
-        return 'bg-blue-100';
+        return 'bg-blue-100 text-blue-800';
       case 'outdoor':
-        return 'bg-green-100';
+        return 'bg-green-100 text-green-800';
       case 'private':
-        return 'bg-purple-100';
+        return 'bg-purple-100 text-purple-800';
       case 'bar':
-        return 'bg-orange-100';
+        return 'bg-orange-100 text-orange-800';
+      case 'window':
+        return 'bg-cyan-100 text-cyan-800';
       default:
-        return 'bg-gray-100';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -140,17 +141,15 @@ export default function Booking() {
 
   if (loadingTables) {
     return (
-      <PageSection className="bg-background py-8">
-        <div className="flex items-center justify-center">
-          <div className="text-center">Loading tables...</div>
-        </div>
-      </PageSection>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">Loading tables...</div>
+      </div>
     );
   }
 
   return (
     <div className="w-full">
-      <PageSection className="bg-background py-8">
+      <div className="bg-background py-8">
         <h1 className="text-3xl font-bold mb-8">Book a Table</h1>
 
         <div className="grid md:grid-cols-2 gap-8">
@@ -175,7 +174,7 @@ export default function Booking() {
                     <Card
                       key={table.id}
                       className={`relative transition-all duration-200 ${
-                        isAvailable 
+                        isAvailable
                           ? 'cursor-pointer hover:shadow-lg'
                           : 'opacity-60 cursor-not-allowed'
                       } ${
@@ -303,7 +302,7 @@ export default function Booking() {
             </Form>
           </div>
         )}
-      </PageSection>
+      </div>
     </div>
   );
 }

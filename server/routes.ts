@@ -7,7 +7,8 @@ import {
   insertTableAssignmentSchema,
   insertMenuItemSchema,
   insertUserSchema,
-  insertEventSchema 
+  insertEventSchema,
+  insertSiteSettingsSchema 
 } from "@shared/schema";
 import { ZodError } from "zod";
 import bcrypt from "bcryptjs";
@@ -526,6 +527,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     res.json(order);
   });
+  
+  // Add GET endpoint for fetching all orders
+  app.get("/api/orders", async (_req, res) => {
+    try {
+      const orders = await storage.getOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  // Add PATCH endpoint for updating order status
+  app.patch("/api/orders/:id/status", async (req, res) => {
+    try {
+      const { status } = req.body;
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      const orderId = Number(req.params.id);
+      const result = await storage.updateOrderStatus(orderId, status);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
 
   // Events Routes
   app.get("/api/events", async (_req, res) => {
@@ -587,6 +614,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
+
+  // Add site settings routes
+  app.get("/api/settings", async (_req, res) => {
+    try {
+      const settings = await storage.getSiteSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Failed to fetch settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.patch("/api/settings", async (req, res) => {
+    try {
+      const settingsData = insertSiteSettingsSchema.parse(req.body);
+      const result = await storage.updateSiteSettings(settingsData);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid settings data", errors: error.errors });
+      } else {
+        console.error("Failed to update settings:", error);
+        res.status(500).json({ message: "Failed to update settings" });
+      }
+    }
+  });
+
 
   const httpServer = createServer(app);
   return httpServer;

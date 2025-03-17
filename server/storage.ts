@@ -6,7 +6,7 @@ import {
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
   users, menuItems, menuCategories, tables, events, servers, tableAssignments,
-  loyaltyTiers, loyaltyPoints, loyaltyRewards, bookings
+  loyaltyTiers, loyaltyPoints, loyaltyRewards, bookings, siteSettings, type SiteSettings, type InsertSiteSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
@@ -47,6 +47,8 @@ export interface IStorage {
   // Orders
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: number): Promise<Order | undefined>;
+  getOrders(): Promise<Order[]>;
+  updateOrderStatus(id: number, status: string): Promise<Order>;
 
   // Server Management
   getServers(): Promise<Server[]>;
@@ -79,6 +81,10 @@ export interface IStorage {
 
   updateUserPoints(userId: number, pointsToAdd: number): Promise<User>;
   updateUserTier(userId: number, tierId: number): Promise<User>;
+
+  //Site Settings
+  getSiteSettings(): Promise<SiteSettings>;
+  updateSiteSettings(settings: InsertSiteSettings): Promise<SiteSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -241,8 +247,27 @@ export class DatabaseStorage implements IStorage {
   async getBookings(): Promise<Booking[]> {
     return db.select().from(bookings);
   }
-  async createOrder(order: InsertOrder): Promise<Order> { throw new Error("Not implemented"); }
-  async getOrder(id: number): Promise<Order | undefined> { throw new Error("Not implemented"); }
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const [newOrder] = await db.insert(orders).values(order).returning();
+    return newOrder;
+  }
+  async getOrder(id: number): Promise<Order | undefined> {
+    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+    return order;
+  }
+  async getOrders(): Promise<Order[]> {
+    return db.select().from(orders);
+  }
+
+  async updateOrderStatus(id: number, status: string): Promise<Order> {
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({ status })
+      .where(eq(orders.id, id))
+      .returning();
+    return updatedOrder;
+  }
+
   async getServers(): Promise<Server[]> {
     return db.select().from(servers);
   }
@@ -367,6 +392,47 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return updatedUser;
+  }
+
+  async getSiteSettings(): Promise<SiteSettings> {
+    const [settings] = await db.select().from(siteSettings);
+    return settings || {
+      id: 1,
+      language: "en",
+      country: "US",
+      currency: "USD",
+      translations: {},
+      privacyPolicy: "",
+      cookiePolicy: "",
+      termsConditions: "",
+      updatedAt: new Date()
+    };
+  }
+
+  async updateSiteSettings(settings: InsertSiteSettings): Promise<SiteSettings> {
+    const [existingSettings] = await db.select().from(siteSettings);
+
+    if (existingSettings) {
+      const [updatedSettings] = await db
+        .update(siteSettings)
+        .set({
+          ...settings,
+          updatedAt: new Date()
+        })
+        .where(eq(siteSettings.id, existingSettings.id))
+        .returning();
+      return updatedSettings;
+    } else {
+      const [newSettings] = await db
+        .insert(siteSettings)
+        .values({
+          ...settings,
+          id: 1,
+          updatedAt: new Date()
+        })
+        .returning();
+      return newSettings;
+    }
   }
 }
 

@@ -305,6 +305,7 @@ export default function TableManagement() {
                             <SelectItem value="outdoor">Outdoor</SelectItem>
                             <SelectItem value="private">Private</SelectItem>
                             <SelectItem value="bar">Bar</SelectItem>
+                            <SelectItem value="window">Window</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

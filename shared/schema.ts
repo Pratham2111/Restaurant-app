@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, decimal, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, decimal, boolean, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -108,28 +108,16 @@ export const loyaltyRewards = pgTable("loyalty_rewards", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const users = pgTable("users", {
+export const siteSettings = pgTable("site_settings", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  totalPoints: integer("total_points").notNull().default(0),
-  currentTierId: integer("current_tier_id").notNull().default(1),
-  role: text("role").notNull().default("customer"),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const events = pgTable("events", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  imageUrl: text("image_url").notNull(),
-  date: timestamp("date").notNull(),
-  featured: boolean("featured").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  language: text("language").notNull().default("en"),
+  country: text("country").notNull().default("US"),
+  currency: text("currency").notNull().default("USD"),
+  translations: json("translations").notNull().default({}),
+  privacyPolicy: text("privacy_policy").notNull().default(""),
+  cookiePolicy: text("cookie_policy").notNull().default(""),
+  termsConditions: text("terms_conditions").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
 export const insertCategorySchema = createInsertSchema(menuCategories);
@@ -179,6 +167,10 @@ export const insertLoyaltyTierSchema = createInsertSchema(loyaltyTiers);
 export const insertLoyaltyPointSchema = createInsertSchema(loyaltyPoints);
 export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards);
 
+export const insertSiteSettingsSchema = createInsertSchema(siteSettings).extend({
+  translations: z.record(z.string(), z.record(z.string(), z.string())),
+});
+
 export type Category = typeof menuCategories.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type Table = typeof tables.$inferSelect;
@@ -191,6 +183,7 @@ export type Event = typeof events.$inferSelect;
 export type LoyaltyTier = typeof loyaltyTiers.$inferSelect;
 export type LoyaltyPoint = typeof loyaltyPoints.$inferSelect;
 export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
+export type SiteSettings = typeof siteSettings.$inferSelect;
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
@@ -204,3 +197,28 @@ export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertLoyaltyTier = z.infer<typeof insertLoyaltyTierSchema>;
 export type InsertLoyaltyPoint = z.infer<typeof insertLoyaltyPointSchema>;
 export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;
+export type InsertSiteSettings = z.infer<typeof insertSiteSettingsSchema>;
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  totalPoints: integer("total_points").notNull().default(0),
+  currentTierId: integer("current_tier_id").notNull().default(1),
+  role: text("role").notNull().default("customer"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  date: timestamp("date").notNull(),
+  featured: boolean("featured").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
