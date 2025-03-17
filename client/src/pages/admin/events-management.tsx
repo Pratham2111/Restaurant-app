@@ -47,6 +47,18 @@ export default function EventsManagement() {
     }
   });
 
+  const resetForm = () => {
+    form.reset({
+      title: "",
+      description: "",
+      imageUrl: "",
+      date: "",
+      featured: false
+    });
+    setSelectedDate(undefined);
+    setEditingEvent(null);
+  };
+
   const { data: events, isLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"]
   });
@@ -66,8 +78,7 @@ export default function EventsManagement() {
         title: "Success",
         description: "Event has been added successfully"
       });
-      form.reset();
-      setSelectedDate(undefined);
+      resetForm();
     },
     onError: (error: Error) => {
       toast({
@@ -93,9 +104,7 @@ export default function EventsManagement() {
         title: "Success",
         description: "Event has been updated successfully"
       });
-      setEditingEvent(null);
-      form.reset();
-      setSelectedDate(undefined);
+      resetForm();
     },
     onError: (error: Error) => {
       toast({
@@ -260,6 +269,17 @@ export default function EventsManagement() {
                         editingEvent ? "Update Event" : "Add Event"
                       )}
                     </Button>
+
+                    {editingEvent && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full mt-2"
+                        onClick={resetForm}
+                      >
+                        Cancel Edit
+                      </Button>
+                    )}
                   </form>
                 </Form>
               </CardContent>
