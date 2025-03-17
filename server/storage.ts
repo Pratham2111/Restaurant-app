@@ -5,7 +5,7 @@ import {
   type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser,
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
-  users, menuItems, menuCategories, tables
+  users, menuItems, menuCategories, tables, events
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -195,6 +195,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tables.status, 'available'))
       .where(eq(tables.isActive, true));
   }
+
+  async getEvents(): Promise<Event[]> {
+    return db.select().from(events);
+  }
+
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const [newEvent] = await db.insert(events).values(event).returning();
+    return newEvent;
+  }
+
+  async updateEvent(id: number, event: InsertEvent): Promise<Event> {
+    const [updatedEvent] = await db
+      .update(events)
+      .set(event)
+      .where(eq(events.id, id))
+      .returning();
+    return updatedEvent;
+  }
+
+  async deleteEvent(id: number): Promise<void> {
+    await db.delete(events).where(eq(events.id, id));
+  }
+
   async createBooking(booking: InsertBooking): Promise<Booking> { throw new Error("Not implemented"); }
   async getBookings(): Promise<Booking[]> { throw new Error("Not implemented"); }
   async createOrder(order: InsertOrder): Promise<Order> { throw new Error("Not implemented"); }
@@ -206,10 +229,6 @@ export class DatabaseStorage implements IStorage {
   async createTableAssignment(assignment: InsertTableAssignment): Promise<TableAssignment> { throw new Error("Not implemented"); }
   async updateTableAssignment(id: number, endTime: Date): Promise<TableAssignment> { throw new Error("Not implemented"); }
   async getActiveAssignmentsByServer(serverId: number): Promise<TableAssignment[]> { throw new Error("Not implemented"); }
-  async getEvents(): Promise<Event[]> { throw new Error("Not implemented"); }
-  async createEvent(event: InsertEvent): Promise<Event> { throw new Error("Not implemented"); }
-  async updateEvent(id: number, event: InsertEvent): Promise<Event> { throw new Error("Not implemented"); }
-  async deleteEvent(id: number): Promise<void> { throw new Error("Not implemented"); }
   async getLoyaltyTiers(): Promise<LoyaltyTier[]> { throw new Error("Not implemented"); }
   async getLoyaltyTierById(id: number): Promise<LoyaltyTier | undefined> { throw new Error("Not implemented"); }
   async createLoyaltyTier(tier: InsertLoyaltyTier): Promise<LoyaltyTier> { throw new Error("Not implemented"); }
