@@ -7,7 +7,7 @@ import {
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
   users, menuItems, menuCategories, tables, events, servers, tableAssignments,
   loyaltyTiers, loyaltyPoints, loyaltyRewards, bookings, siteSettings, type SiteSettings, type InsertSiteSettings,
-  orders // Add orders import
+  orders
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
@@ -249,16 +249,46 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(bookings);
   }
   async createOrder(order: InsertOrder): Promise<Order> {
-    const [newOrder] = await db.insert(orders).values(order).returning();
-    return newOrder;
+    try {
+      // Ensure proper JSON stringification of items array
+      const orderData = {
+        ...order,
+        items: JSON.stringify(order.items)
+      };
+
+      const [newOrder] = await db.insert(orders).values(orderData).returning();
+      return {
+        ...newOrder,
+        items: JSON.parse(newOrder.items as string)
+      };
+    } catch (error) {
+      console.error('Error creating order:', error);
+      throw new Error('Failed to create order');
+    }
   }
+
   async getOrder(id: number): Promise<Order | undefined> {
-    const [order] = await db.select().from(orders).where(eq(orders.id, id));
-    return order;
+    try {
+      const [order] = await db.select().from(orders).where(eq(orders.id, id));
+      if (!order) return undefined;
+
+      return {
+        ...order,
+        items: JSON.parse(order.items as string)
+      };
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      throw new Error('Failed to fetch order');
+    }
   }
+
   async getOrders(): Promise<Order[]> {
     try {
-      return await db.select().from(orders);
+      const ordersList = await db.select().from(orders);
+      return ordersList.map(order => ({
+        ...order,
+        items: JSON.parse(order.items as string)
+      }));
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw new Error('Failed to fetch orders');
@@ -272,7 +302,11 @@ export class DatabaseStorage implements IStorage {
         .set({ status })
         .where(eq(orders.id, id))
         .returning();
-      return updatedOrder;
+
+      return {
+        ...updatedOrder,
+        items: JSON.parse(updatedOrder.items as string)
+      };
     } catch (error) {
       console.error('Error updating order status:', error);
       throw new Error('Failed to update order status');
