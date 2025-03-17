@@ -73,6 +73,14 @@ export default function TableManagement() {
     }
   });
 
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!dialogOpen) {
+      form.reset();
+      setEditingTable(null);
+    }
+  }, [dialogOpen, form]);
+
   const { data: tables, isLoading: loadingTables } = useQuery<Table[]>({
     queryKey: ["/api/tables"]
   });
@@ -93,10 +101,9 @@ export default function TableManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
       toast({
-        title: "Table Created",
-        description: "New table has been added successfully."
+        title: "Success",
+        description: "Table has been created successfully"
       });
-      form.reset();
       setDialogOpen(false);
     },
     onError: (error: Error) => {
@@ -123,8 +130,7 @@ export default function TableManagement() {
         title: "Table Updated",
         description: "Table has been updated successfully."
       });
-      setEditingTable(null);
-      form.reset();
+      setDialogOpen(false);
     },
     onError: (error: Error) => {
       toast({
