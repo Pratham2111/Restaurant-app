@@ -2,7 +2,32 @@ import { pgTable, text, serial, integer, timestamp, decimal, boolean, json } fro
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Add nutrition info and chef's story to menu items
+// Define tables first
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  totalPoints: integer("total_points").notNull().default(0),
+  currentTierId: integer("current_tier_id").notNull().default(1),
+  role: text("role").notNull().default("customer"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  date: timestamp("date").notNull(),
+  featured: boolean("featured").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Rest of the tables
 export const menuItems = pgTable("menu_items", {
   id: serial("id").primaryKey(),
   categoryId: integer("category_id").notNull(),
@@ -11,14 +36,13 @@ export const menuItems = pgTable("menu_items", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   imageUrl: text("image_url").notNull(),
   isSpecial: boolean("is_special").notNull().default(false),
-  // New fields for nutrition and chef's story
-  nutritionInfo: text("nutrition_info").array(),  // Array of nutrition facts
-  ingredients: text("ingredients").array(),       // List of ingredients
-  chefsStory: text("chefs_story"),               // Story behind the dish
-  preparationTime: text("preparation_time"),      // Time to prepare
-  spicyLevel: text("spicy_level"),               // Spiciness level
-  allergens: text("allergens").array(),          // List of allergens
-  servingSize: text("serving_size")              // Serving size information
+  nutritionInfo: text("nutrition_info").array(),
+  ingredients: text("ingredients").array(),
+  chefsStory: text("chefs_story"),
+  preparationTime: text("preparation_time"),
+  spicyLevel: text("spicy_level"),
+  allergens: text("allergens").array(),
+  servingSize: text("serving_size")
 });
 
 export const menuCategories = pgTable("menu_categories", {
@@ -120,6 +144,7 @@ export const siteSettings = pgTable("site_settings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
+// Insert schemas
 export const insertCategorySchema = createInsertSchema(menuCategories);
 export const insertMenuItemSchema = createInsertSchema(menuItems).extend({
   nutritionInfo: z.array(z.string()).optional().default([]),
@@ -171,6 +196,7 @@ export const insertSiteSettingsSchema = createInsertSchema(siteSettings).extend(
   translations: z.record(z.string(), z.record(z.string(), z.string())),
 });
 
+// Types
 export type Category = typeof menuCategories.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type Table = typeof tables.$inferSelect;
@@ -185,6 +211,7 @@ export type LoyaltyPoint = typeof loyaltyPoints.$inferSelect;
 export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
 export type SiteSettings = typeof siteSettings.$inferSelect;
 
+// Insert Types
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type InsertTable = z.infer<typeof insertTableSchema>;
@@ -198,27 +225,3 @@ export type InsertLoyaltyTier = z.infer<typeof insertLoyaltyTierSchema>;
 export type InsertLoyaltyPoint = z.infer<typeof insertLoyaltyPointSchema>;
 export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;
 export type InsertSiteSettings = z.infer<typeof insertSiteSettingsSchema>;
-
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  totalPoints: integer("total_points").notNull().default(0),
-  currentTierId: integer("current_tier_id").notNull().default(1),
-  role: text("role").notNull().default("customer"),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const events = pgTable("events", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  imageUrl: text("image_url").notNull(),
-  date: timestamp("date").notNull(),
-  featured: boolean("featured").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
