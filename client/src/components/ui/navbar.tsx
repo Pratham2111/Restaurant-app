@@ -115,9 +115,6 @@ export const Navbar: React.FC = () => {
               <Link href="/admin/users">
                 <a className="text-base sm:text-lg font-medium">User Management</a>
               </Link>
-              <Link href="/admin/booking-management">
-                <a className="text-base sm:text-lg font-medium">Booking Management</a>
-              </Link>
             </div>
           </SheetContent>
         </Sheet>
@@ -147,11 +144,6 @@ export const Navbar: React.FC = () => {
           <Link href="/admin/dashboard">
             <a className="text-sm font-medium transition-colors hover:text-primary">
               Restaurant Dashboard
-            </a>
-          </Link>
-          <Link href="/admin/booking-management">
-            <a className="text-sm font-medium transition-colors hover:text-primary">
-              Booking Management
             </a>
           </Link>
         </div>

@@ -21,12 +21,13 @@ import {
   Users,
   UtensilsCrossed,
   DollarSign,
-  ClipboardList,
+  Calendar,
   Coffee,
   TrendingUp,
-  Calendar
+  CalendarRange,
+  ClipboardList
 } from "lucide-react";
-import type { Table, Order, MenuItem } from "@shared/schema";
+import type { Table, Order, MenuItem, Booking } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { PageSection } from "@/components/ui/page-section";
 
@@ -46,6 +47,10 @@ export default function Dashboard() {
     queryKey: ["/api/menu-items"],
   });
 
+  const { data: bookings } = useQuery<Booking[]>({
+    queryKey: ["/api/bookings"],
+  });
+
   // Calculate metrics
   const totalOrders = orders?.length || 0;
   const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
@@ -53,6 +58,17 @@ export default function Dashboard() {
   const occupiedTables = tables?.filter(table => table.status === "occupied").length || 0;
   const totalTables = tables?.length || 0;
   const tableUtilization = totalTables ? (occupiedTables / totalTables) * 100 : 0;
+
+  // Get today's bookings
+  const todayBookings = bookings?.filter(booking => {
+    const bookingDate = new Date(booking.date);
+    const today = new Date();
+    return (
+      bookingDate.getDate() === today.getDate() &&
+      bookingDate.getMonth() === today.getMonth() &&
+      bookingDate.getFullYear() === today.getFullYear()
+    );
+  }).length || 0;
 
   // Get popular menu items
   const popularItems = menuItems?.slice(0, 5).map(item => ({
@@ -102,7 +118,7 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Manage tables, sections, and assignments
+                      Manage tables and bookings
                     </p>
                   </CardContent>
                 </Card>
@@ -145,18 +161,18 @@ export default function Dashboard() {
               </a>
             </Link>
 
-            <Link href="/admin/events">
+            <Link href="/admin/booking-management">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Events Management
+                      <CalendarRange className="h-5 w-5" />
+                      Booking Management
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Manage restaurant events and gallery
+                      View and manage table reservations
                     </p>
                   </CardContent>
                 </Card>
@@ -203,12 +219,12 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Today's Bookings</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${averageOrderValue.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">Per order</p>
+                <div className="text-2xl font-bold">{todayBookings}</div>
+                <p className="text-xs text-muted-foreground">Table reservations</p>
               </CardContent>
             </Card>
           </div>
@@ -306,30 +322,31 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Revenue by Hour Chart */}
+            {/* Today's Bookings Card */}
             <Card>
               <CardHeader>
-                <CardTitle>Revenue by Hour</CardTitle>
+                <CardTitle>Recent Bookings</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={hourlyOrders}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 25,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="hour" angle={-45} textAnchor="end" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="revenue" fill="#10b981" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <div className="space-y-4">
+                  {bookings?.slice(0, 5).map((booking) => (
+                    <Card key={booking.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{booking.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {format(new Date(booking.date), 'PPP')}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium">{booking.guest_count} guests</p>
+                            <p className="text-sm text-muted-foreground">Table {booking.table_id}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>
