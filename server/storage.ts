@@ -250,25 +250,24 @@ export class DatabaseStorage implements IStorage {
   }
   async createOrder(order: InsertOrder): Promise<Order> {
     try {
-      // Convert order.items to an array if it's not already
+      // Convert order.items to a JSON string for storage
       const itemsArray = Array.isArray(order.items) ? order.items : [];
 
       const orderData = {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
-        items: itemsArray, // Store directly as array since column type is ARRAY
-        total: order.total.toString(), // Convert to string for numeric type
+        items: JSON.stringify(itemsArray),
+        total: order.total.toString(),
         status: 'pending',
         createdAt: new Date()
       };
 
       const [newOrder] = await db.insert(orders).values(orderData).returning();
 
-      // Return the order with properly typed items array
       return {
         ...newOrder,
-        items: Array.isArray(newOrder.items) ? newOrder.items : []
+        items: JSON.parse(newOrder.items as string)
       };
     } catch (error) {
       console.error('Error creating order:', error);
@@ -283,7 +282,7 @@ export class DatabaseStorage implements IStorage {
 
       return {
         ...order,
-        items: Array.isArray(order.items) ? order.items : []
+        items: JSON.parse(order.items as string)
       };
     } catch (error) {
       console.error('Error fetching order:', error);
@@ -296,7 +295,7 @@ export class DatabaseStorage implements IStorage {
       const ordersList = await db.select().from(orders);
       return ordersList.map(order => ({
         ...order,
-        items: Array.isArray(order.items) ? order.items : []
+        items: JSON.parse(order.items as string)
       }));
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -314,7 +313,7 @@ export class DatabaseStorage implements IStorage {
 
       return {
         ...updatedOrder,
-        items: Array.isArray(updatedOrder.items) ? updatedOrder.items : []
+        items: JSON.parse(updatedOrder.items as string)
       };
     } catch (error) {
       console.error('Error updating order status:', error);
