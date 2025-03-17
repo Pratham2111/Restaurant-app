@@ -59,14 +59,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      // Check if user is verified
-      if (!user.isVerified) {
-        return res.status(403).json({ 
-          message: "Please verify your email before logging in",
-          needsVerification: true 
-        });
-      }
-
       console.log("User found:", { id: user.id, email: user.email, role: user.role });
       console.log("Stored password hash:", user.password);
       console.log("Attempting to compare with provided password");
@@ -649,40 +641,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-  // Add verification routes
-  app.post("/api/auth/verify", async (req, res) => {
-    try {
-      const { email, code } = req.body;
-      const user = await storage.verifyUser(email, code);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error("Verification error:", error);
-      res.status(400).json({ message: error.message || "Failed to verify user" });
-    }
-  });
-
-  app.post("/api/auth/resend-verification", async (req, res) => {
-    try {
-      const { email } = req.body;
-      const sent = await storage.resendVerificationCode(email);
-
-      if (!sent) {
-        return res.status(400).json({ message: "Failed to resend verification code" });
-      }
-
-      res.json({ message: "Verification code sent successfully" });
-    } catch (error) {
-      console.error("Resend verification error:", error);
-      res.status(500).json({ message: "Failed to resend verification code" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

@@ -12,9 +12,6 @@ export const users = pgTable("users", {
   currentTierId: integer("current_tier_id").notNull().default(1),
   role: text("role").notNull().default("customer"),
   isActive: boolean("is_active").notNull().default(true),
-  isVerified: boolean("is_verified").notNull().default(false),
-  verificationCode: text("verification_code"),
-  verificationExpiry: timestamp("verification_expiry"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -30,6 +27,7 @@ export const events = pgTable("events", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Rest of the tables
 export const menuItems = pgTable("menu_items", {
   id: serial("id").primaryKey(),
   categoryId: integer("category_id").notNull(),
@@ -196,11 +194,6 @@ export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards);
 
 export const insertSiteSettingsSchema = createInsertSchema(siteSettings).extend({
   translations: z.record(z.string(), z.record(z.string(), z.string())),
-});
-
-export const verifyOtpSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  code: z.string().length(6, "OTP must be 6 digits")
 });
 
 // Types
