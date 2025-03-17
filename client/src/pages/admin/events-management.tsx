@@ -30,6 +30,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Event } from "@shared/schema";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+
 
 export default function EventsManagement() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -342,22 +354,37 @@ export default function EventsManagement() {
                                       <Pencil className="h-4 w-4" />
                                     </Button>
 
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => {
-                                        if (confirm("Are you sure you want to delete this event?")) {
-                                          deleteEventMutation.mutate(event.id);
-                                        }
-                                      }}
-                                      disabled={deleteEventMutation.isPending}
-                                    >
-                                      {deleteEventMutation.isPending ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Trash2 className="h-4 w-4" />
-                                      )}
-                                    </Button>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently delete the event.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => deleteEventMutation.mutate(event.id)}
+                                            disabled={deleteEventMutation.isPending}
+                                          >
+                                            {deleteEventMutation.isPending ? (
+                                              <span className="flex items-center">
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Deleting...
+                                              </span>
+                                            ) : (
+                                              "Delete"
+                                            )}
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
                                   </div>
                                 </div>
                               </CardContent>
