@@ -4,6 +4,7 @@ import { ParallaxProvider } from 'react-scroll-parallax';
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "./lib/queryClient";
 import { Navbar } from "./components/ui/navbar";
+import { SiteSettingsProvider } from "./contexts/SiteSettingsContext";
 
 import Home from "@/pages/home";
 import Menu from "@/pages/menu";
@@ -16,6 +17,9 @@ import EventsManagement from "@/pages/admin/events-management";
 import UserManagement from "@/pages/admin/user-management";
 import Dashboard from "@/pages/admin/dashboard";
 import BookingManagement from "@/pages/admin/booking-management";
+import SiteSettings from "@/pages/admin/site-settings";
+import OrderManagement from "@/pages/admin/order-management";
+import PolicyPage from "@/pages/policies";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Account from "@/pages/account";
@@ -37,7 +41,12 @@ function Router() {
           <Route path="/admin/events" component={EventsManagement} />
           <Route path="/admin/dashboard" component={Dashboard} />
           <Route path="/admin/users" component={UserManagement} />
+          <Route path="/admin/orders" component={OrderManagement} />
+          <Route path="/admin/settings" component={SiteSettings} />
           <Route path="/admin/booking-management" component={BookingManagement} />
+          <Route path="/privacy" component={PolicyPage} />
+          <Route path="/cookies" component={PolicyPage} />
+          <Route path="/terms" component={PolicyPage} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/account" component={Account} />
@@ -51,10 +60,12 @@ function Router() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ParallaxProvider>
-        <Router />
-        <Toaster />
-      </ParallaxProvider>
+      <SiteSettingsProvider>
+        <ParallaxProvider>
+          <Router />
+          <Toaster />
+        </ParallaxProvider>
+      </SiteSettingsProvider>
     </QueryClientProvider>
   );
 }
