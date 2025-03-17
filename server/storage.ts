@@ -5,7 +5,7 @@ import {
   type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser,
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
-  users, menuItems, menuCategories
+  users, menuItems, menuCategories, tables
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -139,15 +139,62 @@ export class DatabaseStorage implements IStorage {
   async deleteMenuItem(id: number): Promise<void> {
     await db.delete(menuItems).where(eq(menuItems.id, id));
   }
-  async getTables(): Promise<Table[]> { throw new Error("Not implemented"); }
-  async getTableById(id: number): Promise<Table | undefined> { throw new Error("Not implemented"); }
-  async getTablesBySection(section: string): Promise<Table[]> { throw new Error("Not implemented"); }
-  async getTablesByStatus(status: string): Promise<Table[]> { throw new Error("Not implemented"); }
-  async updateTableStatus(id: number, status: string): Promise<Table> { throw new Error("Not implemented"); }
-  async createTable(table: InsertTable): Promise<Table> { throw new Error("Not implemented"); }
-  async updateTable(id: number, table: InsertTable): Promise<Table> { throw new Error("Not implemented"); }
-  async deleteTable(id: number): Promise<void> { throw new Error("Not implemented"); }
-  async getAvailableTables(date: Date): Promise<Table[]> { throw new Error("Not implemented"); }
+  async getTables(): Promise<Table[]> {
+    return db.select().from(tables);
+  }
+
+  async getTableById(id: number): Promise<Table | undefined> {
+    const [table] = await db.select()
+      .from(tables)
+      .where(eq(tables.id, id));
+    return table;
+  }
+
+  async getTablesBySection(section: string): Promise<Table[]> {
+    return db.select()
+      .from(tables)
+      .where(eq(tables.section, section));
+  }
+
+  async getTablesByStatus(status: string): Promise<Table[]> {
+    return db.select()
+      .from(tables)
+      .where(eq(tables.status, status));
+  }
+
+  async updateTableStatus(id: number, status: string): Promise<Table> {
+    const [updatedTable] = await db
+      .update(tables)
+      .set({ status })
+      .where(eq(tables.id, id))
+      .returning();
+    return updatedTable;
+  }
+
+  async createTable(table: InsertTable): Promise<Table> {
+    const [newTable] = await db.insert(tables).values(table).returning();
+    return newTable;
+  }
+
+  async updateTable(id: number, table: InsertTable): Promise<Table> {
+    const [updatedTable] = await db
+      .update(tables)
+      .set(table)
+      .where(eq(tables.id, id))
+      .returning();
+    return updatedTable;
+  }
+
+  async deleteTable(id: number): Promise<void> {
+    await db.delete(tables).where(eq(tables.id, id));
+  }
+
+  async getAvailableTables(date: Date): Promise<Table[]> {
+    return db.select()
+      .from(tables)
+      .where(eq(tables.status, 'available'))
+      .where(eq(tables.isActive, true));
+  }
   async createBooking(booking: InsertBooking): Promise<Booking> { throw new Error("Not implemented"); }
   async getBookings(): Promise<Booking[]> { throw new Error("Not implemented"); }
   async createOrder(order: InsertOrder): Promise<Order> { throw new Error("Not implemented"); }
