@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,19 +7,62 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { PageSection } from "@/components/ui/page-section";
-import type { User } from "@shared/schema";
-import { Moon, Sun, LogOut } from "lucide-react";
+import type { User, LoyaltyTier, LoyaltyPoint, LoyaltyReward } from "@shared/schema";
+import { Moon, Sun, LogOut, Gift, Award, Star } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { format } from "date-fns";
 
 export default function Account() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  const { data: user, isLoading } = useQuery<User>({
+  const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ["/api/auth/me"],
     retry: false,
     staleTime: 0,
     onError: () => {
       navigate("/login");
+    }
+  });
+
+  const { data: tiers } = useQuery<LoyaltyTier[]>({
+    queryKey: ["/api/loyalty/tiers"],
+    enabled: !!user
+  });
+
+  const { data: points } = useQuery<LoyaltyPoint[]>({
+    queryKey: ["/api/loyalty/points"],
+    enabled: !!user
+  });
+
+  const { data: rewards } = useQuery<LoyaltyReward[]>({
+    queryKey: ["/api/loyalty/rewards"],
+    enabled: !!user
+  });
+
+  const redeemMutation = useMutation({
+    mutationFn: async (rewardId: number) => {
+      const res = await apiRequest("POST", `/api/loyalty/redeem/${rewardId}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to redeem reward");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/loyalty/points"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      toast({
+        title: "Success",
+        description: "Reward redeemed successfully!"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to redeem reward",
+        variant: "destructive"
+      });
     }
   });
 
@@ -42,7 +85,15 @@ export default function Account() {
     }
   };
 
-  if (isLoading) {
+  const currentTier = tiers?.find(tier => tier.id === user?.currentTierId);
+  const nextTier = tiers?.find(tier => tier.minimumPoints > (user?.totalPoints || 0));
+
+  const progressToNextTier = nextTier ? (
+    ((user?.totalPoints || 0) - (currentTier?.minimumPoints || 0)) /
+    (nextTier.minimumPoints - (currentTier?.minimumPoints || 0)) * 100
+  ) : 100;
+
+  if (userLoading) {
     return (
       <PageSection className="bg-background py-8">
         <div className="flex justify-center">Loading...</div>
@@ -56,42 +107,144 @@ export default function Account() {
 
   return (
     <PageSection className="bg-background min-h-[calc(100vh-4rem)] py-8">
-      <div className="flex justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-2xl">My Account</CardTitle>
-            <ThemeToggle />
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
-              <p className="text-lg">{user.name}</p>
-            </div>
+      <div className="max-w-[1440px] mx-auto px-4">
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Account Information */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-2xl">My Account</CardTitle>
+              <ThemeToggle />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
+                <p className="text-lg">{user.name}</p>
+              </div>
 
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
-              <p className="text-lg">{user.email}</p>
-            </div>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
+                <p className="text-lg">{user.email}</p>
+              </div>
 
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Member Since</h3>
-              <p className="text-lg">
-                {new Date(user.createdAt).toLocaleDateString()}
-              </p>
-            </div>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Member Since</h3>
+                <p className="text-lg">
+                  {format(new Date(user.createdAt), 'MMMM d, yyyy')}
+                </p>
+              </div>
 
-            <div className="pt-4 border-t">
-              <Button 
-                variant="destructive"
-                className="w-full"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="pt-4 border-t">
+                <Button 
+                  variant="destructive"
+                  className="w-full"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Loyalty Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Award className="h-6 w-6 text-restaurant-yellow" />
+                Loyalty Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">{currentTier?.name || 'Loading...'}</h3>
+                  <span className="text-2xl font-bold text-restaurant-yellow">{user.totalPoints} pts</span>
+                </div>
+                {nextTier && (
+                  <div className="space-y-1">
+                    <Progress value={progressToNextTier} className="h-2" />
+                    <p className="text-sm text-muted-foreground">
+                      {nextTier.minimumPoints - user.totalPoints} points until {nextTier.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium">Current Benefits:</h3>
+                <ul className="space-y-2">
+                  {currentTier?.benefits.map((benefit, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-restaurant-yellow" />
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Available Rewards */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Gift className="h-6 w-6 text-restaurant-yellow" />
+                Available Rewards
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {rewards?.filter(reward => reward.isActive).map(reward => (
+                  <div
+                    key={reward.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div>
+                      <h4 className="font-medium">{reward.name}</h4>
+                      <p className="text-sm text-muted-foreground">{reward.description}</p>
+                      <p className="text-sm font-medium text-restaurant-yellow mt-1">
+                        {reward.pointsCost} points
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => redeemMutation.mutate(reward.id)}
+                      disabled={user.totalPoints < reward.pointsCost || redeemMutation.isPending}
+                    >
+                      Redeem
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Points History */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Points History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {points?.map(point => (
+                  <div
+                    key={point.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(point.createdAt), 'MMM d, yyyy')}
+                      </p>
+                      <p className="font-medium">{point.description}</p>
+                    </div>
+                    <span className={`font-bold ${point.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
+                      {point.type === 'earned' ? '+' : ''}{point.points}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </PageSection>
   );

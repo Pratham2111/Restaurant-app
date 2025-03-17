@@ -3,7 +3,8 @@ import {
   type TableAssignment, type Server, type User,
   type InsertCategory, type InsertMenuItem, type InsertTable, type InsertBooking,
   type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser,
-  type Event, type InsertEvent
+  type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
+  type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward
 } from "@shared/schema";
 
 export interface IStorage {
@@ -57,6 +58,21 @@ export interface IStorage {
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, event: InsertEvent): Promise<Event>;
   deleteEvent(id: number): Promise<void>;
+
+  // Loyalty Program Methods
+  getLoyaltyTiers(): Promise<LoyaltyTier[]>;
+  getLoyaltyTierById(id: number): Promise<LoyaltyTier | undefined>;
+  createLoyaltyTier(tier: InsertLoyaltyTier): Promise<LoyaltyTier>;
+
+  getLoyaltyPoints(userId: number): Promise<LoyaltyPoint[]>;
+  addLoyaltyPoints(point: InsertLoyaltyPoint): Promise<LoyaltyPoint>;
+
+  getLoyaltyRewards(): Promise<LoyaltyReward[]>;
+  getLoyaltyRewardById(id: number): Promise<LoyaltyReward | undefined>;
+  createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward>;
+
+  updateUserPoints(userId: number, pointsToAdd: number): Promise<User>;
+  updateUserTier(userId: number, tierId: number): Promise<User>;
 }
 
 export class MemStorage implements IStorage {
@@ -69,6 +85,9 @@ export class MemStorage implements IStorage {
   private orders: Map<number, Order>;
   private users: Map<number, User>;
   private events: Map<number, Event>;
+  private loyaltyTiers: Map<number, LoyaltyTier>;
+  private loyaltyPoints: Map<number, LoyaltyPoint>;
+  private loyaltyRewards: Map<number, LoyaltyReward>;
 
   private currentIds: {
     category: number;
@@ -80,6 +99,9 @@ export class MemStorage implements IStorage {
     order: number;
     user: number;
     event: number;
+    loyaltyTier: number;
+    loyaltyPoint: number;
+    loyaltyReward: number;
   };
 
   constructor() {
@@ -92,6 +114,9 @@ export class MemStorage implements IStorage {
     this.orders = new Map();
     this.users = new Map();
     this.events = new Map();
+    this.loyaltyTiers = new Map();
+    this.loyaltyPoints = new Map();
+    this.loyaltyRewards = new Map();
 
     this.currentIds = {
       category: 1,
@@ -102,7 +127,10 @@ export class MemStorage implements IStorage {
       booking: 1,
       order: 1,
       user: 1,
-      event: 1
+      event: 1,
+      loyaltyTier: 1,
+      loyaltyPoint: 1,
+      loyaltyReward: 1
     };
 
     this.initSampleData();
@@ -347,6 +375,102 @@ export class MemStorage implements IStorage {
     this.events.delete(id);
   }
 
+  // Implement Loyalty Program Methods
+  async getLoyaltyTiers(): Promise<LoyaltyTier[]> {
+    return Array.from(this.loyaltyTiers.values());
+  }
+
+  async getLoyaltyTierById(id: number): Promise<LoyaltyTier | undefined> {
+    return this.loyaltyTiers.get(id);
+  }
+
+  async createLoyaltyTier(tier: InsertLoyaltyTier): Promise<LoyaltyTier> {
+    const id = this.currentIds.loyaltyTier++;
+    const now = new Date();
+    const newTier = {
+      ...tier,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.loyaltyTiers.set(id, newTier);
+    return newTier;
+  }
+
+  async getLoyaltyPoints(userId: number): Promise<LoyaltyPoint[]> {
+    return Array.from(this.loyaltyPoints.values())
+      .filter(point => point.userId === userId);
+  }
+
+  async addLoyaltyPoints(point: InsertLoyaltyPoint): Promise<LoyaltyPoint> {
+    const id = this.currentIds.loyaltyPoint++;
+    const newPoint = {
+      ...point,
+      id,
+      createdAt: new Date()
+    };
+    this.loyaltyPoints.set(id, newPoint);
+    return newPoint;
+  }
+
+  async getLoyaltyRewards(): Promise<LoyaltyReward[]> {
+    return Array.from(this.loyaltyRewards.values());
+  }
+
+  async getLoyaltyRewardById(id: number): Promise<LoyaltyReward | undefined> {
+    return this.loyaltyRewards.get(id);
+  }
+
+  async createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward> {
+    const id = this.currentIds.loyaltyReward++;
+    const now = new Date();
+    const newReward = {
+      ...reward,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.loyaltyRewards.set(id, newReward);
+    return newReward;
+  }
+
+  async updateUserPoints(userId: number, pointsToAdd: number): Promise<User> {
+    const user = await this.getUserById(userId);
+    if (!user) throw new Error("User not found");
+
+    const updatedUser = {
+      ...user,
+      totalPoints: user.totalPoints + pointsToAdd,
+      updatedAt: new Date()
+    };
+    this.users.set(userId, updatedUser);
+
+    // Check and update tier if necessary
+    const tiers = await this.getLoyaltyTiers();
+    const eligibleTier = tiers
+      .filter(tier => tier.minimumPoints <= updatedUser.totalPoints)
+      .sort((a, b) => b.minimumPoints - a.minimumPoints)[0];
+
+    if (eligibleTier && eligibleTier.id !== user.currentTierId) {
+      return this.updateUserTier(userId, eligibleTier.id);
+    }
+
+    return updatedUser;
+  }
+
+  async updateUserTier(userId: number, tierId: number): Promise<User> {
+    const user = await this.getUserById(userId);
+    if (!user) throw new Error("User not found");
+
+    const updatedUser = {
+      ...user,
+      currentTierId: tierId,
+      updatedAt: new Date()
+    };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
   private initSampleData() {
     const categories: InsertCategory[] = [
       {
@@ -468,6 +592,77 @@ export class MemStorage implements IStorage {
       const now = new Date();
       this.events.set(id, {
         ...event,
+        id,
+        createdAt: now,
+        updatedAt: now
+      });
+    });
+
+    // Initialize sample loyalty tiers
+    const loyaltyTiers = [
+      {
+        name: "Bronze",
+        minimumPoints: 0,
+        pointsMultiplier: "1.0",
+        benefits: ["Earn 1 point per dollar spent"],
+      },
+      {
+        name: "Silver",
+        minimumPoints: 1000,
+        pointsMultiplier: "1.2",
+        benefits: ["Earn 1.2 points per dollar spent", "Free dessert on your birthday"],
+      },
+      {
+        name: "Gold",
+        minimumPoints: 5000,
+        pointsMultiplier: "1.5",
+        benefits: [
+          "Earn 1.5 points per dollar spent",
+          "Free dessert on your birthday",
+          "Priority reservations",
+          "Exclusive monthly rewards"
+        ],
+      }
+    ];
+
+    loyaltyTiers.forEach(tier => {
+      const id = this.currentIds.loyaltyTier++;
+      const now = new Date();
+      this.loyaltyTiers.set(id, {
+        ...tier,
+        id,
+        createdAt: now,
+        updatedAt: now
+      });
+    });
+
+    // Initialize sample loyalty rewards
+    const loyaltyRewards = [
+      {
+        name: "Free Appetizer",
+        description: "Redeem points for a free appetizer of your choice",
+        pointsCost: 500,
+        isActive: true
+      },
+      {
+        name: "Complimentary Dessert",
+        description: "Enjoy a dessert on us",
+        pointsCost: 300,
+        isActive: true
+      },
+      {
+        name: "VIP Table Reservation",
+        description: "Skip the line with priority seating",
+        pointsCost: 1000,
+        isActive: true
+      }
+    ];
+
+    loyaltyRewards.forEach(reward => {
+      const id = this.currentIds.loyaltyReward++;
+      const now = new Date();
+      this.loyaltyRewards.set(id, {
+        ...reward,
         id,
         createdAt: now,
         updatedAt: now

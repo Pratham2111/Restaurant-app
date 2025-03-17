@@ -68,11 +68,43 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at").notNull()
 });
 
+export const loyaltyTiers = pgTable("loyalty_tiers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  minimumPoints: integer("minimum_points").notNull(),
+  pointsMultiplier: decimal("points_multiplier", { precision: 3, scale: 2 }).notNull(),
+  benefits: text("benefits").array().notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const loyaltyPoints = pgTable("loyalty_points", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  points: integer("points").notNull(),
+  description: text("description").notNull(),
+  orderId: integer("order_id"),
+  type: text("type").notNull(), // 'earned' or 'redeemed'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const loyaltyRewards = pgTable("loyalty_rewards", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  pointsCost: integer("points_cost").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  totalPoints: integer("total_points").notNull().default(0),
+  currentTierId: integer("current_tier_id").notNull().default(1),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -123,6 +155,10 @@ export const insertEventSchema = createInsertSchema(events).extend({
   date: z.string().transform(str => new Date(str))
 });
 
+export const insertLoyaltyTierSchema = createInsertSchema(loyaltyTiers);
+export const insertLoyaltyPointSchema = createInsertSchema(loyaltyPoints);
+export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards);
+
 export type Category = typeof menuCategories.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type Table = typeof tables.$inferSelect;
@@ -132,6 +168,9 @@ export type TableAssignment = typeof tableAssignments.$inferSelect;
 export type Server = typeof servers.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Event = typeof events.$inferSelect;
+export type LoyaltyTier = typeof loyaltyTiers.$inferSelect;
+export type LoyaltyPoint = typeof loyaltyPoints.$inferSelect;
+export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
@@ -142,3 +181,6 @@ export type InsertTableAssignment = z.infer<typeof insertTableAssignmentSchema>;
 export type InsertServer = z.infer<typeof insertServerSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type InsertLoyaltyTier = z.infer<typeof insertLoyaltyTierSchema>;
+export type InsertLoyaltyPoint = z.infer<typeof insertLoyaltyPointSchema>;
+export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;

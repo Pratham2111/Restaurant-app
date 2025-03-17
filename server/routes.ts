@@ -109,6 +109,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Loyalty Program Routes
+  app.get("/api/loyalty/tiers", async (_req, res) => {
+    const tiers = await storage.getLoyaltyTiers();
+    res.json(tiers);
+  });
+
+  app.get("/api/loyalty/points", async (req, res) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const points = await storage.getLoyaltyPoints(req.session.userId);
+    res.json(points);
+  });
+
+  app.get("/api/loyalty/rewards", async (_req, res) => {
+    const rewards = await storage.getLoyaltyRewards();
+    res.json(rewards);
+  });
+
+  app.post("/api/loyalty/redeem/:rewardId", async (req, res) => {
+    try {
+      if (!req.session?.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const rewardId = Number(req.params.rewardId);
+      const reward = await storage.getLoyaltyRewardById(rewardId);
+
+      if (!reward) {
+        return res.status(404).json({ message: "Reward not found" });
+      }
+
+      if (!reward.isActive) {
+        return res.status(400).json({ message: "This reward is no longer available" });
+      }
+
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.totalPoints < reward.pointsCost) {
+        return res.status(400).json({ 
+          message: "Insufficient points",
+          required: reward.pointsCost,
+          current: user.totalPoints
+        });
+      }
+
+      // Record the redemption
+      await storage.addLoyaltyPoints({
+        userId: user.id,
+        points: -reward.pointsCost,
+        description: `Redeemed: ${reward.name}`,
+        type: "redeemed",
+        orderId: null
+      });
+
+      // Update user's total points
+      const updatedUser = await storage.updateUserPoints(user.id, -reward.pointsCost);
+
+      res.json({
+        message: "Reward redeemed successfully",
+        reward,
+        updatedPoints: updatedUser.totalPoints
+      });
+
+    } catch (error) {
+      console.error("Failed to redeem reward:", error);
+      res.status(500).json({ message: "Failed to redeem reward" });
+    }
+  });
+
+  // Add points for orders
+  app.post("/api/loyalty/points/order/:orderId", async (req, res) => {
+    try {
+      if (!req.session?.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const orderId = Number(req.params.orderId);
+      const order = await storage.getOrder(orderId);
+
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      // Calculate points (1 point per dollar spent)
+      const pointsEarned = Math.floor(Number(order.total));
+
+      // Record the points earned
+      await storage.addLoyaltyPoints({
+        userId: req.session.userId,
+        points: pointsEarned,
+        description: `Points earned from order #${orderId}`,
+        type: "earned",
+        orderId
+      });
+
+      // Update user's total points
+      const updatedUser = await storage.updateUserPoints(req.session.userId, pointsEarned);
+
+      res.json({
+        message: "Points added successfully",
+        pointsEarned,
+        updatedPoints: updatedUser.totalPoints
+      });
+
+    } catch (error) {
+      console.error("Failed to add points:", error);
+      res.status(500).json({ message: "Failed to add points" });
+    }
+  });
+
   // Menu Categories
   app.get("/api/categories", async (_req, res) => {
     const categories = await storage.getCategories();
