@@ -13,6 +13,7 @@ import Events from "@/pages/events";
 import TableManagement from "@/pages/admin/table-management";
 import MenuManagement from "@/pages/admin/menu-management";
 import EventsManagement from "@/pages/admin/events-management";
+import UserManagement from "@/pages/admin/user-management";
 import Dashboard from "@/pages/admin/dashboard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -34,6 +35,7 @@ function Router() {
           <Route path="/admin/menu" component={MenuManagement} />
           <Route path="/admin/events" component={EventsManagement} />
           <Route path="/admin/dashboard" component={Dashboard} />
+          <Route path="/admin/users" component={UserManagement} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/account" component={Account} />
