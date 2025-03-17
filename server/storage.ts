@@ -264,7 +264,7 @@ export class DatabaseStorage implements IStorage {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
-        items: JSON.stringify(formattedItems), // Convert items array to JSON string
+        items: JSON.stringify(formattedItems), // Store as JSON string
         total: order.total,
         status: order.status || 'pending',
         createdAt: new Date()
@@ -275,7 +275,7 @@ export class DatabaseStorage implements IStorage {
       // Return the order with parsed items
       return {
         ...newOrder,
-        items: formattedItems
+        items: formattedItems // Return the formatted items
       };
     } catch (error) {
       console.error('Error creating order:', error);
@@ -288,9 +288,17 @@ export class DatabaseStorage implements IStorage {
       const [order] = await db.select().from(orders).where(eq(orders.id, id));
       if (!order) return undefined;
 
+      // Parse the JSON string into items array
+      let items = [];
+      try {
+        items = JSON.parse(order.items as string);
+      } catch (e) {
+        console.error('Error parsing order items:', e);
+      }
+
       return {
         ...order,
-        items: Array.isArray(order.items) ? JSON.parse(order.items) : []
+        items
       };
     } catch (error) {
       console.error('Error fetching order:', error);
@@ -301,10 +309,19 @@ export class DatabaseStorage implements IStorage {
   async getOrders(): Promise<Order[]> {
     try {
       const ordersList = await db.select().from(orders);
-      return ordersList.map(order => ({
-        ...order,
-        items: Array.isArray(order.items) ? JSON.parse(order.items) : []
-      }));
+      return ordersList.map(order => {
+        let items = [];
+        try {
+          items = JSON.parse(order.items as string);
+        } catch (e) {
+          console.error('Error parsing order items:', e);
+        }
+
+        return {
+          ...order,
+          items
+        };
+      });
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw new Error('Failed to fetch orders');
@@ -319,9 +336,16 @@ export class DatabaseStorage implements IStorage {
         .where(eq(orders.id, id))
         .returning();
 
+      let items = [];
+      try {
+        items = JSON.parse(updatedOrder.items as string);
+      } catch (e) {
+        console.error('Error parsing order items:', e);
+      }
+
       return {
         ...updatedOrder,
-        items: Array.isArray(updatedOrder.items) ? JSON.parse(updatedOrder.items) : []
+        items
       };
     } catch (error) {
       console.error('Error updating order status:', error);

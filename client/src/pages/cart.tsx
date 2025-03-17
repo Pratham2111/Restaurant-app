@@ -141,13 +141,18 @@ export default function Cart() {
       customerName: data.customerName,
       customerEmail: data.customerEmail,
       customerPhone: data.customerPhone,
-      items: cartItems,
+      items: cartItems.map(item => ({
+        id: Number(item.id),
+        name: String(item.name),
+        quantity: Number(item.quantity),
+        price: Number(item.price)
+      })),
       total: total.toString(),
       status: "pending",
       createdAt: new Date().toISOString()
     };
 
-    console.log("Order Data:", orderData); // Debug log
+    console.log("Formatted Order Data:", orderData); // Debug log
     orderMutation.mutate(orderData);
   }
 
