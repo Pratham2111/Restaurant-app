@@ -23,7 +23,8 @@ import {
   DollarSign,
   ClipboardList,
   Coffee,
-  TrendingUp
+  TrendingUp,
+  Calendar
 } from "lucide-react";
 import type { Table, Order, MenuItem } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -79,240 +80,260 @@ export default function Dashboard() {
   return (
     <div className="w-full">
       <PageSection className="bg-background py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold">Restaurant Dashboard</h1>
-          <Button variant="outline" size="sm">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            Generate Report
-          </Button>
-        </div>
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold">Restaurant Dashboard</h1>
+            <Button variant="outline" size="sm">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Generate Report
+            </Button>
+          </div>
 
-        {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Link href="/admin/tables">
-            <a>
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TableProperties className="h-5 w-5" />
-                    Table Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Manage tables, sections, and assignments
-                  </p>
-                </CardContent>
-              </Card>
-            </a>
-          </Link>
+          {/* Quick Actions */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <Link href="/admin/tables">
+              <a>
+                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TableProperties className="h-5 w-5" />
+                      Table Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Manage tables, sections, and assignments
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
 
-          <Link href="/admin/menu">
-            <a>
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Coffee className="h-5 w-5" />
-                    Menu Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Update menu items and categories
-                  </p>
-                </CardContent>
-              </Card>
-            </a>
-          </Link>
+            <Link href="/admin/menu">
+              <a>
+                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Coffee className="h-5 w-5" />
+                      Menu Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Update menu items and categories
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
 
-          <Link href="/admin/orders">
-            <a>
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5" />
-                    Order Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    View and manage customer orders
-                  </p>
-                </CardContent>
-              </Card>
-            </a>
-          </Link>
-        </div>
+            <Link href="/admin/events">
+              <a>
+                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Events Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Manage restaurant events and gallery
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
 
-        {/* Key Metrics */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalOrders}</div>
-              <p className="text-xs text-muted-foreground">Orders today</p>
-            </CardContent>
-          </Card>
+            <Link href="/admin/orders">
+              <a>
+                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5" />
+                      Order Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      View and manage customer orders
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Revenue today</p>
-            </CardContent>
-          </Card>
+          {/* Key Metrics */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalOrders}</div>
+                <p className="text-xs text-muted-foreground">Orders today</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Table Utilization</CardTitle>
-              <TableProperties className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{tableUtilization.toFixed(1)}%</div>
-              <p className="text-xs text-muted-foreground">
-                {occupiedTables} of {totalTables} tables occupied
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground">Revenue today</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${averageOrderValue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Per order</p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Table Utilization</CardTitle>
+                <TableProperties className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{tableUtilization.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground">
+                  {occupiedTables} of {totalTables} tables occupied
+                </p>
+              </CardContent>
+            </Card>
 
-        {/* Charts */}
-        <div className="grid gap-4 md:grid-cols-2 mb-8">
-          {/* Hourly Orders Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Today's Orders</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={hourlyOrders}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 25,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="hour" angle={-45} textAnchor="end" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="orders" fill="#ffc107" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${averageOrderValue.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground">Per order</p>
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* Weekly Revenue Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Revenue</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={weeklyRevenue}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 25,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#0ea5e9"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Popular Items Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Popular Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={popularItems}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                      label={(entry) => entry.name}
+          {/* Charts */}
+          <div className="grid gap-4 md:grid-cols-2 mb-8">
+            {/* Hourly Orders Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Today's Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={hourlyOrders}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 25,
+                      }}
                     >
-                      {popularItems.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="hour" angle={-45} textAnchor="end" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="orders" fill="#ffc107" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Revenue by Hour Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue by Hour</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={hourlyOrders}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 25,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="hour" angle={-45} textAnchor="end" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="revenue" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Weekly Revenue Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={weeklyRevenue}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 25,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="day" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#0ea5e9"
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Popular Items Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Popular Items</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={popularItems}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        nameKey="name"
+                        label={(entry) => entry.name}
+                      >
+                        {popularItems.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Revenue by Hour Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue by Hour</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={hourlyOrders}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 25,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="hour" angle={-45} textAnchor="end" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="revenue" fill="#10b981" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </PageSection>
     </div>

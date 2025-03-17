@@ -49,7 +49,6 @@ export const Navbar: React.FC = () => {
         title: "Success",
         description: "You have been logged out successfully."
       });
-      // Clear all queries and refetch auth state
       await queryClient.resetQueries();
       navigate("/");
     } catch (error) {
@@ -63,17 +62,14 @@ export const Navbar: React.FC = () => {
   };
 
   useEffect(() => {
-    // Initial cart count
     setCartCount(getCartItemCount());
 
-    // Listen for storage changes (cross-tab)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'cart') {
         setCartCount(getCartItemCount());
       }
     };
 
-    // Listen for custom cartUpdated event (same-tab)
     const handleCartUpdate = () => {
       setCartCount(getCartItemCount());
     };
@@ -110,6 +106,9 @@ export const Navbar: React.FC = () => {
               <Link href="/booking">
                 <a className="text-base sm:text-lg font-medium">Book a Table</a>
               </Link>
+              <Link href="/events">
+                <a className="text-base sm:text-lg font-medium">Events</a>
+              </Link>
               <Link href="/admin/dashboard">
                 <a className="text-base sm:text-lg font-medium">Restaurant Dashboard</a>
               </Link>
@@ -132,6 +131,11 @@ export const Navbar: React.FC = () => {
           <Link href="/booking">
             <a className="text-sm font-medium transition-colors hover:text-primary">
               Book a Table
+            </a>
+          </Link>
+          <Link href="/events">
+            <a className="text-sm font-medium transition-colors hover:text-primary">
+              Events
             </a>
           </Link>
           <Link href="/admin/dashboard">
