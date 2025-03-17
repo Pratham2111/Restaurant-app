@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import {
   Table,
   TableBody,
@@ -43,6 +44,7 @@ type Order = {
 export default function OrderManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const { translate, formatCurrency } = useSiteSettings();
 
   const { data: orders, isLoading } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
@@ -53,21 +55,21 @@ export default function OrderManagement() {
       const res = await apiRequest("PATCH", `/api/orders/${orderId}/status`, { status });
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Failed to update order status');
+        throw new Error(error.message || translate('Failed to update order status'));
       }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       toast({
-        title: "Status Updated",
-        description: "Order status has been updated successfully.",
+        title: translate("Status Updated"),
+        description: translate("Order status has been updated successfully."),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update order status. Please try again.",
+        title: translate("Update Failed"),
+        description: error.message || translate("Failed to update order status. Please try again."),
         variant: "destructive",
       });
     },
@@ -109,11 +111,11 @@ export default function OrderManagement() {
     <div className="flex flex-col items-center py-8 px-4">
       <div className="w-full max-w-7xl">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold">Order Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{translate("Order Management")}</h1>
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search orders..."
+              placeholder={translate("Search orders...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 w-[300px]"
@@ -123,19 +125,19 @@ export default function OrderManagement() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Orders</CardTitle>
+            <CardTitle>{translate("Orders")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{translate("Order ID")}</TableHead>
+                  <TableHead>{translate("Date")}</TableHead>
+                  <TableHead>{translate("Customer")}</TableHead>
+                  <TableHead>{translate("Items")}</TableHead>
+                  <TableHead>{translate("Total")}</TableHead>
+                  <TableHead>{translate("Status")}</TableHead>
+                  <TableHead>{translate("Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -155,15 +157,15 @@ export default function OrderManagement() {
                       <div className="space-y-1">
                         {order.items.map((item, index) => (
                           <div key={index} className="text-sm">
-                            {item.quantity}x {item.name}
+                            {item.quantity}x {translate(item.name)}
                           </div>
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell>${order.total.toFixed(2)}</TableCell>
+                    <TableCell>{formatCurrency(order.total)}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(order.status)}>
-                        {order.status}
+                        {translate(order.status)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -179,7 +181,7 @@ export default function OrderManagement() {
                           }}
                           disabled={order.status !== "pending"}
                         >
-                          Start Preparing
+                          {translate("Start Preparing")}
                         </Button>
                         <Button
                           size="sm"
@@ -192,7 +194,7 @@ export default function OrderManagement() {
                           }}
                           disabled={order.status !== "preparing"}
                         >
-                          Mark Ready
+                          {translate("Mark Ready")}
                         </Button>
                         <Button
                           size="sm"
@@ -205,7 +207,7 @@ export default function OrderManagement() {
                           }}
                           disabled={order.status !== "ready"}
                         >
-                          Mark Delivered
+                          {translate("Mark Delivered")}
                         </Button>
                       </div>
                     </TableCell>
@@ -214,7 +216,7 @@ export default function OrderManagement() {
                 {filteredOrders?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
-                      No orders found
+                      {translate("No orders found")}
                     </TableCell>
                   </TableRow>
                 )}
