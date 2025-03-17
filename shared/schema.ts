@@ -2,13 +2,7 @@ import { pgTable, text, serial, integer, timestamp, decimal, boolean } from "dri
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const menuCategories = pgTable("menu_categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  imageUrl: text("image_url").notNull()
-});
-
+// Add nutrition info and chef's story to menu items
 export const menuItems = pgTable("menu_items", {
   id: serial("id").primaryKey(),
   categoryId: integer("category_id").notNull(),
@@ -16,7 +10,22 @@ export const menuItems = pgTable("menu_items", {
   description: text("description").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   imageUrl: text("image_url").notNull(),
-  isSpecial: boolean("is_special").notNull().default(false)
+  isSpecial: boolean("is_special").notNull().default(false),
+  // New fields for nutrition and chef's story
+  nutritionInfo: text("nutrition_info").array(),  // Array of nutrition facts
+  ingredients: text("ingredients").array(),       // List of ingredients
+  chefsStory: text("chefs_story"),               // Story behind the dish
+  preparationTime: text("preparation_time"),      // Time to prepare
+  spicyLevel: text("spicy_level"),               // Spiciness level
+  allergens: text("allergens").array(),          // List of allergens
+  servingSize: text("serving_size")              // Serving size information
+});
+
+export const menuCategories = pgTable("menu_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull()
 });
 
 export const tables = pgTable("tables", {

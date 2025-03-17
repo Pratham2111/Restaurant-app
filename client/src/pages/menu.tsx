@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { PageSection } from "@/components/ui/page-section";
+import { DishDetailsDialog } from "@/components/menu/dish-details-dialog";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,8 @@ function saveCartItems(items: Array<{id: number, name: string, price: number, qu
 export default function Menu() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: categories, isLoading: loadingCategories } = useQuery<Category[]>({
@@ -145,7 +148,14 @@ export default function Menu() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems?.map(item => (
-              <Card key={item.id} className="overflow-hidden group">
+              <Card 
+                key={item.id} 
+                className="overflow-hidden group cursor-pointer transition-all hover:shadow-lg"
+                onClick={() => {
+                  setSelectedDish(item);
+                  setDialogOpen(true);
+                }}
+              >
                 <div className="aspect-video w-full overflow-hidden">
                   <img 
                     src={item.imageUrl}
@@ -164,7 +174,10 @@ export default function Menu() {
                     {item.description}
                   </p>
                   <Button 
-                    onClick={() => handleAddToCart(item)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent dialog from opening
+                      handleAddToCart(item);
+                    }}
                     className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
                   >
                     Add to Cart
@@ -181,6 +194,15 @@ export default function Menu() {
           )}
         </div>
       </PageSection>
+
+      <DishDetailsDialog
+        dish={selectedDish}
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setSelectedDish(null);
+        }}
+      />
     </div>
   );
 }

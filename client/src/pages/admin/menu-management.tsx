@@ -67,7 +67,14 @@ export default function MenuManagement() {
       price: "",
       categoryId: 0,
       imageUrl: "",
-      isSpecial: false
+      isSpecial: false,
+      nutritionInfo: [],
+      ingredients: [],
+      chefsStory: "",
+      preparationTime: "",
+      spicyLevel: "",
+      allergens: [],
+      servingSize: ""
     }
   });
 
@@ -80,7 +87,14 @@ export default function MenuManagement() {
         price: "",
         categoryId: 0,
         imageUrl: "",
-        isSpecial: false
+        isSpecial: false,
+        nutritionInfo: [],
+        ingredients: [],
+        chefsStory: "",
+        preparationTime: "",
+        spicyLevel: "",
+        allergens: [],
+        servingSize: ""
       });
       setEditingItem(null);
     }
@@ -100,6 +114,9 @@ export default function MenuManagement() {
         ...data,
         categoryId: Number(data.categoryId),
         price: data.price.toString(),
+        nutritionInfo: data.nutritionInfo.filter(Boolean),
+        ingredients: data.ingredients.filter(Boolean),
+        allergens: data.allergens.filter(Boolean)
       };
 
       const res = await apiRequest("POST", "/api/menu-items", menuItemData);
@@ -132,6 +149,9 @@ export default function MenuManagement() {
         ...data,
         categoryId: Number(data.categoryId),
         price: data.price.toString(),
+        nutritionInfo: data.nutritionInfo.filter(Boolean),
+        ingredients: data.ingredients.filter(Boolean),
+        allergens: data.allergens.filter(Boolean)
       };
 
       const res = await apiRequest("PATCH", `/api/menu-items/${id}`, menuItemData);
@@ -199,7 +219,14 @@ export default function MenuManagement() {
       price: item.price,
       categoryId: item.categoryId,
       imageUrl: item.imageUrl,
-      isSpecial: item.isSpecial
+      isSpecial: item.isSpecial,
+      nutritionInfo: item.nutritionInfo || [],
+      ingredients: item.ingredients || [],
+      chefsStory: item.chefsStory || "",
+      preparationTime: item.preparationTime || "",
+      spicyLevel: item.spicyLevel || "",
+      allergens: item.allergens || [],
+      servingSize: item.servingSize || ""
     });
     setDialogOpen(true);
   };
@@ -215,6 +242,25 @@ export default function MenuManagement() {
   const filteredItems = menuItems?.filter(
     item => selectedCategory === "all" || item.categoryId === parseInt(selectedCategory)
   );
+
+  const handleArrayInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: any, index: number) => {
+    const newValue = e.target.value;
+    const currentArray = field.value || [];
+    const newArray = [...currentArray];
+    newArray[index] = newValue;
+    field.onChange(newArray);
+  };
+
+  const addArrayItem = (field: any) => {
+    const currentArray = field.value || [];
+    field.onChange([...currentArray, ""]);
+  };
+
+  const removeArrayItem = (field: any, index: number) => {
+    const currentArray = field.value || [];
+    const newArray = currentArray.filter((_: any, i: number) => i !== index);
+    field.onChange(newArray);
+  };
 
   return (
     <div className="w-full">
@@ -337,6 +383,196 @@ export default function MenuManagement() {
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="chefsStory"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chef's Story</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Share the story behind this dish..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="preparationTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Preparation Time</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., 25-30 minutes"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="spicyLevel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Spicy Level</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select spiciness level" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Not Spicy">Not Spicy</SelectItem>
+                              <SelectItem value="Mild">Mild</SelectItem>
+                              <SelectItem value="Medium">Medium</SelectItem>
+                              <SelectItem value="Hot">Hot</SelectItem>
+                              <SelectItem value="Extra Hot">Extra Hot</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="servingSize"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Serving Size</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., 1 person"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="ingredients"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ingredients</FormLabel>
+                          <div className="space-y-2">
+                            {(field.value || []).map((ingredient: string, index: number) => (
+                              <div key={index} className="flex gap-2">
+                                <Input
+                                  value={ingredient}
+                                  onChange={(e) => handleArrayInputChange(e, field, index)}
+                                  placeholder={`Ingredient ${index + 1}`}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => removeArrayItem(field, index)}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => addArrayItem(field)}
+                              className="w-full"
+                            >
+                              Add Ingredient
+                            </Button>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="nutritionInfo"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nutrition Information</FormLabel>
+                          <div className="space-y-2">
+                            {(field.value || []).map((info: string, index: number) => (
+                              <div key={index} className="flex gap-2">
+                                <Input
+                                  value={info}
+                                  onChange={(e) => handleArrayInputChange(e, field, index)}
+                                  placeholder={`Nutrition info ${index + 1}`}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => removeArrayItem(field, index)}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => addArrayItem(field)}
+                              className="w-full"
+                            >
+                              Add Nutrition Info
+                            </Button>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="allergens"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Allergens</FormLabel>
+                          <div className="space-y-2">
+                            {(field.value || []).map((allergen: string, index: number) => (
+                              <div key={index} className="flex gap-2">
+                                <Input
+                                  value={allergen}
+                                  onChange={(e) => handleArrayInputChange(e, field, index)}
+                                  placeholder={`Allergen ${index + 1}`}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => removeArrayItem(field, index)}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => addArrayItem(field)}
+                              className="w-full"
+                            >
+                              Add Allergen
+                            </Button>
+                          </div>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
