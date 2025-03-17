@@ -22,6 +22,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
+  getUsers(): Promise<User[]>; // Added getUsers method
 
   // Tables
   getTables(): Promise<Table[]>;
@@ -188,6 +189,10 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async getUsers(): Promise<User[]> { // Added getUsers method implementation
+    return Array.from(this.users.values());
   }
 
   async getCategories(): Promise<Category[]> {

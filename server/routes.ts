@@ -529,6 +529,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add the GET /api/users endpoint to the existing routes
+  app.get("/api/users", async (_req, res) => {
+    try {
+      const users = await storage.getUsers();
+      // Remove sensitive information before sending
+      const safeUsers = users.map(({ password, ...user }) => user);
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

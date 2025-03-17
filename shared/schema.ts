@@ -115,6 +115,8 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   totalPoints: integer("total_points").notNull().default(0),
   currentTierId: integer("current_tier_id").notNull().default(1),
+  role: text("role").notNull().default("customer"),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
