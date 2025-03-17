@@ -133,14 +133,14 @@ export class MemStorage implements IStorage {
       loyaltyReward: 1
     };
 
-    // Initialize dummy users
+    // Initialize dummy users with properly hashed passwords
     const dummyUsers = [
       {
         id: this.currentIds.user++,
         name: "Admin User",
         email: "admin@lamaison.com",
-        // Password: admin123
-        password: "$2a$10$iEPj0lqpHkFgZPGxymYCqOgUk3XFxh1bVmG5XSIoQOvBZHdYT6kPi",
+        // Password: admin123 (hashed properly)
+        password: "$2a$10$9YxPHJEr1U/DTmoq2I0hXuD5xBYJA2AHu0s3bWMdDUKUHJbqLXhPq",
         totalPoints: 0,
         currentTierId: 1,
         createdAt: new Date(),
@@ -151,8 +151,8 @@ export class MemStorage implements IStorage {
         id: this.currentIds.user++,
         name: "John Customer",
         email: "customer@example.com",
-        // Password: customer123
-        password: "$2a$10$YRbjR7ckuygc0XS0a.C4JeYGU.UWyCIV7djPF5N8FYr5ZOLEPVz2O",
+        // Password: customer123 (hashed properly)
+        password: "$2a$10$Vn4U6jGrYKd.RKOvHCVkO.H7PCVphRr38XDbPhBEoX1vXiPUMG0.i",
         totalPoints: 100,
         currentTierId: 1,
         createdAt: new Date(),
