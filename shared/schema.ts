@@ -77,6 +77,17 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  date: timestamp("date").notNull(),
+  featured: boolean("featured").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(menuCategories);
 export const insertMenuItemSchema = createInsertSchema(menuItems);
 export const insertTableSchema = createInsertSchema(tables).extend({
@@ -108,6 +119,10 @@ export const insertUserSchema = createInsertSchema(users).extend({
   path: ["confirmPassword"],
 });
 
+export const insertEventSchema = createInsertSchema(events).extend({
+  date: z.string().transform(str => new Date(str))
+});
+
 export type Category = typeof menuCategories.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type Table = typeof tables.$inferSelect;
@@ -116,6 +131,7 @@ export type Order = typeof orders.$inferSelect;
 export type TableAssignment = typeof tableAssignments.$inferSelect;
 export type Server = typeof servers.$inferSelect;
 export type User = typeof users.$inferSelect;
+export type Event = typeof events.$inferSelect;
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
@@ -125,3 +141,4 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type InsertTableAssignment = z.infer<typeof insertTableAssignmentSchema>;
 export type InsertServer = z.infer<typeof insertServerSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertEvent = z.infer<typeof insertEventSchema>;

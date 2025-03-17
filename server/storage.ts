@@ -1,8 +1,9 @@
 import {
   type Category, type MenuItem, type Table, type Booking, type Order,
   type TableAssignment, type Server, type User,
-  type InsertCategory, type InsertMenuItem, type InsertTable, type InsertBooking, 
-  type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser
+  type InsertCategory, type InsertMenuItem, type InsertTable, type InsertBooking,
+  type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser,
+  type Event, type InsertEvent
 } from "@shared/schema";
 
 export interface IStorage {
@@ -46,6 +47,10 @@ export interface IStorage {
   createTableAssignment(assignment: InsertTableAssignment): Promise<TableAssignment>;
   updateTableAssignment(id: number, endTime: Date): Promise<TableAssignment>;
   getActiveAssignmentsByServer(serverId: number): Promise<TableAssignment[]>;
+
+  // Events
+  getEvents(): Promise<Event[]>;
+  createEvent(event: InsertEvent): Promise<Event>;
 }
 
 export class MemStorage implements IStorage {
@@ -57,6 +62,7 @@ export class MemStorage implements IStorage {
   private bookings: Map<number, Booking>;
   private orders: Map<number, Order>;
   private users: Map<number, User>;
+  private events: Map<number, Event>;
 
   private currentIds: {
     category: number;
@@ -67,6 +73,7 @@ export class MemStorage implements IStorage {
     booking: number;
     order: number;
     user: number;
+    event: number;
   };
 
   constructor() {
@@ -78,6 +85,7 @@ export class MemStorage implements IStorage {
     this.bookings = new Map();
     this.orders = new Map();
     this.users = new Map();
+    this.events = new Map();
 
     this.currentIds = {
       category: 1,
@@ -87,7 +95,8 @@ export class MemStorage implements IStorage {
       tableAssignment: 1,
       booking: 1,
       order: 1,
-      user: 1
+      user: 1,
+      event: 1
     };
 
     this.initSampleData();
@@ -179,7 +188,7 @@ export class MemStorage implements IStorage {
         return bookingDate.toDateString() === date.toDateString();
       }
     );
-    
+
     const bookedTableIds = new Set(bookings.map(b => b.tableId));
     return Array.from(this.tables.values()).filter(
       table => !bookedTableIds.has(table.id)
@@ -227,7 +236,7 @@ export class MemStorage implements IStorage {
 
   async getTableAssignments(status?: string): Promise<TableAssignment[]> {
     const assignments = Array.from(this.tableAssignments.values());
-    return status 
+    return status
       ? assignments.filter(assignment => assignment.status === status)
       : assignments;
   }
@@ -254,6 +263,23 @@ export class MemStorage implements IStorage {
     );
   }
 
+
+  async getEvents(): Promise<Event[]> {
+    return Array.from(this.events.values());
+  }
+
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const id = this.currentIds.event++;
+    const now = new Date();
+    const newEvent = {
+      ...event,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.events.set(id, newEvent);
+    return newEvent;
+  }
 
   private initSampleData() {
     const categories: InsertCategory[] = [
@@ -307,7 +333,7 @@ export class MemStorage implements IStorage {
     });
 
     const tables: InsertTable[] = [
-      { 
+      {
         name: "Table 1",
         section: "main",
         seats: 2,
@@ -317,7 +343,7 @@ export class MemStorage implements IStorage {
         minimumSpend: "0",
         notes: "Near window"
       },
-      { 
+      {
         name: "Table 2",
         section: "main",
         seats: 4,
@@ -327,7 +353,7 @@ export class MemStorage implements IStorage {
         minimumSpend: "0",
         notes: "Center area"
       },
-      { 
+      {
         name: "Table 3",
         section: "outdoor",
         seats: 6,
@@ -352,6 +378,34 @@ export class MemStorage implements IStorage {
     servers.forEach(server => {
       const id = this.currentIds.server++;
       this.servers.set(id, { ...server, id });
+    });
+
+    const sampleEvents = [
+      {
+        title: "Wine Tasting Evening",
+        description: "Join us for an evening of fine wine tasting paired with exquisite appetizers",
+        imageUrl: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3",
+        date: new Date("2025-04-15"),
+        featured: true
+      },
+      {
+        title: "Chef's Special Dinner",
+        description: "Experience a unique 5-course meal prepared by our master chef",
+        imageUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0",
+        date: new Date("2025-04-20"),
+        featured: false
+      }
+    ];
+
+    sampleEvents.forEach(event => {
+      const id = this.currentIds.event++;
+      const now = new Date();
+      this.events.set(id, {
+        ...event,
+        id,
+        createdAt: now,
+        updatedAt: now
+      });
     });
   }
 }

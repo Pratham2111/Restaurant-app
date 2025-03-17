@@ -9,8 +9,10 @@ import Home from "@/pages/home";
 import Menu from "@/pages/menu";
 import Booking from "@/pages/booking";
 import Cart from "@/pages/cart";
+import Events from "@/pages/events";
 import TableManagement from "@/pages/admin/table-management";
 import MenuManagement from "@/pages/admin/menu-management";
+import EventsManagement from "@/pages/admin/events-management";
 import Dashboard from "@/pages/admin/dashboard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -27,8 +29,10 @@ function Router() {
           <Route path="/menu" component={Menu} />
           <Route path="/booking" component={Booking} />
           <Route path="/cart" component={Cart} />
+          <Route path="/events" component={Events} />
           <Route path="/admin/tables" component={TableManagement} />
           <Route path="/admin/menu" component={MenuManagement} />
+          <Route path="/admin/events" component={EventsManagement} />
           <Route path="/admin/dashboard" component={Dashboard} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
