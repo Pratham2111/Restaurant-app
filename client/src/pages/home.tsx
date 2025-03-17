@@ -93,26 +93,6 @@ const defaultCenter = {
   lng: -74.0060
 };
 
-const specialDishes = [
-  {
-    name: "Truffle Risotto",
-    description: "Creamy Arborio rice with black truffle and Parmesan",
-    image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371",
-    price: "$32"
-  },
-  {
-    name: "Wagyu Steak",
-    description: "Premium Japanese Wagyu with seasonal vegetables",
-    image: "https://images.unsplash.com/photo-1544025162-d76694265947",
-    price: "$85"
-  },
-  {
-    name: "Lobster Thermidor",
-    description: "Fresh lobster in rich cream sauce",
-    image: "https://images.unsplash.com/photo-1533422902779-aff35862e462",
-    price: "$65"
-  }
-];
 
 const stats = [
   { number: "15+", label: "Years of Excellence" },
@@ -133,14 +113,14 @@ const galleryImages = [
 export default function Home() {
   const [api, setApi] = useState<CarouselApi>();
 
-  const { data: featuredMenuItems } = useQuery<MenuItem[]>({
-    queryKey: ["/api/menu-items"],
-    select: (items) => items.slice(0, 3) // Get first 3 items for featured section
+  const { data: menuItems } = useQuery<MenuItem[]>({
+    queryKey: ["/api/menu-items"]
   });
+
+  const specialDishes = menuItems?.filter(item => item.isSpecial) || [];
 
   return (
     <div className="relative">
-      {/* Hero Carousel Section with Parallax */}
       <section className="w-full">
         <Carousel
           className="w-full h-[400px] sm:h-[500px] md:h-[600px]"
@@ -213,7 +193,6 @@ export default function Home() {
         </Carousel>
       </section>
 
-      {/* Features Section with Parallax */}
       <section className="w-full py-12 sm:py-16 md:py-20 bg-background relative overflow-hidden">
         <Parallax speed={5} className="absolute inset-0">
           <div className="absolute inset-0 opacity-5">
@@ -251,7 +230,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* New Special Dishes Section */}
       <section className="w-full py-16 bg-background relative overflow-hidden">
         <Parallax speed={5} className="absolute inset-0">
           <div className="absolute inset-0 opacity-5">
@@ -282,7 +260,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {specialDishes.map((dish, index) => (
               <motion.div
-                key={dish.name}
+                key={dish.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
@@ -290,7 +268,7 @@ export default function Home() {
                 <Card className="overflow-hidden group">
                   <div className="aspect-[4/3] overflow-hidden">
                     <img
-                      src={dish.image}
+                      src={dish.imageUrl}
                       alt={dish.name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -298,7 +276,7 @@ export default function Home() {
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-semibold">{dish.name}</h3>
-                      <span className="text-restaurant-yellow font-semibold">{dish.price}</span>
+                      <span className="text-restaurant-yellow font-semibold">${Number(dish.price).toFixed(2)}</span>
                     </div>
                     <p className="text-muted-foreground">{dish.description}</p>
                   </CardContent>
@@ -309,7 +287,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Chef's Recommendations Section */}
       <section className="w-full py-16 bg-background/50 relative overflow-hidden">
         <Parallax speed={10} className="absolute inset-0">
           <div className="absolute inset-0 opacity-5">
@@ -324,7 +301,7 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {featuredMenuItems?.map((item, index) => (
+            {menuItems?.slice(0, 3).map((item, index) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -353,8 +330,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="w-full py-16 bg-restaurant-yellow/10 relative overflow-hidden">
+      <section className="w-full py-16 bg-background/10 relative overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
@@ -376,7 +352,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Gallery Section */}
       <section className="w-full py-16 bg-background relative overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="text-center mb-12">
@@ -418,7 +393,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Reservation CTA Section */}
       <section className="w-full py-16 bg-restaurant-yellow/10 relative overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto">
@@ -466,7 +440,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section with Parallax */}
       <section className="w-full py-12 sm:py-16 md:py-20 bg-background/50 relative overflow-hidden">
         <Parallax speed={10} className="absolute inset-0">
           <div className="absolute inset-0 opacity-5">
@@ -526,7 +499,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Map Section */}
       <section className="w-full py-12 bg-background relative overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-4">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 text-foreground">
@@ -547,11 +519,9 @@ export default function Home() {
       </section>
 
 
-      {/* Footer */}
       <footer className="w-full bg-background border-t">
         <div className="max-w-[1440px] mx-auto px-4 py-12 sm:py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Restaurant Info */}
             <div>
               <h3 className="text-xl font-bold mb-4 text-restaurant-yellow">La Maison</h3>
               <p className="text-muted-foreground mb-4">
@@ -570,7 +540,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Opening Hours */}
             <div>
               <h3 className="text-xl font-bold mb-4 text-restaurant-yellow">Opening Hours</h3>
               <ul className="space-y-2 text-muted-foreground">
@@ -589,7 +558,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Contact Info */}
             <div>
               <h3 className="text-xl font-bold mb-4 text-restaurant-yellow">Contact</h3>
               <ul className="space-y-2 text-muted-foreground">
@@ -600,7 +568,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Newsletter */}
             <div>
               <h3 className="text-xl font-bold mb-4 text-restaurant-yellow">Newsletter</h3>
               <p className="text-muted-foreground mb-4">
@@ -619,7 +586,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Bottom Bar */}
           <div className="mt-12 pt-8 border-t border-border text-center text-muted-foreground">
             <p>&copy; {new Date().getFullYear()} La Maison. All rights reserved.</p>
           </div>

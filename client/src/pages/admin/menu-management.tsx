@@ -21,6 +21,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Dialog,
@@ -50,6 +51,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import type { Category, MenuItem } from "@shared/schema";
+import { Switch } from "@/components/ui/switch";
 
 export default function MenuManagement() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -64,7 +66,8 @@ export default function MenuManagement() {
       description: "",
       price: "",
       categoryId: 0,
-      imageUrl: ""
+      imageUrl: "",
+      isSpecial: false
     }
   });
 
@@ -76,7 +79,8 @@ export default function MenuManagement() {
         description: "",
         price: "",
         categoryId: 0,
-        imageUrl: ""
+        imageUrl: "",
+        isSpecial: false
       });
       setEditingItem(null);
     }
@@ -194,7 +198,8 @@ export default function MenuManagement() {
       description: item.description,
       price: item.price,
       categoryId: item.categoryId,
-      imageUrl: item.imageUrl
+      imageUrl: item.imageUrl,
+      isSpecial: item.isSpecial
     });
     setDialogOpen(true);
   };
@@ -315,6 +320,27 @@ export default function MenuManagement() {
                       )}
                     />
 
+                    <FormField
+                      control={form.control}
+                      name="isSpecial"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Special Dish</FormLabel>
+                            <FormDescription>
+                              Mark this item as a special dish to feature it on the home page
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
                     <Button
                       type="submit"
                       className="w-full"
@@ -368,7 +394,14 @@ export default function MenuManagement() {
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h3 className="font-medium">{item.name}</h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium">{item.name}</h3>
+                                {item.isSpecial && (
+                                  <span className="text-xs bg-restaurant-yellow/20 text-restaurant-yellow px-2 py-1 rounded">
+                                    Special
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-sm text-muted-foreground">
                                 {item.description}
                               </p>

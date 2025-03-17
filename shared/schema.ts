@@ -15,7 +15,8 @@ export const menuItems = pgTable("menu_items", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  imageUrl: text("image_url").notNull()
+  imageUrl: text("image_url").notNull(),
+  isSpecial: boolean("is_special").notNull().default(false)
 });
 
 export const tables = pgTable("tables", {
