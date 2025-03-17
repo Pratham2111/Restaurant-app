@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertEventSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient"; // Import the shared queryClient
 import { format } from "date-fns";
 import { PageSection } from "@/components/ui/page-section";
 import { Calendar } from "@/components/ui/calendar";
@@ -32,7 +33,6 @@ import type { Event } from "@shared/schema";
 export default function EventsManagement() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
-  const queryClient = new QueryClient(); // Import and initialize queryClient
 
   const form = useForm({
     resolver: zodResolver(insertEventSchema),
@@ -52,6 +52,10 @@ export default function EventsManagement() {
   const addEventMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest("POST", "/api/events", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to add event');
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -63,10 +67,10 @@ export default function EventsManagement() {
       form.reset();
       setSelectedDate(undefined);
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to add event. Please try again.",
+        description: error.message || "Failed to add event. Please try again.",
         variant: "destructive"
       });
     }
