@@ -141,9 +141,9 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="w-full py-12 sm:py-16 md:py-20 bg-white">
+      <section className="w-full py-12 sm:py-16 md:py-20 bg-background">
         <div className="max-w-[1440px] mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-restaurant-black">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-foreground">
             Why Choose La Maison
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
@@ -151,7 +151,7 @@ export default function Home() {
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
                   <feature.icon className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-4 text-restaurant-yellow" />
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{feature.title}</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 text-foreground">{feature.title}</h3>
                   <p className="text-sm sm:text-base text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
@@ -161,19 +161,19 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="w-full py-12 sm:py-16 md:py-20 bg-gray-50">
+      <section className="w-full py-12 sm:py-16 md:py-20 bg-muted">
         <div className="max-w-[1440px] mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-restaurant-black">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-foreground">
             What Our Guests Say
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-white hover:shadow-lg transition-shadow">
+              <Card key={index} className="bg-background hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
                   <p className="text-base sm:text-lg mb-4 italic text-muted-foreground">
                     "{testimonial.text}"
                   </p>
-                  <p className="font-semibold text-restaurant-black">
+                  <p className="font-semibold text-foreground">
                     - {testimonial.author}
                   </p>
                 </CardContent>
