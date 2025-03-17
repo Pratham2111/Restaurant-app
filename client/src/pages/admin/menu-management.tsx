@@ -27,7 +27,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -72,7 +71,13 @@ export default function MenuManagement() {
   // Reset form when dialog closes
   useEffect(() => {
     if (!dialogOpen) {
-      form.reset();
+      form.reset({
+        name: "",
+        description: "",
+        price: "",
+        categoryId: 0,
+        imageUrl: ""
+      });
       setEditingItem(null);
     }
   }, [dialogOpen, form]);
@@ -182,6 +187,18 @@ export default function MenuManagement() {
     }
   }
 
+  const handleEditClick = (item: MenuItem) => {
+    setEditingItem(item);
+    form.reset({
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      categoryId: item.categoryId,
+      imageUrl: item.imageUrl
+    });
+    setDialogOpen(true);
+  };
+
   if (loadingCategories || loadingItems) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -198,130 +215,124 @@ export default function MenuManagement() {
     <div className="w-full">
       <PageSection className="bg-background py-8">
         <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold">Menu Management</h1>
-          </div>
-
           <div className="grid lg:grid-cols-2 gap-8">
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>{editingItem ? "Edit Menu Item" : "Add New Menu Item"}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      <FormField
-                        control={form.control}
-                        name="categoryId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Category</FormLabel>
-                            <Select
-                              onValueChange={(value) => field.onChange(Number(value))}
-                              value={field.value ? field.value.toString() : ""}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a category" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {categories?.map(category => (
-                                  <SelectItem
-                                    key={category.id}
-                                    value={category.id.toString()}
-                                  >
-                                    {category.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Name</FormLabel>
+            <Card>
+              <CardHeader>
+                <CardTitle>{editingItem ? "Edit Menu Item" : "Add New Menu Item"}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="categoryId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(Number(value))}
+                            value={field.value ? field.value.toString() : ""}
+                          >
                             <FormControl>
-                              <Input {...field} />
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                              </SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                            <SelectContent>
+                              {categories?.map(category => (
+                                <SelectItem
+                                  key={category.id}
+                                  value={category.id.toString()}
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <FormField
-                        control={form.control}
-                        name="price"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Price</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <FormField
-                        control={form.control}
-                        name="imageUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Image URL</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={addItemMutation.isPending || updateItemMutation.isPending}
-                      >
-                        {(addItemMutation.isPending || updateItemMutation.isPending) ? (
-                          <span className="flex items-center">
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {editingItem ? "Updating..." : "Adding..."}
-                          </span>
-                        ) : (
-                          editingItem ? "Update Menu Item" : "Add Menu Item"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </div>
+                    <FormField
+                      control={form.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Image URL</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={addItemMutation.isPending || updateItemMutation.isPending}
+                    >
+                      {(addItemMutation.isPending || updateItemMutation.isPending) ? (
+                        <span className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {editingItem ? "Updating..." : "Adding..."}
+                        </span>
+                      ) : (
+                        editingItem ? "Update Menu Item" : "Add Menu Item"
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
 
             <div>
               <Card>
@@ -369,11 +380,7 @@ export default function MenuManagement() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => {
-                                  setEditingItem(item);
-                                  form.reset(item);
-                                  setDialogOpen(true);
-                                }}
+                                onClick={() => handleEditClick(item)}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
