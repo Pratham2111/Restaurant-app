@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +23,24 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -30,13 +49,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Loader2 } from "lucide-react";
 import type { Category, MenuItem } from "@shared/schema";
 
 export default function MenuManagement() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const form = useForm({
     resolver: zodResolver(insertMenuItemSchema),
@@ -48,6 +68,14 @@ export default function MenuManagement() {
       imageUrl: ""
     }
   });
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!dialogOpen) {
+      form.reset();
+      setEditingItem(null);
+    }
+  }, [dialogOpen, form]);
 
   const { data: categories, isLoading: loadingCategories } = useQuery<Category[]>({
     queryKey: ["/api/categories"]
@@ -75,10 +103,10 @@ export default function MenuManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/menu-items"] });
       toast({
-        title: "Item Added",
-        description: "New menu item has been added successfully."
+        title: "Success",
+        description: "Menu item has been added successfully."
       });
-      form.reset();
+      setDialogOpen(false);
     },
     onError: (error: Error) => {
       toast({
@@ -89,17 +117,76 @@ export default function MenuManagement() {
     }
   });
 
+  const updateItemMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const menuItemData = {
+        ...data,
+        categoryId: Number(data.categoryId),
+        price: data.price.toString(),
+      };
+
+      const res = await apiRequest("PATCH", `/api/menu-items/${id}`, menuItemData);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update menu item');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/menu-items"] });
+      toast({
+        title: "Success",
+        description: "Menu item has been updated successfully."
+      });
+      setDialogOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update menu item. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteItemMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/menu-items/${id}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to delete menu item');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/menu-items"] });
+      toast({
+        title: "Success",
+        description: "Menu item has been deleted successfully."
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete menu item. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   function onSubmit(data: any) {
-    addItemMutation.mutate(data);
+    if (editingItem) {
+      updateItemMutation.mutate({ id: editingItem.id, data });
+    } else {
+      addItemMutation.mutate(data);
+    }
   }
 
   if (loadingCategories || loadingItems) {
     return (
-      <PageSection className="bg-background py-8">
-        <div className="max-w-[1440px] mx-auto px-4">
-          <div>Loading...</div>
-        </div>
-      </PageSection>
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin text-restaurant-yellow" />
+      </div>
     );
   }
 
@@ -119,7 +206,7 @@ export default function MenuManagement() {
             <div>
               <Card>
                 <CardHeader>
-                  <CardTitle>Add New Menu Item</CardTitle>
+                  <CardTitle>{editingItem ? "Edit Menu Item" : "Add New Menu Item"}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Form {...form}>
@@ -218,10 +305,17 @@ export default function MenuManagement() {
 
                       <Button
                         type="submit"
-                        className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
-                        disabled={addItemMutation.isPending}
+                        className="w-full"
+                        disabled={addItemMutation.isPending || updateItemMutation.isPending}
                       >
-                        {addItemMutation.isPending ? "Adding..." : "Add Menu Item"}
+                        {(addItemMutation.isPending || updateItemMutation.isPending) ? (
+                          <span className="flex items-center">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {editingItem ? "Updating..." : "Adding..."}
+                          </span>
+                        ) : (
+                          editingItem ? "Update Menu Item" : "Add Menu Item"
+                        )}
                       </Button>
                     </form>
                   </Form>
@@ -276,26 +370,45 @@ export default function MenuManagement() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => {
-                                  toast({
-                                    title: "Coming Soon",
-                                    description: "Edit functionality will be available soon."
-                                  });
+                                  setEditingItem(item);
+                                  form.reset(item);
+                                  setDialogOpen(true);
                                 }}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  toast({
-                                    title: "Coming Soon",
-                                    description: "Delete functionality will be available soon."
-                                  });
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will permanently delete the menu item.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteItemMutation.mutate(item.id)}
+                                      disabled={deleteItemMutation.isPending}
+                                    >
+                                      {deleteItemMutation.isPending ? (
+                                        <span className="flex items-center">
+                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                          Deleting...
+                                        </span>
+                                      ) : (
+                                        "Delete"
+                                      )}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
                         </CardContent>

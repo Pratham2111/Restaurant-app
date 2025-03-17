@@ -14,6 +14,8 @@ export interface IStorage {
   getMenuItems(): Promise<MenuItem[]>;
   getMenuItemsByCategory(categoryId: number): Promise<MenuItem[]>;
   createMenuItem(item: InsertMenuItem): Promise<MenuItem>;
+  updateMenuItem(id: number, item: InsertMenuItem): Promise<MenuItem>;
+  deleteMenuItem(id: number): Promise<void>;
 
   // Users
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -145,6 +147,24 @@ export class MemStorage implements IStorage {
     const newItem = { ...item, id };
     this.menuItems.set(id, newItem);
     return newItem;
+  }
+
+  async updateMenuItem(id: number, item: InsertMenuItem): Promise<MenuItem> {
+    const existingItem = this.menuItems.get(id);
+    if (!existingItem) {
+      throw new Error("Menu item not found");
+    }
+
+    const updatedItem = { ...existingItem, ...item, id };
+    this.menuItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async deleteMenuItem(id: number): Promise<void> {
+    if (!this.menuItems.has(id)) {
+      throw new Error("Menu item not found");
+    }
+    this.menuItems.delete(id);
   }
 
   async getTables(): Promise<Table[]> {

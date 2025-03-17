@@ -141,6 +141,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/menu-items/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const menuItem = insertMenuItemSchema.parse(req.body);
+      const result = await storage.updateMenuItem(id, menuItem);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid menu item data", errors: error.errors });
+      } else {
+        console.error("Failed to update menu item:", error);
+        res.status(500).json({ message: "Failed to update menu item" });
+      }
+    }
+  });
+
+  app.delete("/api/menu-items/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      await storage.deleteMenuItem(id);
+      res.json({ message: "Menu item deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete menu item:", error);
+      res.status(500).json({ message: "Failed to delete menu item" });
+    }
+  });
+
   // Enhanced Table Management Routes
   app.get("/api/tables", async (_req, res) => {
     const tables = await storage.getTables();
