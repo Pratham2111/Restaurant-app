@@ -112,6 +112,9 @@ export const Navbar: React.FC = () => {
               <Link href="/admin/dashboard">
                 <a className="text-base sm:text-lg font-medium">Restaurant Dashboard</a>
               </Link>
+              <Link href="/admin/users">
+                <a className="text-base sm:text-lg font-medium">User Management</a>
+              </Link>
             </div>
           </SheetContent>
         </Sheet>

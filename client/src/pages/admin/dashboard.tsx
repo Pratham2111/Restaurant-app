@@ -127,6 +127,24 @@ export default function Dashboard() {
               </a>
             </Link>
 
+            <Link href="/admin/users">
+              <a>
+                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      User Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Manage user accounts and permissions
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
+
             <Link href="/admin/events">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -139,24 +157,6 @@ export default function Dashboard() {
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
                       Manage restaurant events and gallery
-                    </p>
-                  </CardContent>
-                </Card>
-              </a>
-            </Link>
-
-            <Link href="/admin/orders">
-              <a>
-                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ClipboardList className="h-5 w-5" />
-                      Order Management
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      View and manage customer orders
                     </p>
                   </CardContent>
                 </Card>
