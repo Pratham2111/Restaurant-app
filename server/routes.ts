@@ -118,6 +118,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add the POST /api/users endpoint to create new users
+  app.post("/api/users", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+      // Create user with hashed password and role
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+        isActive: true,
+        totalPoints: 0,
+        currentTierId: null
+      });
+
+      // Don't send password back
+      const { password, ...userWithoutPassword } = user;
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      } else {
+        console.error("Failed to create user:", error);
+        res.status(500).json({ message: "Failed to create user" });
+      }
+    }
+  });
+
   // Loyalty Program Routes
   app.get("/api/loyalty/tiers", async (_req, res) => {
     const tiers = await storage.getLoyaltyTiers();
