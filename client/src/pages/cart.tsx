@@ -138,6 +138,7 @@ export default function Cart() {
     0
   );
 
+  // Update the onSubmit function
   function onSubmit(data: any) {
     if (cartItems.length === 0) {
       toast({
@@ -148,16 +149,16 @@ export default function Cart() {
       return;
     }
 
-    // Format order data
+    // Format order data with correct types
     const orderData = {
       ...data,
       items: cartItems.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price.toString(),
-        quantity: item.quantity
+        id: Number(item.id),
+        name: String(item.name),
+        price: Number(item.price),
+        quantity: Number(item.quantity)
       })),
-      total: total.toFixed(2)
+      total: Number(total.toFixed(2))
     };
 
     orderMutation.mutate(orderData);
