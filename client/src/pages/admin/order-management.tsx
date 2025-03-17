@@ -157,7 +157,7 @@ export default function OrderManagement() {
                       <div className="space-y-1">
                         {order.items.map((item, index) => (
                           <div key={index} className="text-sm">
-                            {item.quantity}x {item.name} ({formatCurrency(item.price)})
+                            {item.quantity}x {translate(item.name)}
                           </div>
                         ))}
                       </div>

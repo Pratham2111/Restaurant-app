@@ -250,29 +250,25 @@ export class DatabaseStorage implements IStorage {
   }
   async createOrder(order: InsertOrder): Promise<Order> {
     try {
-      // Format order items properly
-      const formattedItems = order.items.map(item => ({
-        id: Number(item.id),
-        name: String(item.name),
-        quantity: Number(item.quantity),
-        price: Number(item.price)
-      }));
+      // Convert order.items to an array if it's not already
+      const itemsArray = Array.isArray(order.items) ? order.items : [];
 
       const orderData = {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
-        items: formattedItems, // Don't stringify, let Drizzle handle JSON conversion
-        total: order.total.toString(),
+        items: itemsArray, // Store directly as array since column type is ARRAY
+        total: order.total.toString(), // Convert to string for numeric type
         status: 'pending',
         createdAt: new Date()
       };
 
       const [newOrder] = await db.insert(orders).values(orderData).returning();
 
+      // Return the order with properly typed items array
       return {
         ...newOrder,
-        items: formattedItems // Use the formatted items directly
+        items: Array.isArray(newOrder.items) ? newOrder.items : []
       };
     } catch (error) {
       console.error('Error creating order:', error);
@@ -287,7 +283,7 @@ export class DatabaseStorage implements IStorage {
 
       return {
         ...order,
-        items: order.items as any[] // Drizzle will handle JSON parsing
+        items: Array.isArray(order.items) ? order.items : []
       };
     } catch (error) {
       console.error('Error fetching order:', error);
@@ -300,7 +296,7 @@ export class DatabaseStorage implements IStorage {
       const ordersList = await db.select().from(orders);
       return ordersList.map(order => ({
         ...order,
-        items: order.items as any[] // Drizzle will handle JSON parsing
+        items: Array.isArray(order.items) ? order.items : []
       }));
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -318,7 +314,7 @@ export class DatabaseStorage implements IStorage {
 
       return {
         ...updatedOrder,
-        items: updatedOrder.items as any[] // Drizzle will handle JSON parsing
+        items: Array.isArray(updatedOrder.items) ? updatedOrder.items : []
       };
     } catch (error) {
       console.error('Error updating order status:', error);
@@ -456,6 +452,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const [settings] = await db.select().from(siteSettings);
       if (!settings) {
+        // Return default settings if none exist
         return {
           id: 1,
           language: "en",
@@ -480,6 +477,7 @@ export class DatabaseStorage implements IStorage {
       const [existingSettings] = await db.select().from(siteSettings);
 
       if (existingSettings) {
+        // Update existing settings
         const [updatedSettings] = await db
           .update(siteSettings)
           .set({
@@ -490,6 +488,7 @@ export class DatabaseStorage implements IStorage {
           .returning();
         return updatedSettings;
       } else {
+        // Create new settings
         const [newSettings] = await db
           .insert(siteSettings)
           .values({

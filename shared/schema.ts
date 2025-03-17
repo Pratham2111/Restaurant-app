@@ -93,7 +93,7 @@ export const bookings = pgTable("bookings", {
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  items: json("items").notNull(), // Changed from text array to json
+  items: text("items").array().notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   status: text("status").notNull(),
   customerName: text("customer_name").notNull(),
@@ -168,8 +168,8 @@ export const insertBookingSchema = createInsertSchema(bookings).extend({
 export const insertOrderSchema = createInsertSchema(orders).extend({
   items: z.array(z.object({
     id: z.number(),
-    name: z.string(),
     quantity: z.number(),
+    name: z.string(),
     price: z.number()
   }))
 });
