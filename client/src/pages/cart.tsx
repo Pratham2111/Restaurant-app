@@ -73,7 +73,7 @@ export default function Cart() {
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log("Submitting order data:", data); // Debug log
+      console.log("Submitting order data:", data);
       const res = await apiRequest("POST", "/api/orders", data);
       if (!res.ok) {
         const error = await res.json();
@@ -86,14 +86,12 @@ export default function Cart() {
         title: "Order Placed Successfully",
         description: `Your order #${data.id} has been confirmed!`
       });
-      // Clear cart
       setCartItems([]);
       saveCartItems([]);
-      // Redirect to home
       navigate("/");
     },
     onError: (error: Error) => {
-      console.error("Order submission error:", error); // Debug log
+      console.error("Order submission error:", error);
       toast({
         title: "Failed to Place Order",
         description: error.message || "There was an error processing your order. Please try again.",
@@ -126,35 +124,46 @@ export default function Cart() {
     0
   );
 
-  async function onSubmit(data: any) {
-    if (cartItems.length === 0) {
+  const onSubmit = async (formData: any) => {
+    try {
+      console.log("Form data:", formData); // Debug log
+
+      if (cartItems.length === 0) {
+        toast({
+          title: "Cart is Empty",
+          description: "Please add items to your cart before checking out",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Format order data
+      const orderData = {
+        customerName: formData.customerName,
+        customerEmail: formData.customerEmail,
+        customerPhone: formData.customerPhone,
+        items: cartItems.map(item => ({
+          id: Number(item.id),
+          name: String(item.name),
+          quantity: Number(item.quantity),
+          price: Number(item.price)
+        })),
+        total: total.toString(),
+        status: "pending",
+        createdAt: new Date().toISOString()
+      };
+
+      console.log("Formatted Order Data:", orderData); // Debug log
+      await orderMutation.mutateAsync(orderData);
+    } catch (error) {
+      console.error("Submit error:", error);
       toast({
-        title: "Cart is Empty",
-        description: "Please add items to your cart before checking out",
+        title: "Error",
+        description: "Failed to submit order. Please try again.",
         variant: "destructive"
       });
-      return;
     }
-
-    // Format order data
-    const orderData = {
-      customerName: data.customerName,
-      customerEmail: data.customerEmail,
-      customerPhone: data.customerPhone,
-      items: cartItems.map(item => ({
-        id: Number(item.id),
-        name: String(item.name),
-        quantity: Number(item.quantity),
-        price: Number(item.price)
-      })),
-      total: total.toString(),
-      status: "pending",
-      createdAt: new Date().toISOString()
-    };
-
-    console.log("Formatted Order Data:", orderData); // Debug log
-    orderMutation.mutate(orderData);
-  }
+  };
 
   if (cartItems.length === 0) {
     return (
