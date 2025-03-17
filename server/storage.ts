@@ -250,32 +250,29 @@ export class DatabaseStorage implements IStorage {
   }
   async createOrder(order: InsertOrder): Promise<Order> {
     try {
-      // Format the order items to ensure proper storage
-      const formattedItems = Array.isArray(order.items)
-        ? order.items.map(item => ({
-            id: Number(item.id),
-            name: String(item.name),
-            quantity: Number(item.quantity),
-            price: Number(item.price)
-          }))
-        : [];
+      // Format the items for proper storage
+      const formattedItems = order.items.map(item => ({
+        id: Number(item.id),
+        name: String(item.name),
+        quantity: Number(item.quantity),
+        price: Number(item.price)
+      }));
 
       const orderData = {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
-        items: JSON.stringify(formattedItems), // Store as JSON string
+        items: formattedItems,
         total: order.total,
-        status: order.status || 'pending',
+        status: 'pending',
         createdAt: new Date()
       };
 
       const [newOrder] = await db.insert(orders).values(orderData).returning();
 
-      // Return the order with parsed items
       return {
         ...newOrder,
-        items: formattedItems // Return the formatted items
+        items: formattedItems
       };
     } catch (error) {
       console.error('Error creating order:', error);
@@ -288,13 +285,15 @@ export class DatabaseStorage implements IStorage {
       const [order] = await db.select().from(orders).where(eq(orders.id, id));
       if (!order) return undefined;
 
-      // Parse the JSON string into items array
-      let items = [];
-      try {
-        items = JSON.parse(order.items as string);
-      } catch (e) {
-        console.error('Error parsing order items:', e);
-      }
+      // Parse items and ensure proper structure
+      const items = Array.isArray(order.items)
+        ? order.items.map(item => ({
+            id: Number(item.id),
+            name: String(item.name),
+            quantity: Number(item.quantity),
+            price: Number(item.price)
+          }))
+        : [];
 
       return {
         ...order,
@@ -310,16 +309,23 @@ export class DatabaseStorage implements IStorage {
     try {
       const ordersList = await db.select().from(orders);
       return ordersList.map(order => {
-        let items = [];
+        let parsedItems = [];
         try {
-          items = JSON.parse(order.items as string);
-        } catch (e) {
-          console.error('Error parsing order items:', e);
+          parsedItems = Array.isArray(order.items) 
+            ? order.items.map(item => ({
+                id: Number(item.id),
+                name: String(item.name),
+                quantity: Number(item.quantity),
+                price: Number(item.price)
+              }))
+            : [];
+        } catch (error) {
+          console.error('Error parsing order items:', error);
         }
 
         return {
           ...order,
-          items
+          items: parsedItems
         };
       });
     } catch (error) {
@@ -336,12 +342,15 @@ export class DatabaseStorage implements IStorage {
         .where(eq(orders.id, id))
         .returning();
 
-      let items = [];
-      try {
-        items = JSON.parse(updatedOrder.items as string);
-      } catch (e) {
-        console.error('Error parsing order items:', e);
-      }
+      // Parse items and ensure proper structure
+      const items = Array.isArray(updatedOrder.items)
+        ? updatedOrder.items.map(item => ({
+            id: Number(item.id),
+            name: String(item.name),
+            quantity: Number(item.quantity),
+            price: Number(item.price)
+          }))
+        : [];
 
       return {
         ...updatedOrder,
@@ -483,6 +492,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const [settings] = await db.select().from(siteSettings);
       if (!settings) {
+        // Return default settings if none exist
         return {
           id: 1,
           language: "en",
@@ -507,6 +517,7 @@ export class DatabaseStorage implements IStorage {
       const [existingSettings] = await db.select().from(siteSettings);
 
       if (existingSettings) {
+        // Update existing settings
         const [updatedSettings] = await db
           .update(siteSettings)
           .set({
@@ -517,6 +528,7 @@ export class DatabaseStorage implements IStorage {
           .returning();
         return updatedSettings;
       } else {
+        // Create new settings
         const [newSettings] = await db
           .insert(siteSettings)
           .values({

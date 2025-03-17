@@ -27,6 +27,7 @@ import { PageSection } from "@/components/ui/page-section";
 import { useToast } from "@/hooks/use-toast";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
+// This would typically come from a cart store
 interface CartItem {
   id: number;
   name: string;
@@ -42,7 +43,9 @@ function getCartItems(): CartItem[] {
 
 function saveCartItems(items: CartItem[]) {
   localStorage.setItem("cart", JSON.stringify(items));
+  // Dispatch both storage and custom event
   window.dispatchEvent(new Event("cartUpdated"));
+  // Create a new storage event for cross-tab sync
   if (typeof window !== "undefined") {
     const event = new StorageEvent('storage', {
       key: 'cart',
@@ -67,14 +70,24 @@ export default function Cart() {
       items: [],
       total: "0",
       status: "pending",
-      createdAt: new Date().toISOString()
+      createdAt: new Date()
     }
   });
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log("Submitting order data:", data);
-      const res = await apiRequest("POST", "/api/orders", data);
+      // Format the order data properly before sending
+      const formattedData = {
+        ...data,
+        items: data.items.map((item: CartItem) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price.toString()
+        }))
+      };
+
+      const res = await apiRequest("POST", "/api/orders", formattedData);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || 'Failed to place order');
@@ -86,12 +99,13 @@ export default function Cart() {
         title: "Order Placed Successfully",
         description: `Your order #${data.id} has been confirmed!`
       });
+      // Clear cart
       setCartItems([]);
       saveCartItems([]);
+      // Redirect to home
       navigate("/");
     },
     onError: (error: Error) => {
-      console.error("Order submission error:", error);
       toast({
         title: "Failed to Place Order",
         description: error.message || "There was an error processing your order. Please try again.",
@@ -124,46 +138,30 @@ export default function Cart() {
     0
   );
 
-  const onSubmit = async (formData: any) => {
-    try {
-      console.log("Form data:", formData); // Debug log
-
-      if (cartItems.length === 0) {
-        toast({
-          title: "Cart is Empty",
-          description: "Please add items to your cart before checking out",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Format order data
-      const orderData = {
-        customerName: formData.customerName,
-        customerEmail: formData.customerEmail,
-        customerPhone: formData.customerPhone,
-        items: cartItems.map(item => ({
-          id: Number(item.id),
-          name: String(item.name),
-          quantity: Number(item.quantity),
-          price: Number(item.price)
-        })),
-        total: total.toString(),
-        status: "pending",
-        createdAt: new Date().toISOString()
-      };
-
-      console.log("Formatted Order Data:", orderData); // Debug log
-      await orderMutation.mutateAsync(orderData);
-    } catch (error) {
-      console.error("Submit error:", error);
+  function onSubmit(data: any) {
+    if (cartItems.length === 0) {
       toast({
-        title: "Error",
-        description: "Failed to submit order. Please try again.",
+        title: "Cart is Empty",
+        description: "Please add items to your cart before checking out",
         variant: "destructive"
       });
+      return;
     }
-  };
+
+    // Format order data
+    const orderData = {
+      ...data,
+      items: cartItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price.toString(),
+        quantity: item.quantity
+      })),
+      total: total.toFixed(2)
+    };
+
+    orderMutation.mutate(orderData);
+  }
 
   if (cartItems.length === 0) {
     return (
