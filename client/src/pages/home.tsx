@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import type { MenuItem } from "@shared/schema";
+import { DishDetailsDialog } from "@/components/menu/dish-details-dialog";
 
 const heroImages = [
   {
@@ -112,6 +113,8 @@ const galleryImages = [
 
 export default function Home() {
   const [api, setApi] = useState<CarouselApi>();
+  const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: menuItems } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu-items"]
@@ -301,6 +304,11 @@ export default function Home() {
                             <Button
                               variant="outline"
                               className="w-full hover:bg-restaurant-yellow hover:text-restaurant-black transition-colors"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedDish(dish);
+                                setDialogOpen(true);
+                              }}
                             >
                               View Details
                             </Button>
@@ -620,6 +628,14 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      <DishDetailsDialog
+        dish={selectedDish}
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setSelectedDish(null);
+        }}
+      />
     </div>
   );
 }
