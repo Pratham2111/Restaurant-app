@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertEventSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient"; // Import the shared queryClient
+import { queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { PageSection } from "@/components/ui/page-section";
 import { Calendar } from "@/components/ui/calendar";
@@ -26,7 +26,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Event } from "@shared/schema";
 
@@ -90,16 +91,6 @@ export default function EventsManagement() {
       ...data,
       date: selectedDate.toISOString()
     });
-  }
-
-  if (isLoading) {
-    return (
-      <PageSection className="bg-background py-8">
-        <div className="max-w-[1440px] mx-auto px-4">
-          <div>Loading...</div>
-        </div>
-      </PageSection>
-    );
   }
 
   return (
@@ -193,7 +184,14 @@ export default function EventsManagement() {
                         className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
                         disabled={addEventMutation.isPending}
                       >
-                        {addEventMutation.isPending ? "Adding..." : "Add Event"}
+                        {addEventMutation.isPending ? (
+                          <span className="flex items-center">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Adding Event...
+                          </span>
+                        ) : (
+                          "Add Event"
+                        )}
                       </Button>
                     </form>
                   </Form>
@@ -207,56 +205,92 @@ export default function EventsManagement() {
                   <CardTitle>Events List</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {events?.map(event => (
-                      <Card key={event.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="font-medium">{event.title}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                {format(new Date(event.date), 'MMMM dd, yyyy')}
-                              </p>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {event.description}
-                              </p>
-                              {event.featured && (
-                                <span className="inline-block mt-2 text-xs bg-restaurant-yellow/20 text-restaurant-yellow px-2 py-1 rounded">
-                                  Featured
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  toast({
-                                    title: "Coming Soon",
-                                    description: "Edit functionality will be available soon."
-                                  });
-                                }}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  toast({
-                                    title: "Coming Soon",
-                                    description: "Delete functionality will be available soon."
-                                  });
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  <AnimatePresence mode="wait">
+                    {isLoading ? (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex justify-center items-center py-8"
+                      >
+                        <Loader2 className="h-8 w-8 animate-spin text-restaurant-yellow" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="space-y-4"
+                      >
+                        {events?.map(event => (
+                          <motion.div
+                            key={event.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Card>
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <h3 className="font-medium">{event.title}</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                      {format(new Date(event.date), 'MMMM dd, yyyy')}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      {event.description}
+                                    </p>
+                                    {event.featured && (
+                                      <span className="inline-block mt-2 text-xs bg-restaurant-yellow/20 text-restaurant-yellow px-2 py-1 rounded">
+                                        Featured
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => {
+                                        toast({
+                                          title: "Coming Soon",
+                                          description: "Edit functionality will be available soon."
+                                        });
+                                      }}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => {
+                                        toast({
+                                          title: "Coming Soon",
+                                          description: "Delete functionality will be available soon."
+                                        });
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {!isLoading && events?.length === 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-8"
+                    >
+                      <p className="text-muted-foreground">No events found.</p>
+                    </motion.div>
+                  )}
                 </CardContent>
               </Card>
             </div>
