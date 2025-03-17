@@ -49,15 +49,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
+      console.log("Login attempt for email:", email);
 
       // Find user
       const user = await storage.getUserByEmail(email);
       if (!user) {
+        console.log("User not found for email:", email);
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
+      console.log("User found:", { id: user.id, email: user.email, role: user.role });
+
       // Check password
       const validPassword = await bcrypt.compare(password, user.password);
+      console.log("Password validation result:", validPassword);
+
       if (!validPassword) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
@@ -65,6 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create session
       if (req.session) {
         req.session.userId = user.id;
+        console.log("Session created for user:", user.id);
       }
 
       // Don't send password back
