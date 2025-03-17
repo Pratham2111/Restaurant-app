@@ -3,26 +3,38 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import cors from "cors";
 
 const app = express();
+
+// Add CORS middleware
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Configure session middleware
+// Configure session middleware with better security
 const MemoryStoreSession = MemoryStore(session);
 app.use(session({
   cookie: {
     maxAge: 86400000, // 24 hours
-    secure: process.env.NODE_ENV === "production"
+    secure: process.env.NODE_ENV === "production",
+    sameSite: 'lax',
+    httpOnly: true
   },
   store: new MemoryStoreSession({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
   secret: process.env.SESSION_SECRET || 'dev-secret-key',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  name: 'restaurant.sid' // Custom session ID name
 }));
 
+// Add request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -53,15 +65,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add health check endpoint
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 (async () => {
   const server = await registerRoutes(app);
 
+  // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('Error:', err);
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
   });
 
   if (app.get("env") === "development") {
@@ -76,6 +94,6 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`Server running on port ${port}`);
   });
 })();
