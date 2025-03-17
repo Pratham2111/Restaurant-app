@@ -250,22 +250,28 @@ export class DatabaseStorage implements IStorage {
   }
   async createOrder(order: InsertOrder): Promise<Order> {
     try {
-      // Convert order.items to an array if it's not already
-      const itemsArray = Array.isArray(order.items) ? order.items : [];
+      // Ensure items are properly formatted
+      const itemsArray = Array.isArray(order.items)
+        ? order.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: Number(item.price)
+        }))
+        : [];
 
       const orderData = {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
-        items: itemsArray, // Store directly as array since column type is ARRAY
-        total: order.total.toString(), // Convert to string for numeric type
+        items: itemsArray,
+        total: order.total.toString(),
         status: 'pending',
         createdAt: new Date()
       };
 
       const [newOrder] = await db.insert(orders).values(orderData).returning();
 
-      // Return the order with properly typed items array
       return {
         ...newOrder,
         items: Array.isArray(newOrder.items) ? newOrder.items : []
@@ -296,7 +302,14 @@ export class DatabaseStorage implements IStorage {
       const ordersList = await db.select().from(orders);
       return ordersList.map(order => ({
         ...order,
-        items: Array.isArray(order.items) ? order.items : []
+        items: Array.isArray(order.items)
+          ? order.items.map(item => ({
+            id: Number(item.id),
+            name: String(item.name),
+            quantity: Number(item.quantity),
+            price: Number(item.price)
+          }))
+          : []
       }));
     } catch (error) {
       console.error('Error fetching orders:', error);
