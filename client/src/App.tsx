@@ -15,6 +15,7 @@ import MenuManagement from "@/pages/admin/menu-management";
 import EventsManagement from "@/pages/admin/events-management";
 import UserManagement from "@/pages/admin/user-management";
 import Dashboard from "@/pages/admin/dashboard";
+import BookingManagement from "@/pages/admin/booking-management";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Account from "@/pages/account";
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/admin/events" component={EventsManagement} />
           <Route path="/admin/dashboard" component={Dashboard} />
           <Route path="/admin/users" component={UserManagement} />
+          <Route path="/admin/booking-management" component={BookingManagement} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/account" component={Account} />
