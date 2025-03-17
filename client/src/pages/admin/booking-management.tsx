@@ -28,12 +28,12 @@ import { Loader2 } from "lucide-react";
 
 interface Booking {
   id: number;
-  tableId: number;
+  table_id: number;
   date: string;
   name: string;
   email: string;
   phone: string;
-  guestCount: number;
+  guest_count: number;
 }
 
 interface Table {
@@ -131,7 +131,7 @@ export default function BookingManagement() {
                         <TableCell>
                           {format(new Date(booking.date), "PPP")}
                         </TableCell>
-                        <TableCell>{getTableName(booking.tableId)}</TableCell>
+                        <TableCell>{getTableName(booking.table_id)}</TableCell>
                         <TableCell>{booking.name}</TableCell>
                         <TableCell>
                           <div>
@@ -141,7 +141,7 @@ export default function BookingManagement() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{booking.guestCount}</TableCell>
+                        <TableCell>{booking.guest_count}</TableCell>
                       </TableRow>
                     ))}
                     {filteredBookings?.length === 0 && (
