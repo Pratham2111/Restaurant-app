@@ -5,10 +5,10 @@ import {
   type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser,
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
-  users, menuItems, menuCategories, tables, events
+  users, menuItems, menuCategories, tables, events, servers, tableAssignments
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // Categories
@@ -222,13 +222,58 @@ export class DatabaseStorage implements IStorage {
   async getBookings(): Promise<Booking[]> { throw new Error("Not implemented"); }
   async createOrder(order: InsertOrder): Promise<Order> { throw new Error("Not implemented"); }
   async getOrder(id: number): Promise<Order | undefined> { throw new Error("Not implemented"); }
-  async getServers(): Promise<Server[]> { throw new Error("Not implemented"); }
-  async getActiveServers(): Promise<Server[]> { throw new Error("Not implemented"); }
-  async createServer(server: InsertServer): Promise<Server> { throw new Error("Not implemented"); }
-  async getTableAssignments(status?: string): Promise<TableAssignment[]> { throw new Error("Not implemented"); }
-  async createTableAssignment(assignment: InsertTableAssignment): Promise<TableAssignment> { throw new Error("Not implemented"); }
-  async updateTableAssignment(id: number, endTime: Date): Promise<TableAssignment> { throw new Error("Not implemented"); }
-  async getActiveAssignmentsByServer(serverId: number): Promise<TableAssignment[]> { throw new Error("Not implemented"); }
+  async getServers(): Promise<Server[]> {
+    return db.select().from(servers);
+  }
+
+  async getActiveServers(): Promise<Server[]> {
+    return db.select()
+      .from(servers)
+      .where(eq(servers.isActive, true));
+  }
+
+  async createServer(server: InsertServer): Promise<Server> {
+    const [newServer] = await db.insert(servers).values(server).returning();
+    return newServer;
+  }
+
+  async getTableAssignments(status?: string): Promise<TableAssignment[]> {
+    let query = db.select().from(tableAssignments);
+    if (status) {
+      query = query.where(eq(tableAssignments.status, status));
+    }
+    return query;
+  }
+
+  async createTableAssignment(assignment: InsertTableAssignment): Promise<TableAssignment> {
+    const [newAssignment] = await db.insert(tableAssignments).values(assignment).returning();
+    return newAssignment;
+  }
+
+  async updateTableAssignment(id: number, endTime: Date): Promise<TableAssignment> {
+    const [updatedAssignment] = await db
+      .update(tableAssignments)
+      .set({ 
+        endTime,
+        status: 'completed'
+      })
+      .where(eq(tableAssignments.id, id))
+      .returning();
+    return updatedAssignment;
+  }
+
+  async getActiveAssignmentsByServer(serverId: number): Promise<TableAssignment[]> {
+    return db.select()
+      .from(tableAssignments)
+      .where(
+        and(
+          eq(tableAssignments.serverId, serverId),
+          eq(tableAssignments.status, 'active'),
+          isNull(tableAssignments.endTime)
+        )
+      );
+  }
+
   async getLoyaltyTiers(): Promise<LoyaltyTier[]> { throw new Error("Not implemented"); }
   async getLoyaltyTierById(id: number): Promise<LoyaltyTier | undefined> { throw new Error("Not implemented"); }
   async createLoyaltyTier(tier: InsertLoyaltyTier): Promise<LoyaltyTier> { throw new Error("Not implemented"); }
