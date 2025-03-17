@@ -506,14 +506,40 @@ export class MemStorage implements IStorage {
         name: "Bruschetta",
         description: "Grilled bread rubbed with garlic and topped with tomatoes",
         price: "8.99",
-        imageUrl: "https://images.unsplash.com/photo-1565895405137-3ca0cc5088c8"
+        imageUrl: "https://images.unsplash.com/photo-1565895405137-3ca0cc5088c8",
+        isSpecial: true
       },
       {
         categoryId: 2,
         name: "Grilled Salmon",
         description: "Fresh Atlantic salmon with herbs and lemon",
         price: "24.99",
-        imageUrl: "https://images.unsplash.com/photo-1564486054184-1c26aa52b1c3"
+        imageUrl: "https://images.unsplash.com/photo-1564486054184-1c26aa52b1c3",
+        isSpecial: true
+      },
+      {
+        categoryId: 2,
+        name: "Wagyu Steak",
+        description: "Premium Japanese Wagyu beef with truffle sauce",
+        price: "89.99",
+        imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947",
+        isSpecial: true
+      },
+      {
+        categoryId: 3,
+        name: "Chocolate Soufflé",
+        description: "Warm chocolate soufflé with vanilla ice cream",
+        price: "12.99",
+        imageUrl: "https://images.unsplash.com/photo-1511911063855-2bf39afa5b2e",
+        isSpecial: true
+      },
+      {
+        categoryId: 2,
+        name: "Lobster Thermidor",
+        description: "Classic French dish with lobster in rich cream sauce",
+        price: "59.99",
+        imageUrl: "https://images.unsplash.com/photo-1533422902779-aff35862e462",
+        isSpecial: true
       }
     ];
 
