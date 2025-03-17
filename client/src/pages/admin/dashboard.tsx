@@ -32,11 +32,14 @@ import {
 import type { Table, Order, MenuItem, Booking } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { PageSection } from "@/components/ui/page-section";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 // Predefined colors for charts
 const COLORS = ['#ffc107', '#0ea5e9', '#10b981', '#f43f5e', '#8b5cf6'];
 
 export default function Dashboard() {
+  const { translate, formatCurrency } = useSiteSettings();
+
   const { data: orders } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
   });
@@ -100,10 +103,10 @@ export default function Dashboard() {
       <PageSection className="bg-background py-8">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold">Restaurant Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">{translate("Restaurant Dashboard")}</h1>
             <Button variant="outline" size="sm">
               <TrendingUp className="mr-2 h-4 w-4" />
-              Generate Report
+              {translate("Generate Report")}
             </Button>
           </div>
 
@@ -115,84 +118,80 @@ export default function Dashboard() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <TableProperties className="h-5 w-5" />
-                      Table Management
+                      {translate("Table Management")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Manage tables and seating
+                      {translate("Manage tables and seating")}
                     </p>
                   </CardContent>
                 </Card>
               </a>
             </Link>
-
             <Link href="/admin/menu">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Coffee className="h-5 w-5" />
-                      Menu Management
+                      {translate("Menu Management")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Update menu items and categories
+                      {translate("Update menu items and categories")}
                     </p>
                   </CardContent>
                 </Card>
               </a>
             </Link>
-
             <Link href="/admin/settings">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Settings className="h-5 w-5" />
-                      Site Settings
+                      {translate("Site Settings")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Configure language and currency
+                      {translate("Configure language and currency")}
                     </p>
                   </CardContent>
                 </Card>
               </a>
             </Link>
-
             <Link href="/admin/booking-management">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <CalendarRange className="h-5 w-5" />
-                      Booking Management
+                      {translate("Booking Management")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      View and manage table reservations
+                      {translate("View and manage table reservations")}
                     </p>
                   </CardContent>
                 </Card>
               </a>
             </Link>
-
             <Link href="/admin/events">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <PartyPopper className="h-5 w-5" />
-                      Events Management
+                      {translate("Events Management")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Manage restaurant events and promotions
+                      {translate("Manage restaurant events and promotions")}
                     </p>
                   </CardContent>
                 </Card>
@@ -204,47 +203,47 @@ export default function Dashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <CardTitle className="text-sm font-medium">{translate("Total Orders")}</CardTitle>
                 <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalOrders}</div>
-                <p className="text-xs text-muted-foreground">Orders today</p>
+                <p className="text-xs text-muted-foreground">{translate("Orders today")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">{translate("Total Revenue")}</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">Revenue today</p>
+                <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+                <p className="text-xs text-muted-foreground">{translate("Revenue today")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Table Utilization</CardTitle>
+                <CardTitle className="text-sm font-medium">{translate("Table Utilization")}</CardTitle>
                 <TableProperties className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{tableUtilization.toFixed(1)}%</div>
                 <p className="text-xs text-muted-foreground">
-                  {occupiedTables} of {totalTables} tables occupied
+                  {translate(`${occupiedTables} of ${totalTables} tables occupied`)}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Today's Bookings</CardTitle>
+                <CardTitle className="text-sm font-medium">{translate("Today's Bookings")}</CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{todayBookings}</div>
-                <p className="text-xs text-muted-foreground">Table reservations</p>
+                <p className="text-xs text-muted-foreground">{translate("Table reservations")}</p>
               </CardContent>
             </Card>
           </div>
@@ -254,7 +253,7 @@ export default function Dashboard() {
             {/* Hourly Orders Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Today's Orders</CardTitle>
+                <CardTitle>{translate("Today's Orders")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
@@ -282,7 +281,7 @@ export default function Dashboard() {
             {/* Weekly Revenue Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Weekly Revenue</CardTitle>
+                <CardTitle>{translate("Weekly Revenue")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
@@ -315,7 +314,7 @@ export default function Dashboard() {
             {/* Popular Items Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Popular Items</CardTitle>
+                <CardTitle>{translate("Popular Items")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
@@ -345,7 +344,7 @@ export default function Dashboard() {
             {/* Today's Bookings Card */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Bookings</CardTitle>
+                <CardTitle>{translate("Recent Bookings")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -360,8 +359,8 @@ export default function Dashboard() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium">{booking.guest_count} guests</p>
-                            <p className="text-sm text-muted-foreground">Table {booking.table_id}</p>
+                            <p className="text-sm font-medium">{booking.guest_count} {translate("guests")}</p>
+                            <p className="text-sm text-muted-foreground">{translate(`Table ${booking.table_id}`)}</p>
                           </div>
                         </div>
                       </CardContent>
