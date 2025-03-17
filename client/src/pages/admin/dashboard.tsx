@@ -111,7 +111,7 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 mb-8">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 mb-8">
             <Link href="/admin/tables">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -129,6 +129,7 @@ export default function Dashboard() {
                 </Card>
               </a>
             </Link>
+
             <Link href="/admin/menu">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -146,6 +147,25 @@ export default function Dashboard() {
                 </Card>
               </a>
             </Link>
+
+            <Link href="/admin/orders">
+              <a>
+                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5" />
+                      {translate("Order Management")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {translate("Manage food orders and status")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
+
             <Link href="/admin/settings">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -163,6 +183,7 @@ export default function Dashboard() {
                 </Card>
               </a>
             </Link>
+
             <Link href="/admin/booking-management">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -180,6 +201,7 @@ export default function Dashboard() {
                 </Card>
               </a>
             </Link>
+
             <Link href="/admin/events">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
