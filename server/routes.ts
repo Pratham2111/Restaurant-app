@@ -7,7 +7,7 @@ import {
   insertTableAssignmentSchema,
   insertMenuItemSchema,
   insertUserSchema,
-  insertEventSchema // Assuming this schema is defined elsewhere
+  insertEventSchema 
 } from "@shared/schema";
 import { ZodError } from "zod";
 import bcrypt from "bcryptjs";
@@ -168,6 +168,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to create table" });
       }
+    }
+  });
+
+  app.patch("/api/tables/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const tableData = insertTableSchema.parse(req.body);
+      const result = await storage.updateTable(id, tableData);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: "Invalid table data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update table" });
+      }
+    }
+  });
+
+  app.delete("/api/tables/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      await storage.deleteTable(id);
+      res.json({ message: "Table deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete table" });
     }
   });
 

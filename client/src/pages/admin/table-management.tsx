@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,17 +34,30 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
 import type { Table, Server } from "@shared/schema";
 
 export default function TableManagement() {
   const [selectedSection, setSelectedSection] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingTable, setEditingTable] = useState<Table | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const form = useForm({
     resolver: zodResolver(insertTableSchema),
@@ -94,9 +108,65 @@ export default function TableManagement() {
     }
   });
 
+  const updateTableMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const res = await apiRequest("PATCH", `/api/tables/${id}`, data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update table');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      toast({
+        title: "Table Updated",
+        description: "Table has been updated successfully."
+      });
+      setEditingTable(null);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update table. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteTableMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/tables/${id}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to delete table');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      toast({
+        title: "Table Deleted",
+        description: "Table has been deleted successfully."
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete table. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const updateTableStatusMutation = useMutation({
     mutationFn: async ({ tableId, status }: { tableId: number; status: string }) => {
       const res = await apiRequest("PATCH", `/api/tables/${tableId}/status`, { status });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to update status');
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -106,10 +176,10 @@ export default function TableManagement() {
         description: "Table status has been updated successfully.",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Update Failed",
-        description: "Failed to update table status. Please try again.",
+        description: error.message || "Failed to update table status. Please try again.",
         variant: "destructive",
       });
     },
@@ -123,6 +193,10 @@ export default function TableManagement() {
         startTime: new Date().toISOString(),
         status: "active",
       });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to assign server');
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -132,21 +206,29 @@ export default function TableManagement() {
         description: "Server has been assigned to the table successfully.",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Assignment Failed",
-        description: "Failed to assign server to table. Please try again.",
+        description: error.message || "Failed to assign server to table. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   function onSubmit(data: any) {
-    createTableMutation.mutate(data);
+    if (editingTable) {
+      updateTableMutation.mutate({ id: editingTable.id, data });
+    } else {
+      createTableMutation.mutate(data);
+    }
   }
 
   if (loadingTables || loadingServers) {
-    return <div className="container py-8">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin text-restaurant-yellow" />
+      </div>
+    );
   }
 
   const sections = ["all", ...new Set(tables?.map(table => table.section))];
@@ -180,7 +262,9 @@ export default function TableManagement() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Table</DialogTitle>
+                <DialogTitle>
+                  {editingTable ? "Edit Table" : "Add New Table"}
+                </DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -267,10 +351,17 @@ export default function TableManagement() {
 
                   <Button
                     type="submit"
-                    className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
-                    disabled={createTableMutation.isPending}
+                    className="w-full"
+                    disabled={createTableMutation.isPending || updateTableMutation.isPending}
                   >
-                    {createTableMutation.isPending ? "Creating..." : "Create Table"}
+                    {(createTableMutation.isPending || updateTableMutation.isPending) ? (
+                      <span className="flex items-center">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {editingTable ? "Updating..." : "Creating..."}
+                      </span>
+                    ) : (
+                      editingTable ? "Update Table" : "Create Table"
+                    )}
                   </Button>
                 </form>
               </Form>
@@ -315,6 +406,52 @@ export default function TableManagement() {
                     <p className="text-sm text-muted-foreground">Shape: {table.shape}</p>
                   </div>
 
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingTable(table);
+                        form.reset(table);
+                        setDialogOpen(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the table
+                            and remove all associated data.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteTableMutation.mutate(table.id)}
+                          >
+                            {deleteTableMutation.isPending ? (
+                              <span className="flex items-center">
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Deleting...
+                              </span>
+                            ) : (
+                              "Delete"
+                            )}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+
                   <Tabs defaultValue="status" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="status">Status</TabsTrigger>
@@ -329,6 +466,7 @@ export default function TableManagement() {
                             tableId: table.id,
                             status: "available"
                           })}
+                          disabled={updateTableStatusMutation.isPending}
                         >
                           Available
                         </Button>
@@ -339,6 +477,7 @@ export default function TableManagement() {
                             tableId: table.id,
                             status: "occupied"
                           })}
+                          disabled={updateTableStatusMutation.isPending}
                         >
                           Occupied
                         </Button>
@@ -349,6 +488,7 @@ export default function TableManagement() {
                             tableId: table.id,
                             status: "reserved"
                           })}
+                          disabled={updateTableStatusMutation.isPending}
                         >
                           Reserved
                         </Button>
@@ -359,6 +499,7 @@ export default function TableManagement() {
                             tableId: table.id,
                             status: "maintenance"
                           })}
+                          disabled={updateTableStatusMutation.isPending}
                         >
                           Maintenance
                         </Button>
@@ -372,6 +513,7 @@ export default function TableManagement() {
                             serverId: parseInt(value)
                           });
                         }}
+                        disabled={createAssignmentMutation.isPending}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Assign server" />

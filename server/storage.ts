@@ -27,6 +27,8 @@ export interface IStorage {
   getTablesByStatus(status: string): Promise<Table[]>;
   updateTableStatus(id: number, status: string): Promise<Table>;
   createTable(table: InsertTable): Promise<Table>;
+  updateTable(id: number, table: InsertTable): Promise<Table>;
+  deleteTable(id: number): Promise<void>;
   getAvailableTables(date: Date): Promise<Table[]>;
 
   // Bookings
@@ -179,6 +181,24 @@ export class MemStorage implements IStorage {
     const newTable = { ...table, id };
     this.tables.set(id, newTable);
     return newTable;
+  }
+
+  async updateTable(id: number, tableData: InsertTable): Promise<Table> {
+    const existingTable = this.tables.get(id);
+    if (!existingTable) {
+      throw new Error("Table not found");
+    }
+
+    const updatedTable = { ...existingTable, ...tableData, id };
+    this.tables.set(id, updatedTable);
+    return updatedTable;
+  }
+
+  async deleteTable(id: number): Promise<void> {
+    if (!this.tables.has(id)) {
+      throw new Error("Table not found");
+    }
+    this.tables.delete(id);
   }
 
   async getAvailableTables(date: Date): Promise<Table[]> {
