@@ -24,7 +24,7 @@ export default function Register() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [isVerifying, setIsVerifying] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
 
   const form = useForm({
     resolver: zodResolver(insertUserSchema),
@@ -33,10 +33,11 @@ export default function Register() {
       email: "",
       password: "",
       confirmPassword: "",
+      role: "customer" // Set default role
     },
   });
 
-  const otpForm = useForm({
+  const verificationForm = useForm({
     resolver: zodResolver(verifyOtpSchema),
     defaultValues: {
       email: "",
@@ -54,13 +55,13 @@ export default function Register() {
       return res.json();
     },
     onSuccess: (data) => {
-      toast({
-        title: "Registration Successful",
-        description: "Please check your email for verification code.",
-      });
       setIsVerifying(true);
-      setRegisteredEmail(data.email);
-      otpForm.setValue("email", data.email);
+      setVerificationEmail(data.email);
+      verificationForm.setValue("email", data.email);
+      toast({
+        title: "Check your email",
+        description: "We've sent a verification code to your email address.",
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -107,7 +108,7 @@ export default function Register() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
+        title: "Code Sent",
         description: "A new verification code has been sent to your email.",
       });
     },
@@ -125,12 +126,15 @@ export default function Register() {
   }
 
   function onVerifySubmit(data: any) {
-    verifyMutation.mutate(data);
+    verifyMutation.mutate({
+      email: verificationEmail,
+      code: data.code
+    });
   }
 
   function handleResendCode() {
-    if (registeredEmail) {
-      resendMutation.mutate(registeredEmail);
+    if (verificationEmail) {
+      resendMutation.mutate(verificationEmail);
     }
   }
 
@@ -141,22 +145,28 @@ export default function Register() {
           <div className="w-full max-w-md px-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl text-center">Verify Email</CardTitle>
+                <CardTitle className="text-2xl text-center">Verify Your Email</CardTitle>
                 <CardDescription className="text-center">
-                  Enter the verification code sent to your email
+                  We've sent a verification code to {verificationEmail}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Form {...otpForm}>
-                  <form onSubmit={otpForm.handleSubmit(onVerifySubmit)} className="space-y-6">
+                <Form {...verificationForm}>
+                  <form onSubmit={verificationForm.handleSubmit(onVerifySubmit)} className="space-y-6">
                     <FormField
-                      control={otpForm.control}
+                      control={verificationForm.control}
                       name="code"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Verification Code</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter 6-digit code" {...field} />
+                            <Input 
+                              placeholder="Enter 6-digit code" 
+                              {...field} 
+                              maxLength={6}
+                              pattern="\d*"
+                              inputMode="numeric"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
