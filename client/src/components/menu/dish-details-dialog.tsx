@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Clock, ChefHat, Flame, Wheat, Scale } from "lucide-react";
 import type { MenuItem } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 interface DishDetailsDialogProps {
@@ -10,8 +11,51 @@ interface DishDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Helper function to get cart items from localStorage
+function getCartItems(): Array<{id: number, name: string, price: number, quantity: number}> {
+  if (typeof window === "undefined") return [];
+  const items = localStorage.getItem("cart");
+  return items ? JSON.parse(items) : [];
+}
+
+// Helper function to save cart items to localStorage
+function saveCartItems(items: Array<{id: number, name: string, price: number, quantity: number}>) {
+  localStorage.setItem("cart", JSON.stringify(items));
+  window.dispatchEvent(new Event("cartUpdated"));
+}
+
 export function DishDetailsDialog({ dish, open, onOpenChange }: DishDetailsDialogProps) {
+  const { toast } = useToast();
+
   if (!dish) return null;
+
+  const handleAddToCart = () => {
+    const currentCart = getCartItems();
+    const existingItem = currentCart.find(cartItem => cartItem.id === dish.id);
+
+    let newCart;
+    if (existingItem) {
+      newCart = currentCart.map(cartItem => 
+        cartItem.id === dish.id 
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      );
+    } else {
+      newCart = [...currentCart, {
+        id: dish.id,
+        name: dish.name,
+        price: Number(dish.price),
+        quantity: 1
+      }];
+    }
+
+    saveCartItems(newCart);
+
+    toast({
+      title: "Added to cart",
+      description: `${dish.name} has been added to your cart.`
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -22,7 +66,7 @@ export function DishDetailsDialog({ dish, open, onOpenChange }: DishDetailsDialo
             {dish.description}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid md:grid-cols-2 gap-6 mt-4">
           <div>
             <div className="aspect-square rounded-lg overflow-hidden">
@@ -32,7 +76,7 @@ export function DishDetailsDialog({ dish, open, onOpenChange }: DishDetailsDialo
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             <div className="mt-4 grid grid-cols-2 gap-2">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-restaurant-yellow" />
@@ -99,11 +143,25 @@ export function DishDetailsDialog({ dish, open, onOpenChange }: DishDetailsDialo
                 </div>
               </div>
             )}
+
+            <div className="pt-4">
+              <div className="text-xl font-bold mb-4">
+                ${Number(dish.price).toFixed(2)}
+              </div>
+              <Button
+                size="lg"
+                className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                onClick={handleAddToCart}
+              >
+                Add to Cart
+              </Button>
+            </div>
           </div>
         </div>
 
         <div className="mt-6 flex justify-end">
           <Button
+            variant="outline"
             size="lg"
             onClick={() => onOpenChange(false)}
           >
