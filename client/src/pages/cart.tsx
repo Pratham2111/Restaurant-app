@@ -76,7 +76,22 @@ export default function Cart() {
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/orders", data);
+      // Format the order data properly before sending
+      const formattedData = {
+        ...data,
+        items: data.items.map((item: CartItem) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price.toString()
+        }))
+      };
+
+      const res = await apiRequest("POST", "/api/orders", formattedData);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to place order');
+      }
       return res.json();
     },
     onSuccess: (data) => {
@@ -90,10 +105,10 @@ export default function Cart() {
       // Redirect to home
       navigate("/");
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Failed to Place Order",
-        description: "There was an error processing your order. Please try again.",
+        description: error.message || "There was an error processing your order. Please try again.",
         variant: "destructive"
       });
     }
@@ -133,16 +148,19 @@ export default function Cart() {
       return;
     }
 
-    orderMutation.mutate({
+    // Format order data
+    const orderData = {
       ...data,
       items: cartItems.map(item => ({
         id: item.id,
         name: item.name,
-        price: item.price,
+        price: item.price.toString(),
         quantity: item.quantity
       })),
       total: total.toFixed(2)
-    });
+    };
+
+    orderMutation.mutate(orderData);
   }
 
   if (cartItems.length === 0) {

@@ -252,9 +252,9 @@ export class DatabaseStorage implements IStorage {
     try {
       // Format the items for proper storage
       const formattedItems = order.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
+        id: Number(item.id),
+        name: String(item.name),
+        quantity: Number(item.quantity),
         price: Number(item.price)
       }));
 
@@ -263,14 +263,13 @@ export class DatabaseStorage implements IStorage {
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
         items: formattedItems,
-        total: order.total.toString(),
+        total: order.total,
         status: 'pending',
         createdAt: new Date()
       };
 
       const [newOrder] = await db.insert(orders).values(orderData).returning();
 
-      // Ensure items are properly parsed when returning
       return {
         ...newOrder,
         items: formattedItems
@@ -287,7 +286,7 @@ export class DatabaseStorage implements IStorage {
       if (!order) return undefined;
 
       // Parse items and ensure proper structure
-      const items = Array.isArray(order.items) 
+      const items = Array.isArray(order.items)
         ? order.items.map(item => ({
             id: Number(item.id),
             name: String(item.name),
@@ -309,21 +308,24 @@ export class DatabaseStorage implements IStorage {
   async getOrders(): Promise<Order[]> {
     try {
       const ordersList = await db.select().from(orders);
-
       return ordersList.map(order => {
-        // Parse items and ensure proper structure
-        const items = Array.isArray(order.items)
-          ? order.items.map(item => ({
-              id: Number(item.id),
-              name: String(item.name),
-              quantity: Number(item.quantity),
-              price: Number(item.price)
-            }))
-          : [];
+        let parsedItems = [];
+        try {
+          parsedItems = Array.isArray(order.items) 
+            ? order.items.map(item => ({
+                id: Number(item.id),
+                name: String(item.name),
+                quantity: Number(item.quantity),
+                price: Number(item.price)
+              }))
+            : [];
+        } catch (error) {
+          console.error('Error parsing order items:', error);
+        }
 
         return {
           ...order,
-          items
+          items: parsedItems
         };
       });
     } catch (error) {
