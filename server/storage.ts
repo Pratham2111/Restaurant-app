@@ -133,6 +133,38 @@ export class MemStorage implements IStorage {
       loyaltyReward: 1
     };
 
+    // Initialize dummy users
+    const dummyUsers = [
+      {
+        id: this.currentIds.user++,
+        name: "Admin User",
+        email: "admin@lamaison.com",
+        // Password: admin123
+        password: "$2a$10$iEPj0lqpHkFgZPGxymYCqOgUk3XFxh1bVmG5XSIoQOvBZHdYT6kPi",
+        totalPoints: 0,
+        currentTierId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        role: "admin"
+      },
+      {
+        id: this.currentIds.user++,
+        name: "John Customer",
+        email: "customer@example.com",
+        // Password: customer123
+        password: "$2a$10$YRbjR7ckuygc0XS0a.C4JeYGU.UWyCIV7djPF5N8FYr5ZOLEPVz2O",
+        totalPoints: 100,
+        currentTierId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        role: "customer"
+      }
+    ];
+
+    dummyUsers.forEach(user => {
+      this.users.set(user.id, user);
+    });
+
     this.initSampleData();
   }
 
