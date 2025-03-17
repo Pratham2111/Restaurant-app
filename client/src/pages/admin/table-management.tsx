@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -74,11 +74,11 @@ export default function TableManagement() {
   });
 
   const { data: tables, isLoading: loadingTables } = useQuery<Table[]>({
-    queryKey: ["/api/tables"],
+    queryKey: ["/api/tables"]
   });
 
   const { data: servers, isLoading: loadingServers } = useQuery<Server[]>({
-    queryKey: ["/api/servers/active"],
+    queryKey: ["/api/servers/active"]
   });
 
   const createTableMutation = useMutation({
