@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMenuItemSchema } from "@shared/schema";
+import { PageSection } from "@/components/ui/page-section";
 import {
   Card,
   CardContent,
@@ -58,11 +59,10 @@ export default function MenuManagement() {
 
   const addItemMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Ensure proper type conversions
       const menuItemData = {
         ...data,
         categoryId: Number(data.categoryId),
-        price: data.price.toString(), // Ensure price is sent as string
+        price: data.price.toString(),
       };
 
       const res = await apiRequest("POST", "/api/menu-items", menuItemData);
@@ -94,7 +94,13 @@ export default function MenuManagement() {
   }
 
   if (loadingCategories || loadingItems) {
-    return <div className="container py-8">Loading...</div>;
+    return (
+      <PageSection className="bg-background py-8">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div>Loading...</div>
+        </div>
+      </PageSection>
+    );
   }
 
   const filteredItems = menuItems?.filter(
@@ -102,204 +108,206 @@ export default function MenuManagement() {
   );
 
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Menu Management</h1>
-      </div>
+    <div className="w-full">
+      <PageSection className="bg-background py-8">
+        <div className="max-w-[1440px] mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold">Menu Management</h1>
+          </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Add New Menu Item</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="categoryId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select
-                          onValueChange={(value) => field.onChange(Number(value))}
-                          value={field.value ? field.value.toString() : ""}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories?.map(category => (
-                              <SelectItem
-                                key={category.id}
-                                value={category.id.toString()}
-                              >
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          <div className="grid lg:grid-cols-2 gap-8">
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add New Menu Item</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="categoryId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select
+                              onValueChange={(value) => field.onChange(Number(value))}
+                              value={field.value ? field.value.toString() : ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {categories?.map(category => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.id.toString()}
+                                  >
+                                    {category.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Price</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={form.control}
+                        name="imageUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Image URL</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
-                    disabled={addItemMutation.isPending}
-                  >
-                    {addItemMutation.isPending ? "Adding..." : "Add Menu Item"}
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Menu Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6">
-                <Select
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories?.map(category => (
-                      <SelectItem
-                        key={category.id}
-                        value={category.id.toString()}
+                      <Button
+                        type="submit"
+                        className="w-full bg-restaurant-yellow text-restaurant-black hover:bg-restaurant-yellow/90"
+                        disabled={addItemMutation.isPending}
                       >
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                        {addItemMutation.isPending ? "Adding..." : "Add Menu Item"}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </div>
 
-              <div className="space-y-4">
-                {filteredItems?.map(item => (
-                  <Card key={item.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {item.description}
-                          </p>
-                          <p className="text-sm font-medium mt-1">
-                            ${Number(item.price).toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              // TODO: Implement edit functionality
-                              toast({
-                                title: "Coming Soon",
-                                description: "Edit functionality will be available soon."
-                              });
-                            }}
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Menu Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6">
+                    <Select
+                      value={selectedCategory}
+                      onValueChange={setSelectedCategory}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Filter by category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {categories?.map(category => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
                           >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              // TODO: Implement delete functionality
-                              toast({
-                                title: "Coming Soon",
-                                description: "Delete functionality will be available soon."
-                              });
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-4">
+                    {filteredItems?.map(item => (
+                      <Card key={item.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-medium">{item.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {item.description}
+                              </p>
+                              <p className="text-sm font-medium mt-1">
+                                ${Number(item.price).toFixed(2)}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  toast({
+                                    title: "Coming Soon",
+                                    description: "Edit functionality will be available soon."
+                                  });
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  toast({
+                                    title: "Coming Soon",
+                                    description: "Delete functionality will be available soon."
+                                  });
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
-      </div>
+      </PageSection>
     </div>
   );
 }
