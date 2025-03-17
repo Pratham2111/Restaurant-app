@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
+import { sendVerificationEmail, generateOTP } from "./utils/emailService";
 
 export interface IStorage {
   // Categories
@@ -86,6 +87,10 @@ export interface IStorage {
   //Site Settings
   getSiteSettings(): Promise<SiteSettings>;
   updateSiteSettings(settings: InsertSiteSettings): Promise<SiteSettings>;
+
+  // Add new methods for verification
+  verifyUser(email: string, code: string): Promise<User | undefined>;
+  resendVerificationCode(email: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -100,7 +105,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: Omit<InsertUser, "confirmPassword">): Promise<User> {
-    const [user] = await db.insert(users).values(userData).returning();
+    const verificationCode = generateOTP();
+    const verificationExpiry = new Date();
+    verificationExpiry.setMinutes(verificationExpiry.getMinutes() + 10); // 10 minutes expiry
+
+    const [user] = await db.insert(users).values({
+      ...userData,
+      verificationCode,
+      verificationExpiry,
+      isVerified: false
+    }).returning();
+
+    // Send verification email
+    await sendVerificationEmail(userData.email, verificationCode);
+
     return user;
   }
 
@@ -503,6 +521,59 @@ export class DatabaseStorage implements IStorage {
       console.error('Error updating site settings:', error);
       throw new Error('Failed to update site settings');
     }
+  }
+
+  async verifyUser(email: string, code: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+
+    if (!user) return undefined;
+
+    if (user.isVerified) return user;
+
+    if (!user.verificationCode || !user.verificationExpiry) {
+      throw new Error("No verification code found");
+    }
+
+    if (new Date() > user.verificationExpiry) {
+      throw new Error("Verification code has expired");
+    }
+
+    if (user.verificationCode !== code) {
+      throw new Error("Invalid verification code");
+    }
+
+    const [updatedUser] = await db.update(users)
+      .set({
+        isVerified: true,
+        verificationCode: null,
+        verificationExpiry: null,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, user.id))
+      .returning();
+
+    return updatedUser;
+  }
+
+  async resendVerificationCode(email: string): Promise<boolean> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+
+    if (!user) return false;
+    if (user.isVerified) return false;
+
+    const verificationCode = generateOTP();
+    const verificationExpiry = new Date();
+    verificationExpiry.setMinutes(verificationExpiry.getMinutes() + 10);
+
+    await db.update(users)
+      .set({
+        verificationCode,
+        verificationExpiry,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, user.id));
+
+    return await sendVerificationEmail(email, verificationCode);
   }
 }
 
