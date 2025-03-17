@@ -27,7 +27,6 @@ import { PageSection } from "@/components/ui/page-section";
 import { useToast } from "@/hooks/use-toast";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
-// This would typically come from a cart store
 interface CartItem {
   id: number;
   name: string;
@@ -43,9 +42,7 @@ function getCartItems(): CartItem[] {
 
 function saveCartItems(items: CartItem[]) {
   localStorage.setItem("cart", JSON.stringify(items));
-  // Dispatch both storage and custom event
   window.dispatchEvent(new Event("cartUpdated"));
-  // Create a new storage event for cross-tab sync
   if (typeof window !== "undefined") {
     const event = new StorageEvent('storage', {
       key: 'cart',
@@ -70,7 +67,7 @@ export default function Cart() {
       items: [],
       total: "0",
       status: "pending",
-      createdAt: new Date()
+      createdAt: new Date().toISOString()
     }
   });
 
@@ -78,13 +75,13 @@ export default function Cart() {
     mutationFn: async (data: any) => {
       // Format the order data properly before sending
       const formattedData = {
-        ...data,
-        items: data.items.map((item: CartItem) => ({
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price.toString()
-        }))
+        customerName: data.customerName,
+        customerEmail: data.customerEmail,
+        customerPhone: data.customerPhone,
+        items: data.items,
+        total: data.total,
+        status: "pending",
+        createdAt: new Date().toISOString()
       };
 
       const res = await apiRequest("POST", "/api/orders", formattedData);
@@ -150,14 +147,18 @@ export default function Cart() {
 
     // Format order data
     const orderData = {
-      ...data,
+      customerName: data.customerName,
+      customerEmail: data.customerEmail,
+      customerPhone: data.customerPhone,
       items: cartItems.map(item => ({
         id: item.id,
         name: item.name,
-        price: item.price.toString(),
-        quantity: item.quantity
+        quantity: item.quantity,
+        price: item.price.toString()
       })),
-      total: total.toFixed(2)
+      total: total.toString(),
+      status: "pending",
+      createdAt: new Date().toISOString()
     };
 
     orderMutation.mutate(orderData);

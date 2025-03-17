@@ -250,21 +250,13 @@ export class DatabaseStorage implements IStorage {
   }
   async createOrder(order: InsertOrder): Promise<Order> {
     try {
-      // Format the items for proper storage
-      const formattedItems = order.items.map(item => ({
-        id: Number(item.id),
-        name: String(item.name),
-        quantity: Number(item.quantity),
-        price: Number(item.price)
-      }));
-
       const orderData = {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
-        items: formattedItems,
+        items: order.items,
         total: order.total,
-        status: 'pending',
+        status: order.status || 'pending',
         createdAt: new Date()
       };
 
@@ -272,7 +264,7 @@ export class DatabaseStorage implements IStorage {
 
       return {
         ...newOrder,
-        items: formattedItems
+        items: Array.isArray(newOrder.items) ? newOrder.items : []
       };
     } catch (error) {
       console.error('Error creating order:', error);
@@ -285,19 +277,9 @@ export class DatabaseStorage implements IStorage {
       const [order] = await db.select().from(orders).where(eq(orders.id, id));
       if (!order) return undefined;
 
-      // Parse items and ensure proper structure
-      const items = Array.isArray(order.items)
-        ? order.items.map(item => ({
-            id: Number(item.id),
-            name: String(item.name),
-            quantity: Number(item.quantity),
-            price: Number(item.price)
-          }))
-        : [];
-
       return {
         ...order,
-        items
+        items: Array.isArray(order.items) ? order.items : []
       };
     } catch (error) {
       console.error('Error fetching order:', error);
@@ -308,26 +290,10 @@ export class DatabaseStorage implements IStorage {
   async getOrders(): Promise<Order[]> {
     try {
       const ordersList = await db.select().from(orders);
-      return ordersList.map(order => {
-        let parsedItems = [];
-        try {
-          parsedItems = Array.isArray(order.items) 
-            ? order.items.map(item => ({
-                id: Number(item.id),
-                name: String(item.name),
-                quantity: Number(item.quantity),
-                price: Number(item.price)
-              }))
-            : [];
-        } catch (error) {
-          console.error('Error parsing order items:', error);
-        }
-
-        return {
-          ...order,
-          items: parsedItems
-        };
-      });
+      return ordersList.map(order => ({
+        ...order,
+        items: Array.isArray(order.items) ? order.items : []
+      }));
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw new Error('Failed to fetch orders');
@@ -342,19 +308,9 @@ export class DatabaseStorage implements IStorage {
         .where(eq(orders.id, id))
         .returning();
 
-      // Parse items and ensure proper structure
-      const items = Array.isArray(updatedOrder.items)
-        ? updatedOrder.items.map(item => ({
-            id: Number(item.id),
-            name: String(item.name),
-            quantity: Number(item.quantity),
-            price: Number(item.price)
-          }))
-        : [];
-
       return {
         ...updatedOrder,
-        items
+        items: Array.isArray(updatedOrder.items) ? updatedOrder.items : []
       };
     } catch (error) {
       console.error('Error updating order status:', error);
@@ -492,7 +448,6 @@ export class DatabaseStorage implements IStorage {
     try {
       const [settings] = await db.select().from(siteSettings);
       if (!settings) {
-        // Return default settings if none exist
         return {
           id: 1,
           language: "en",
@@ -517,7 +472,6 @@ export class DatabaseStorage implements IStorage {
       const [existingSettings] = await db.select().from(siteSettings);
 
       if (existingSettings) {
-        // Update existing settings
         const [updatedSettings] = await db
           .update(siteSettings)
           .set({
@@ -528,7 +482,6 @@ export class DatabaseStorage implements IStorage {
           .returning();
         return updatedSettings;
       } else {
-        // Create new settings
         const [newSettings] = await db
           .insert(siteSettings)
           .values({
