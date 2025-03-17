@@ -1,14 +1,51 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { useState } from "react";
 import { PageSection } from "@/components/ui/page-section";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search } from "lucide-react";
 import type { Event } from "@shared/schema";
 
 export default function Events() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterFeatured, setFilterFeatured] = useState<string>("all");
+  const [filterDateRange, setFilterDateRange] = useState<"all" | "upcoming" | "past">("all");
+
   const { data: events, isLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"],
+  });
+
+  // Filter events based on search and filters
+  const filteredEvents = events?.filter(event => {
+    const matchesSearch = 
+      searchQuery === "" ||
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFeatured = 
+      filterFeatured === "all" ||
+      (filterFeatured === "featured" && event.featured) ||
+      (filterFeatured === "non-featured" && !event.featured);
+
+    const eventDate = new Date(event.date);
+    const today = new Date();
+    const matchesDateRange =
+      filterDateRange === "all" ||
+      (filterDateRange === "upcoming" && eventDate >= today) ||
+      (filterDateRange === "past" && eventDate < today);
+
+    return matchesSearch && matchesFeatured && matchesDateRange;
   });
 
   if (isLoading) {
@@ -37,9 +74,58 @@ export default function Events() {
       <PageSection className="bg-background py-8">
         <div className="max-w-[1440px] mx-auto px-4">
           <h1 className="text-2xl sm:text-3xl font-bold mb-8">Our Events</h1>
-          
+
+          {/* Filters Section */}
+          <div className="mb-8 space-y-4">
+            <div className="flex items-center space-x-2 bg-card rounded-lg p-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search events..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Featured Status</Label>
+                <Select
+                  value={filterFeatured}
+                  onValueChange={setFilterFeatured}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by featured" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Events</SelectItem>
+                    <SelectItem value="featured">Featured Only</SelectItem>
+                    <SelectItem value="non-featured">Non-Featured Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Date Range</Label>
+                <Select
+                  value={filterDateRange}
+                  onValueChange={setFilterDateRange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Events</SelectItem>
+                    <SelectItem value="upcoming">Upcoming Events</SelectItem>
+                    <SelectItem value="past">Past Events</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events?.map((event, index) => (
+            {filteredEvents?.map((event, index) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -66,13 +152,18 @@ export default function Events() {
                     <p className="text-muted-foreground">
                       {event.description}
                     </p>
+                    {event.featured && (
+                      <span className="inline-block mt-2 text-xs bg-restaurant-yellow/20 text-restaurant-yellow px-2 py-1 rounded">
+                        Featured
+                      </span>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
             ))}
           </div>
 
-          {events?.length === 0 && (
+          {filteredEvents?.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No events found.</p>
             </div>
