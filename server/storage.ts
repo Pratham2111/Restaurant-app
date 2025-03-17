@@ -5,7 +5,8 @@ import {
   type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser,
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
-  users, menuItems, menuCategories, tables, events, servers, tableAssignments
+  users, menuItems, menuCategories, tables, events, servers, tableAssignments,
+  loyaltyTiers, loyaltyPoints, loyaltyRewards
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
@@ -274,16 +275,79 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
-  async getLoyaltyTiers(): Promise<LoyaltyTier[]> { throw new Error("Not implemented"); }
-  async getLoyaltyTierById(id: number): Promise<LoyaltyTier | undefined> { throw new Error("Not implemented"); }
-  async createLoyaltyTier(tier: InsertLoyaltyTier): Promise<LoyaltyTier> { throw new Error("Not implemented"); }
-  async getLoyaltyPoints(userId: number): Promise<LoyaltyPoint[]> { throw new Error("Not implemented"); }
-  async addLoyaltyPoints(point: InsertLoyaltyPoint): Promise<LoyaltyPoint> { throw new Error("Not implemented"); }
-  async getLoyaltyRewards(): Promise<LoyaltyReward[]> { throw new Error("Not implemented"); }
-  async getLoyaltyRewardById(id: number): Promise<LoyaltyReward | undefined> { throw new Error("Not implemented"); }
-  async createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward> { throw new Error("Not implemented"); }
-  async updateUserPoints(userId: number, pointsToAdd: number): Promise<User> { throw new Error("Not implemented"); }
-  async updateUserTier(userId: number, tierId: number): Promise<User> { throw new Error("Not implemented"); }
+  async getLoyaltyTiers(): Promise<LoyaltyTier[]> {
+    return db.select().from(loyaltyTiers);
+  }
+
+  async getLoyaltyTierById(id: number): Promise<LoyaltyTier | undefined> {
+    const [tier] = await db.select()
+      .from(loyaltyTiers)
+      .where(eq(loyaltyTiers.id, id));
+    return tier;
+  }
+
+  async createLoyaltyTier(tier: InsertLoyaltyTier): Promise<LoyaltyTier> {
+    const [newTier] = await db.insert(loyaltyTiers).values(tier).returning();
+    return newTier;
+  }
+
+  async getLoyaltyPoints(userId: number): Promise<LoyaltyPoint[]> {
+    return db.select()
+      .from(loyaltyPoints)
+      .where(eq(loyaltyPoints.userId, userId));
+  }
+
+  async addLoyaltyPoints(point: InsertLoyaltyPoint): Promise<LoyaltyPoint> {
+    const [newPoint] = await db.insert(loyaltyPoints).values(point).returning();
+    return newPoint;
+  }
+
+  async getLoyaltyRewards(): Promise<LoyaltyReward[]> {
+    return db.select().from(loyaltyRewards);
+  }
+
+  async getLoyaltyRewardById(id: number): Promise<LoyaltyReward | undefined> {
+    const [reward] = await db.select()
+      .from(loyaltyRewards)
+      .where(eq(loyaltyRewards.id, id));
+    return reward;
+  }
+
+  async createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward> {
+    const [newReward] = await db.insert(loyaltyRewards).values(reward).returning();
+    return newReward;
+  }
+
+  async updateUserPoints(userId: number, pointsToAdd: number): Promise<User> {
+    const user = await this.getUserById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        totalPoints: user.totalPoints + pointsToAdd,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return updatedUser;
+  }
+
+  async updateUserTier(userId: number, tierId: number): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        currentTierId: tierId,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return updatedUser;
+  }
 }
 
 export const storage = new DatabaseStorage();
