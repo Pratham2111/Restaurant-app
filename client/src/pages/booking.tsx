@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Square, Circle, RectangleHorizontal, AlertCircle } from "lucide-react";
+import { PageSection } from "@/components/ui/page-section";
 import type { Table } from "@shared/schema";
 
 export default function Booking() {
@@ -139,18 +140,17 @@ export default function Booking() {
 
   if (loadingTables) {
     return (
-      <div className="container py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Book a Table</h1>
+      <PageSection className="bg-background py-8">
+        <div className="flex items-center justify-center">
           <div className="text-center">Loading tables...</div>
         </div>
-      </div>
+      </PageSection>
     );
   }
 
   return (
-    <div className="container py-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="w-full">
+      <PageSection className="bg-background py-8">
         <h1 className="text-3xl font-bold mb-8">Book a Table</h1>
 
         <div className="grid md:grid-cols-2 gap-8">
@@ -303,7 +303,7 @@ export default function Booking() {
             </Form>
           </div>
         )}
-      </div>
+      </PageSection>
     </div>
   );
 }
