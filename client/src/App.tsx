@@ -19,7 +19,7 @@ import Dashboard from "@/pages/admin/dashboard";
 import BookingManagement from "@/pages/admin/booking-management";
 import SiteSettings from "@/pages/admin/site-settings";
 import OrderManagement from "@/pages/admin/order-management";
-import PolicyPage from "@/pages/policies";
+import PolicyPage from "@/pages/admin/policies";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Account from "@/pages/account";
@@ -43,10 +43,8 @@ function Router() {
           <Route path="/admin/users" component={UserManagement} />
           <Route path="/admin/orders" component={OrderManagement} />
           <Route path="/admin/settings" component={SiteSettings} />
+          <Route path="/admin/settings/policies/:type" component={PolicyPage} />
           <Route path="/admin/booking-management" component={BookingManagement} />
-          <Route path="/privacy" component={PolicyPage} />
-          <Route path="/cookies" component={PolicyPage} />
-          <Route path="/terms" component={PolicyPage} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/account" component={Account} />
