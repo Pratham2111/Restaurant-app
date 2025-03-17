@@ -28,12 +28,12 @@ import { Loader2 } from "lucide-react";
 
 type Booking = {
   id: number;
-  table_id: number;
+  tableId: number;
   date: string;
   name: string;
   email: string;
   phone: string;
-  guest_count: number;
+  guestCount: number;
 };
 
 type Table = {
@@ -55,9 +55,6 @@ export default function BookingManagement() {
     queryKey: ["/api/tables"],
   });
 
-  console.log("Bookings data:", bookings); // Debug log
-  console.log("Tables data:", tables); // Debug log
-
   const getTableName = (tableId: number) => {
     const table = tables?.find(t => t.id === tableId);
     return table ? table.name : `Table ${tableId}`;
@@ -76,8 +73,6 @@ export default function BookingManagement() {
 
     return matchesSearch && matchesDate;
   });
-
-  console.log("Filtered bookings:", filteredBookings); // Debug log
 
   if (loadingBookings) {
     return (
@@ -131,13 +126,13 @@ export default function BookingManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredBookings && filteredBookings.length > 0 ? (
-                      filteredBookings.map((booking) => (
+                    {bookings && bookings.length > 0 ? (
+                      bookings.map((booking) => (
                         <TableRow key={booking.id}>
                           <TableCell>
                             {format(new Date(booking.date), "PPP")}
                           </TableCell>
-                          <TableCell>{getTableName(booking.table_id)}</TableCell>
+                          <TableCell>{getTableName(booking.tableId)}</TableCell>
                           <TableCell>{booking.name}</TableCell>
                           <TableCell>
                             <div>
@@ -147,7 +142,7 @@ export default function BookingManagement() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{booking.guest_count}</TableCell>
+                          <TableCell>{booking.guestCount}</TableCell>
                         </TableRow>
                       ))
                     ) : (
