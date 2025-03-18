@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "./button";
-import { ShoppingCart, Menu, User } from "lucide-react";
+import { ShoppingCart, Menu, User, Phone } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -16,6 +16,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./tooltip";
 import { Badge } from "./badge";
 import type { User as UserType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -151,6 +157,19 @@ export const Navbar: React.FC = () => {
         </div>
 
         <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Call Us: +1 (555) 123-4567</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <Link href="/cart">
             <a className="relative">
               <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
