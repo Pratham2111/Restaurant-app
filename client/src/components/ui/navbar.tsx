@@ -91,6 +91,10 @@ export const Navbar: React.FC = () => {
     };
   }, []);
 
+  const handlePhoneClick = () => {
+    window.location.href = "tel:+15551234567";
+  };
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="max-w-[1440px] mx-auto flex h-14 sm:h-16 items-center px-4">
@@ -160,12 +164,12 @@ export const Navbar: React.FC = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={handlePhoneClick}>
                   <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Call Us: +1 (555) 123-4567</p>
+                <p>{translate("Call Us")}: +1 (555) 123-4567</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
