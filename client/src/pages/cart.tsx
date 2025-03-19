@@ -44,14 +44,6 @@ function getCartItems(): CartItem[] {
 function saveCartItems(items: CartItem[]) {
   localStorage.setItem("cart", JSON.stringify(items));
   window.dispatchEvent(new Event("cartUpdated"));
-  if (typeof window !== "undefined") {
-    const event = new StorageEvent('storage', {
-      key: 'cart',
-      newValue: JSON.stringify(items),
-      storageArea: localStorage
-    });
-    window.dispatchEvent(event);
-  }
 }
 
 export default function Cart() {
@@ -60,6 +52,11 @@ export default function Cart() {
   const { toast } = useToast();
   const { translate, formatCurrency } = useSiteSettings();
 
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
   const form = useForm({
     resolver: zodResolver(insertOrderSchema),
     defaultValues: {
@@ -67,34 +64,37 @@ export default function Cart() {
       customerEmail: "",
       customerPhone: "",
       items: cartItems,
-      total: 0,
+      total: total,
       status: "pending"
     }
   });
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Format the order data
       const orderData = {
+        customerName: data.customerName,
+        customerEmail: data.customerEmail,
+        customerPhone: data.customerPhone,
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
           price: Number(item.price),
           quantity: item.quantity
         })),
-        customerName: data.customerName,
-        customerEmail: data.customerEmail,
-        customerPhone: data.customerPhone,
-        total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        total: total,
         status: "pending"
       };
+
+      console.log('Submitting order:', orderData);
 
       const res = await apiRequest("POST", "/api/orders", orderData);
 
       if (!res.ok) {
         const error = await res.json();
+        console.error('Order submission failed:', error);
         throw new Error(error.message || translate('Failed to place order'));
       }
+
       return res.json();
     },
     onSuccess: (data) => {
@@ -109,6 +109,7 @@ export default function Cart() {
       navigate("/");
     },
     onError: (error: Error) => {
+      console.error('Order mutation error:', error);
       toast({
         title: translate("Failed to Place Order"),
         description: error.message || translate("There was an error processing your order. Please try again."),
@@ -136,11 +137,6 @@ export default function Cart() {
     saveCartItems(newItems);
   };
 
-  const total = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
   function onSubmit(data: any) {
     if (cartItems.length === 0) {
       toast({
@@ -151,7 +147,17 @@ export default function Cart() {
       return;
     }
 
-    orderMutation.mutate(data);
+    try {
+      console.log('Form data:', data);
+      orderMutation.mutate(data);
+    } catch (error) {
+      console.error('Submit error:', error);
+      toast({
+        title: translate("Error"),
+        description: translate("An error occurred while processing your order. Please try again."),
+        variant: "destructive"
+      });
+    }
   }
 
   if (cartItems.length === 0) {
