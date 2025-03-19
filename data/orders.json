@@ -40,5 +40,23 @@
     "status": "delivered",
     "createdAt": "2025-03-19T19:41:17.194Z",
     "updatedAt": "2025-03-19T19:45:48.864Z"
+  },
+  {
+    "id": 3,
+    "customerName": "zzz",
+    "customerEmail": "zzz@sd.com",
+    "customerPhone": "32453545553",
+    "items": [
+      {
+        "id": 3,
+        "name": "Beef Tenderloin",
+        "price": 34.99,
+        "quantity": 2
+      }
+    ],
+    "total": 69.98,
+    "status": "pending",
+    "createdAt": "2025-03-19T21:13:53.680Z",
+    "updatedAt": "2025-03-19T21:13:53.680Z"
   }
 ]

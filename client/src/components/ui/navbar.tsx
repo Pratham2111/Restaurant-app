@@ -155,11 +155,6 @@ export const Navbar: React.FC = () => {
               {translate("Restaurant Dashboard")}
             </a>
           </Link>
-          <Link href="/admin/users">
-            <a className="text-sm font-medium transition-colors hover:text-primary">
-              {translate("User Management")}
-            </a>
-          </Link>
         </div>
 
         <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
