@@ -57,7 +57,7 @@ export default function TableManagement() {
   const [selectedSection, setSelectedSection] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null); // Added state for selected table in assignment
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null); 
   const { toast } = useToast();
 
   const form = useForm({
@@ -74,7 +74,6 @@ export default function TableManagement() {
     }
   });
 
-  // Reset form when dialog closes
   useEffect(() => {
     if (!dialogOpen) {
       form.reset({
@@ -99,7 +98,6 @@ export default function TableManagement() {
     queryKey: ["/api/servers/active"]
   });
 
-  // Add query for table assignments
   const { data: tableAssignments, isLoading: loadingAssignments } = useQuery({
     queryKey: ["/api/table-assignments"],
     queryFn: async () => {
@@ -111,7 +109,6 @@ export default function TableManagement() {
     }
   });
 
-  // Function to get assigned server for a table
   const getAssignedServer = (tableId: number) => {
     const assignment = tableAssignments?.find(a => a.tableId === tableId && a.status === "active");
     if (assignment) {
@@ -243,12 +240,13 @@ export default function TableManagement() {
       return res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/table-assignments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
       toast({
         title: "Server Assigned",
         description: "Server has been assigned to the table successfully.",
       });
-      setSelectedTable(null); //Added to clear selection after assignment
+      setSelectedTable(null);
     },
     onError: (error: Error) => {
       toast({
@@ -261,7 +259,9 @@ export default function TableManagement() {
 
   const clearAssignmentMutation = useMutation({
     mutationFn: async (assignmentId: number) => {
-      const res = await apiRequest("DELETE", `/api/table-assignments/${assignmentId}`);
+      const res = await apiRequest("PATCH", `/api/table-assignments/${assignmentId}/complete`, {
+        endTime: new Date().toISOString()
+      });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to clear assignment");
@@ -270,6 +270,7 @@ export default function TableManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/table-assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
       toast({
         title: "Assignment Cleared",
         description: "Server assignment has been cleared successfully.",
@@ -283,7 +284,7 @@ export default function TableManagement() {
         variant: "destructive",
       });
     }
-  })
+  });
 
   function onSubmit(data: any) {
     if (editingTable) {
@@ -293,7 +294,6 @@ export default function TableManagement() {
     }
   }
 
-  // When editing a table, properly set the form values
   const handleEditTable = (table: Table) => {
     form.reset({
       name: table.name,
@@ -597,19 +597,32 @@ export default function TableManagement() {
                                 {getAssignedServer(table.id)?.name}
                               </p>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const assignment = tableAssignments?.find(a => a.tableId === table.id && a.status === "active");
+                            <Select
+                              onValueChange={(value) => {
+                                const assignment = tableAssignments?.find(
+                                  a => a.tableId === table.id && a.status === "active"
+                                );
                                 if (assignment) {
                                   clearAssignmentMutation.mutate(assignment.id);
                                 }
-                                setSelectedTable(table);
+                                createAssignmentMutation.mutate({
+                                  tableId: table.id,
+                                  serverId: parseInt(value)
+                                });
                               }}
+                              disabled={createAssignmentMutation.isPending || clearAssignmentMutation.isPending}
                             >
-                              Change Server
-                            </Button>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Change Server" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {servers?.map(server => (
+                                  <SelectItem key={server.id} value={server.id.toString()}>
+                                    {server.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                       ) : (
