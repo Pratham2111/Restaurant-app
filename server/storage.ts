@@ -28,6 +28,7 @@ export interface IStorage {
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
   getUsers(): Promise<User[]>;
   updateUserStatus(id: number, isActive: boolean): Promise<User>;
+  updateUserPassword(id: number, hashedPassword: string): Promise<User>; // Added method
 
   // Tables
   getTables(): Promise<Table[]>;
@@ -539,6 +540,16 @@ export class MemStorage implements IStorage {
     };
     await this.saveData('site-settings', [this.settings]);
     return this.settings;
+  }
+
+  async updateUserPassword(id: number, hashedPassword: string): Promise<User> {
+    const user = this.users.find(u => u.id === id);
+    if (!user) throw new Error('User not found');
+
+    user.password = hashedPassword;
+    user.updatedAt = new Date();
+    await this.saveData('users', this.users);
+    return user;
   }
 }
 
