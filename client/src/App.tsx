@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "./lib/queryClient";
 import { Navbar } from "./components/ui/navbar";
 import { SiteSettingsProvider } from "./contexts/SiteSettingsContext";
+import { AdminRoute } from "./components/auth/AdminRoute";
 
 import Home from "@/pages/home";
 import Menu from "@/pages/menu";
@@ -36,15 +37,54 @@ function Router() {
           <Route path="/booking" component={Booking} />
           <Route path="/cart" component={Cart} />
           <Route path="/events" component={Events} />
-          <Route path="/admin/tables" component={TableManagement} />
-          <Route path="/admin/menu" component={MenuManagement} />
-          <Route path="/admin/events" component={EventsManagement} />
-          <Route path="/admin/dashboard" component={Dashboard} />
-          <Route path="/admin/users" component={UserManagement} />
-          <Route path="/admin/orders" component={OrderManagement} />
-          <Route path="/admin/settings" component={SiteSettings} />
-          <Route path="/admin/settings/policies/:type" component={PolicyPage} />
-          <Route path="/admin/booking-management" component={BookingManagement} />
+
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard">
+            <AdminRoute>
+              <Dashboard />
+            </AdminRoute>
+          </Route>
+          <Route path="/admin/tables">
+            <AdminRoute>
+              <TableManagement />
+            </AdminRoute>
+          </Route>
+          <Route path="/admin/menu">
+            <AdminRoute>
+              <MenuManagement />
+            </AdminRoute>
+          </Route>
+          <Route path="/admin/events">
+            <AdminRoute>
+              <EventsManagement />
+            </AdminRoute>
+          </Route>
+          <Route path="/admin/users">
+            <AdminRoute>
+              <UserManagement />
+            </AdminRoute>
+          </Route>
+          <Route path="/admin/orders">
+            <AdminRoute>
+              <OrderManagement />
+            </AdminRoute>
+          </Route>
+          <Route path="/admin/settings">
+            <AdminRoute>
+              <SiteSettings />
+            </AdminRoute>
+          </Route>
+          <Route path="/admin/settings/policies/:type">
+            <AdminRoute>
+              <PolicyPage />
+            </AdminRoute>
+          </Route>
+          <Route path="/admin/booking-management">
+            <AdminRoute>
+              <BookingManagement />
+            </AdminRoute>
+          </Route>
+
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/account" component={Account} />
