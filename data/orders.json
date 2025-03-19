@@ -16,5 +16,29 @@
     "customerPhone": "123-456-7890",
     "createdAt": "2025-03-19T00:00:00.000Z",
     "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "customerName": "rock",
+    "customerEmail": "ttt@ttt.com",
+    "customerPhone": "5465646515",
+    "items": [
+      {
+        "id": 2,
+        "name": "Grilled Salmon",
+        "price": 28.99,
+        "quantity": 1
+      },
+      {
+        "id": 3,
+        "name": "Chocolate Lava Cake",
+        "price": 11.99,
+        "quantity": 1
+      }
+    ],
+    "total": 40.98,
+    "status": "pending",
+    "createdAt": "2025-03-19T19:41:17.194Z",
+    "updatedAt": "2025-03-19T19:41:17.194Z"
   }
 ]

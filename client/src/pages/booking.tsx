@@ -152,13 +152,13 @@ export default function Booking() {
 
   return (
     <PageSection>
-      <div className="max-w-[1440px] mx-auto p-4"> {/* Added p-4 for padding */}
-        <h1 className="text-3xl font-bold mb-8">{translate("Book a Table")}</h1>
+      <div className="max-w-[1440px] mx-auto p-4">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-8">{translate("Book a Table")}</h1>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          <div>
+          <div className="w-full max-w-md mx-auto lg:mx-0">
             <h2 className="text-lg font-semibold mb-4">{translate("1. Select a Date")}</h2>
-            <div className="bg-card rounded-lg p-4 border">
+            <div className="bg-card rounded-lg p-4 border w-fit">
               <Calendar
                 mode="single"
                 selected={selectedDate}
