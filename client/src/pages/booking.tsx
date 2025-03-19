@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertBookingSchema } from "@shared/schema";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -28,6 +28,7 @@ export default function Booking() {
   const [selectedTableId, setSelectedTableId] = useState<number>(0);
   const { toast } = useToast();
   const { translate } = useSiteSettings();
+  const queryClient = useQueryClient(); // Added queryClient import and hook
 
   const form = useForm({
     resolver: zodResolver(insertBookingSchema),
@@ -51,9 +52,16 @@ export default function Booking() {
   const bookingMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest("POST", "/api/bookings", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to book table");
+      }
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate both bookings and tables queries
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
       toast({
         title: translate("Booking Confirmed"),
         description: translate("Your table has been successfully booked!")

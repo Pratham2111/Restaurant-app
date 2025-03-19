@@ -36,11 +36,15 @@ export default function BookingManagement() {
 
   const { data: bookings, isLoading: loadingBookings, error: bookingsError } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchOnWindowFocus: true,
+    staleTime: 0 // Consider data stale immediately
   });
 
   const { data: tables } = useQuery<TableType[]>({
-    queryKey: ["/api/tables"]
+    queryKey: ["/api/tables"],
+    refetchInterval: 5000,
+    staleTime: 0
   });
 
   const getTableName = (tableId: number) => {
