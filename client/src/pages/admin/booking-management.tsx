@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { PageSection } from "@/components/ui/page-section";
 import {
@@ -32,9 +32,11 @@ export default function BookingManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState<string>("all");
   const { translate } = useSiteSettings();
+  const queryClient = useQueryClient();
 
-  const { data: bookings, isLoading: loadingBookings } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"]
+  const { data: bookings, isLoading: loadingBookings, error: bookingsError } = useQuery<Booking[]>({
+    queryKey: ["/api/bookings"],
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const { data: tables } = useQuery<TableType[]>({
@@ -88,6 +90,14 @@ export default function BookingManagement() {
     );
   }
 
+  if (bookingsError) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px] text-destructive">
+        {translate("Error loading bookings. Please try again.")}
+      </div>
+    );
+  }
+
   return (
     <PageSection>
       <div className="max-w-[1440px] mx-auto">
@@ -119,7 +129,7 @@ export default function BookingManagement() {
               </Select>
             </div>
 
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -132,30 +142,30 @@ export default function BookingManagement() {
                 </TableHeader>
                 <TableBody>
                   {filteredBookings && filteredBookings.length > 0 ? (
-                    filteredBookings.map((booking) => (
-                      <TableRow key={booking.id}>
-                        <TableCell>
-                          {format(new Date(booking.date), "PPP p")}
-                        </TableCell>
-                        <TableCell>{getTableName(booking.tableId)}</TableCell>
-                        <TableCell>{booking.name}</TableCell>
-                        <TableCell>
-                          <div>
-                            <div>{booking.email}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {booking.phone}
+                    filteredBookings
+                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                      .map((booking) => (
+                        <TableRow key={booking.id}>
+                          <TableCell>
+                            {format(new Date(booking.date), "PPP p")}
+                          </TableCell>
+                          <TableCell>{getTableName(booking.tableId)}</TableCell>
+                          <TableCell>{booking.name}</TableCell>
+                          <TableCell>
+                            <div>
+                              <div>{booking.email}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {booking.phone}
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{booking.guestCount}</TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                          <TableCell>{booking.guestCount}</TableCell>
+                        </TableRow>
+                      ))
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-8">
-                        {loadingBookings 
-                          ? translate("Loading bookings...") 
-                          : translate("No bookings found")}
+                        {translate("No bookings found")}
                       </TableCell>
                     </TableRow>
                   )}
