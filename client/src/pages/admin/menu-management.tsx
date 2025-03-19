@@ -64,11 +64,15 @@ import type { Category, MenuItem } from "@shared/schema";
 import { Switch } from "@/components/ui/switch";
 
 export default function MenuManagement() {
+  // State hooks
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+
+  // Utility hooks
   const { toast } = useToast();
 
+  // Form hook
   const form = useForm({
     resolver: zodResolver(insertMenuItemSchema),
     defaultValues: {
@@ -88,28 +92,7 @@ export default function MenuManagement() {
     }
   });
 
-  // Reset form when dialog closes
-  useEffect(() => {
-    if (!dialogOpen) {
-      form.reset({
-        name: "",
-        description: "",
-        price: "",
-        categoryId: 0,
-        imageUrl: "",
-        isSpecial: false,
-        nutritionInfo: [],
-        ingredients: [],
-        chefsStory: "",
-        preparationTime: "",
-        spicyLevel: "",
-        allergens: [],
-        servingSize: ""
-      });
-      setEditingItem(null);
-    }
-  }, [dialogOpen, form]);
-
+  // Query hooks
   const { data: categories, isLoading: loadingCategories } = useQuery<Category[]>({
     queryKey: ["/api/categories"]
   });
@@ -118,6 +101,7 @@ export default function MenuManagement() {
     queryKey: ["/api/menu-items"]
   });
 
+  // Mutation hooks
   const addItemMutation = useMutation({
     mutationFn: async (data: any) => {
       const menuItemData = {
@@ -213,6 +197,64 @@ export default function MenuManagement() {
     }
   });
 
+  // Effects
+  useEffect(() => {
+    if (!dialogOpen) {
+      form.reset({
+        name: "",
+        description: "",
+        price: "",
+        categoryId: 0,
+        imageUrl: "",
+        isSpecial: false,
+        nutritionInfo: [],
+        ingredients: [],
+        chefsStory: "",
+        preparationTime: "",
+        spicyLevel: "",
+        allergens: [],
+        servingSize: ""
+      });
+      setEditingItem(null);
+    }
+  }, [dialogOpen, form]);
+
+  // Filtered items computation
+  const filteredItems = menuItems?.filter(
+    item => selectedCategory === "all" || item.categoryId === parseInt(selectedCategory)
+  );
+
+  // Pagination setup
+  const pagination = usePagination({
+    totalItems: filteredItems?.length || 0,
+    itemsPerPage: 8
+  });
+
+  const paginatedItems = filteredItems?.slice(
+    pagination.startIndex,
+    pagination.endIndex
+  );
+
+  // Event handlers
+  const handleArrayInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: any, index: number) => {
+    const newValue = e.target.value;
+    const currentArray = field.value || [];
+    const newArray = [...currentArray];
+    newArray[index] = newValue;
+    field.onChange(newArray);
+  };
+
+  const addArrayItem = (field: any) => {
+    const currentArray = field.value || [];
+    field.onChange([...currentArray, ""]);
+  };
+
+  const removeArrayItem = (field: any, index: number) => {
+    const currentArray = field.value || [];
+    const newArray = currentArray.filter((_: any, i: number) => i !== index);
+    field.onChange(newArray);
+  };
+
   function onSubmit(data: any) {
     if (editingItem) {
       updateItemMutation.mutate({ id: editingItem.id, data });
@@ -248,39 +290,6 @@ export default function MenuManagement() {
       </div>
     );
   }
-
-  const filteredItems = menuItems?.filter(
-    item => selectedCategory === "all" || item.categoryId === parseInt(selectedCategory)
-  );
-
-  const pagination = usePagination({
-    totalItems: filteredItems?.length || 0,
-    itemsPerPage: 8
-  });
-
-  const paginatedItems = filteredItems?.slice(
-    pagination.startIndex,
-    pagination.endIndex
-  );
-
-  const handleArrayInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: any, index: number) => {
-    const newValue = e.target.value;
-    const currentArray = field.value || [];
-    const newArray = [...currentArray];
-    newArray[index] = newValue;
-    field.onChange(newArray);
-  };
-
-  const addArrayItem = (field: any) => {
-    const currentArray = field.value || [];
-    field.onChange([...currentArray, ""]);
-  };
-
-  const removeArrayItem = (field: any, index: number) => {
-    const currentArray = field.value || [];
-    const newArray = currentArray.filter((_: any, i: number) => i !== index);
-    field.onChange(newArray);
-  };
 
   return (
     <div className="w-full">

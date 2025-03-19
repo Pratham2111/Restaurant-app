@@ -10,7 +10,6 @@ import { usePagination } from "@/hooks/use-pagination";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -68,7 +67,7 @@ const createUserSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
-  role: z.enum(["server", "customer"]), // Removed admin from options
+  role: z.enum(["server", "customer"]),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -77,13 +76,17 @@ const createUserSchema = z.object({
 type CreateUserInput = z.infer<typeof createUserSchema>;
 
 export default function UserManagement() {
+  // All hooks at the top level
+  const { toast } = useToast();
+  const { translate } = useSiteSettings();
+
+  // State hooks
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const { toast } = useToast();
-  const { translate } = useSiteSettings();
 
+  // Form hook
   const form = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
@@ -95,19 +98,36 @@ export default function UserManagement() {
     },
   });
 
+  // Query hooks
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
   });
 
+  // Filter users
+  const filteredUsers = users?.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Pagination hook
+  const pagination = usePagination({
+    totalItems: filteredUsers?.length || 0,
+    itemsPerPage: 8
+  });
+
+  const paginatedUsers = filteredUsers?.slice(
+    pagination.startIndex,
+    pagination.endIndex
+  );
+
+  // Mutation hooks
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserInput) => {
       const { confirmPassword, ...userData } = data;
-
       const res = await apiRequest("POST", "/api/users", {
         ...userData,
         isActive: true
       });
-
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || translate('Failed to create user'));
@@ -124,7 +144,6 @@ export default function UserManagement() {
       form.reset();
     },
     onError: (error: Error) => {
-      console.error('Create user error:', error);
       toast({
         title: translate("Error"),
         description: error.message || translate("Failed to create user. Please try again."),
@@ -135,26 +154,14 @@ export default function UserManagement() {
 
   const updateUserStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: number; isActive: boolean }) => {
-      try {
-        const res = await apiRequest("PATCH", `/api/users/${userId}/status`, {
-          isActive: isActive
-        });
-
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Server returned an invalid response format");
-        }
-
-        if (!res.ok) {
-          const error = await res.json();
-          throw new Error(error.message || translate('Failed to update user status'));
-        }
-
-        return res.json();
-      } catch (error) {
-        console.error('Status update error:', error);
-        throw error;
+      const res = await apiRequest("PATCH", `/api/users/${userId}/status`, {
+        isActive: isActive
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || translate('Failed to update user status'));
       }
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
@@ -164,7 +171,6 @@ export default function UserManagement() {
       });
     },
     onError: (error: Error) => {
-      console.error('Update user status error:', error);
       toast({
         title: translate("Error"),
         description: error.message || translate("Failed to update user status. Please try again."),
@@ -173,13 +179,14 @@ export default function UserManagement() {
     }
   });
 
-  async function onSubmit(data: CreateUserInput) {
+  // Event handlers
+  const onSubmit = async (data: CreateUserInput) => {
     try {
       await createUserMutation.mutateAsync(data);
     } catch (error) {
       console.error('Submit error:', error);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -188,21 +195,6 @@ export default function UserManagement() {
       </div>
     );
   }
-
-  const filteredUsers = users?.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const pagination = usePagination({
-    totalItems: filteredUsers?.length || 0,
-    itemsPerPage: 8
-  });
-
-  const paginatedUsers = filteredUsers?.slice(
-    pagination.startIndex,
-    pagination.endIndex
-  );
 
   return (
     <PageSection>
