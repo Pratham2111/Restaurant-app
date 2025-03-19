@@ -68,7 +68,7 @@ export default function TableManagement() {
       shape: "round",
       status: "available",
       isActive: true,
-      minimumSpend: "0",
+      minimumSpend: 0,
       notes: ""
     }
   });
@@ -76,7 +76,16 @@ export default function TableManagement() {
   // Reset form when dialog closes
   useEffect(() => {
     if (!dialogOpen) {
-      form.reset();
+      form.reset({
+        name: "",
+        section: "main",
+        seats: 2,
+        shape: "round",
+        status: "available",
+        isActive: true,
+        minimumSpend: 0,
+        notes: ""
+      });
       setEditingTable(null);
     }
   }, [dialogOpen, form]);
@@ -91,7 +100,10 @@ export default function TableManagement() {
 
   const createTableMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/tables", data);
+      const res = await apiRequest("POST", "/api/tables", {
+        ...data,
+        minimumSpend: Number(data.minimumSpend)
+      });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || 'Failed to create table');
@@ -117,7 +129,10 @@ export default function TableManagement() {
 
   const updateTableMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const res = await apiRequest("PATCH", `/api/tables/${id}`, data);
+      const res = await apiRequest("PATCH", `/api/tables/${id}`, {
+        ...data,
+        minimumSpend: Number(data.minimumSpend)
+      });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || 'Failed to update table');
@@ -228,6 +243,22 @@ export default function TableManagement() {
       createTableMutation.mutate(data);
     }
   }
+
+  // When editing a table, properly set the form values
+  const handleEditTable = (table: Table) => {
+    form.reset({
+      name: table.name,
+      section: table.section,
+      seats: table.seats,
+      shape: table.shape,
+      status: table.status,
+      isActive: table.isActive,
+      minimumSpend: table.minimumSpend || 0,
+      notes: table.notes || ""
+    });
+    setEditingTable(table);
+    setDialogOpen(true);
+  };
 
   if (loadingTables || loadingServers) {
     return (
@@ -355,7 +386,6 @@ export default function TableManagement() {
                       </FormItem>
                     )}
                   />
-
                   <Button
                     type="submit"
                     className="w-full"
@@ -417,11 +447,7 @@ export default function TableManagement() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        setEditingTable(table);
-                        form.reset(table);
-                        setDialogOpen(true);
-                      }}
+                      onClick={() => handleEditTable(table)}
                     >
                       Edit
                     </Button>

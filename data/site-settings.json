@@ -1,6 +1,5 @@
 [
   {
-    "id": 1,
     "language": "en",
     "country": "US",
     "currency": "USD",
@@ -8,6 +7,7 @@
     "privacyPolicy": "",
     "cookiePolicy": "",
     "termsConditions": "",
-    "updatedAt": "2025-03-19T18:18:33.911Z"
+    "id": 1,
+    "updatedAt": "2025-03-19T19:27:38.284Z"
   }
 ]
