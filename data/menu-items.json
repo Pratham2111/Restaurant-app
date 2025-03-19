@@ -118,7 +118,7 @@
     "description": "Fresh yellowfin tuna diced and seasoned with sesame oil, soy sauce, and wasabi aioli",
     "price": 18.99,
     "imageUrl": "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351",
-    "isSpecial": false,
+    "isSpecial": true,
     "nutritionInfo": [
       "Calories: 280",
       "Protein: 26g",
@@ -138,7 +138,9 @@
     "servingSize": "6 oz",
     "preparationTime": "15 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
-    "updatedAt": "2025-03-19T00:00:00.000Z"
+    "updatedAt": "2025-03-19T19:06:48.778Z",
+    "chefsStory": "",
+    "spicyLevel": ""
   },
   {
     "id": 7,
