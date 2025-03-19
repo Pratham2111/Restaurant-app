@@ -12,6 +12,7 @@ import {
 } from "@shared/schema";
 import { ZodError } from "zod";
 import bcrypt from "bcryptjs";
+import * as z from 'zod';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add authentication routes at the top
@@ -125,10 +126,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add the POST /api/users endpoint to create new users
   app.post("/api/users", async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
+      // Remove confirmPassword from validation for API
+      const userData = z.object({
+        name: z.string().min(1, "Name is required"),
+        email: z.string().email("Invalid email address"),
+        password: z.string().min(6, "Password must be at least 6 characters"),
+        role: z.enum(["admin", "server", "customer"]),
+        isActive: z.boolean().optional().default(true)
+      }).parse(req.body);
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
@@ -139,13 +146,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-      // Create user with hashed password and role
+      // Create user with hashed password
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
-        isActive: true,
-        totalPoints: 0,
-        currentTierId: null
       });
 
       // Don't send password back
