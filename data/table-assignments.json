@@ -64,18 +64,20 @@
     "tableId": 2,
     "serverId": 4,
     "startTime": "2025-03-19T20:43:59.428Z",
-    "status": "active",
+    "status": "completed",
     "createdAt": "2025-03-19T20:43:52.865Z",
-    "updatedAt": "2025-03-19T20:43:52.865Z"
+    "updatedAt": "2025-03-19T20:54:16.592Z",
+    "endTime": "2025-03-19T20:54:16.592Z"
   },
   {
     "id": 8,
     "tableId": 2,
     "serverId": 3,
     "startTime": "2025-03-19T20:44:03.270Z",
-    "status": "active",
+    "status": "completed",
     "createdAt": "2025-03-19T20:43:56.697Z",
-    "updatedAt": "2025-03-19T20:43:56.697Z"
+    "updatedAt": "2025-03-19T20:54:17.397Z",
+    "endTime": "2025-03-19T20:54:17.397Z"
   },
   {
     "id": 9,
@@ -92,9 +94,10 @@
     "tableId": 1,
     "serverId": 4,
     "startTime": "2025-03-19T20:44:12.382Z",
-    "status": "active",
+    "status": "completed",
     "createdAt": "2025-03-19T20:44:05.809Z",
-    "updatedAt": "2025-03-19T20:44:05.809Z"
+    "updatedAt": "2025-03-19T20:54:12.651Z",
+    "endTime": "2025-03-19T20:54:12.650Z"
   },
   {
     "id": 11,
@@ -131,17 +134,19 @@
     "tableId": 3,
     "serverId": 4,
     "startTime": "2025-03-19T20:44:41.786Z",
-    "status": "active",
+    "status": "completed",
     "createdAt": "2025-03-19T20:44:35.224Z",
-    "updatedAt": "2025-03-19T20:44:35.224Z"
+    "updatedAt": "2025-03-19T20:54:22.015Z",
+    "endTime": "2025-03-19T20:54:22.015Z"
   },
   {
     "id": 15,
     "tableId": 1,
     "serverId": 3,
     "startTime": "2025-03-19T20:44:44.928Z",
-    "status": "active",
+    "status": "completed",
     "createdAt": "2025-03-19T20:44:38.354Z",
-    "updatedAt": "2025-03-19T20:44:38.354Z"
+    "updatedAt": "2025-03-19T20:54:13.533Z",
+    "endTime": "2025-03-19T20:54:13.532Z"
   }
 ]
