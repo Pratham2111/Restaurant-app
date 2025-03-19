@@ -615,6 +615,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add PATCH endpoint for updating user status
+  app.patch("/api/users/:id/status", async (req, res) => {
+    try {
+      const userId = Number(req.params.id);
+      const { isActive } = req.body;
+
+      if (typeof isActive !== 'boolean') {
+        return res.status(400).json({ message: "isActive must be a boolean value" });
+      }
+
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const updatedUser = await storage.updateUserStatus(userId, isActive);
+
+      // Don't send password back
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Failed to update user status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
+
   // Add site settings routes
   app.get("/api/settings", async (_req, res) => {
     try {
@@ -640,6 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
+
 
 
   const httpServer = createServer(app);
