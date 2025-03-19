@@ -57,7 +57,11 @@ const createUserSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
   role: z.enum(["admin", "server", "customer"]),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 type CreateUserInput = z.infer<typeof createUserSchema>;
@@ -76,6 +80,7 @@ export default function UserManagement() {
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
       role: "customer",
     },
   });
@@ -86,17 +91,17 @@ export default function UserManagement() {
 
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserInput) => {
+      // Remove confirmPassword before sending to API
+      const { confirmPassword, ...userData } = data;
+
       const res = await apiRequest("POST", "/api/users", {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        role: data.role,
+        ...userData,
         isActive: true
       });
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Failed to create user');
+        throw new Error(error.message || translate('Failed to create user'));
       }
       return res.json();
     },
@@ -241,6 +246,19 @@ export default function UserManagement() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{translate("Password")}</FormLabel>
+                          <FormControl>
+                            <Input type="password" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{translate("Confirm Password")}</FormLabel>
                           <FormControl>
                             <Input type="password" {...field} />
                           </FormControl>
