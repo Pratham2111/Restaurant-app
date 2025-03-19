@@ -47,5 +47,17 @@
     "currentTierId": null,
     "createdAt": "2025-03-19T20:31:28.775Z",
     "updatedAt": "2025-03-19T20:31:28.775Z"
+  },
+  {
+    "id": 5,
+    "name": "Devin",
+    "email": "webdelaware@gmail.com",
+    "password": "$2b$10$iPIHm1tTNgjOKLaf2MQzC...Yu1u7shsRHIaNsI7bLfwgLmwf8D0m",
+    "role": "customer",
+    "isActive": true,
+    "totalPoints": 0,
+    "currentTierId": null,
+    "createdAt": "2025-03-19T20:51:39.997Z",
+    "updatedAt": "2025-03-19T20:51:39.997Z"
   }
 ]
