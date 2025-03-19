@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "title": "Wine Tasting Evening",
+    "description": "Join us for an exclusive wine tasting event featuring premium selections from Napa Valley. Includes cheese pairing and expert sommelier guidance.",
+    "imageUrl": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3",
+    "date": "2025-04-15T19:00:00.000Z",
+    "featured": true,
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "Chef's Table Experience",
+    "description": "An intimate 6-course tasting menu prepared right before your eyes by our executive chef. Limited to 8 guests.",
+    "imageUrl": "https://images.unsplash.com/photo-1577219491135-ce391730fb2c",
+    "date": "2025-04-20T18:30:00.000Z",
+    "featured": true,
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "Jazz Night",
+    "description": "Enjoy live jazz music while dining. Special cocktail menu available.",
+    "imageUrl": "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f",
+    "date": "2025-04-25T20:00:00.000Z",
+    "featured": false,
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "title": "Cooking Masterclass",
+    "description": "Learn to prepare signature dishes from our kitchen. Includes lunch and recipe booklet.",
+    "imageUrl": "https://images.unsplash.com/photo-1556910103-1c02745aae4d",
+    "date": "2025-05-10T11:00:00.000Z",
+    "featured": true,
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "title": "Summer BBQ Party",
+    "description": "Annual outdoor BBQ featuring grilled specialties, craft beers, and live music.",
+    "imageUrl": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
+    "date": "2025-06-15T16:00:00.000Z",
+    "featured": true,
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  }
+]

@@ -47,5 +47,66 @@
     "notes": "Bar high-top seating",
     "createdAt": "2025-03-19T00:00:00.000Z",
     "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "name": "Table 3",
+    "section": "main",
+    "seats": 6,
+    "shape": "rectangular",
+    "status": "available",
+    "isActive": true,
+    "notes": "Central dining area, perfect for families",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 6,
+    "name": "Terrace 1",
+    "section": "outdoor",
+    "seats": 4,
+    "shape": "round",
+    "status": "available",
+    "isActive": true,
+    "notes": "Covered terrace with heaters",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 7,
+    "name": "VIP 2",
+    "section": "private",
+    "seats": 12,
+    "shape": "rectangular",
+    "status": "available",
+    "isActive": true,
+    "minimumSpend": 500,
+    "notes": "Large private room with garden view",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 8,
+    "name": "Bar 2",
+    "section": "bar",
+    "seats": 4,
+    "shape": "square",
+    "status": "available",
+    "isActive": true,
+    "notes": "Premium bar seating with window view",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 9,
+    "name": "Table 4",
+    "section": "main",
+    "seats": 8,
+    "shape": "rectangular",
+    "status": "available",
+    "isActive": true,
+    "notes": "Near fireplace, cozy atmosphere",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
   }
 ]
