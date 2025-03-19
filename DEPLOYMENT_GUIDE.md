@@ -1,5 +1,10 @@
 # Deployment Guide for Restaurant Management Platform
 
+## Important Note About Storage
+This application uses in-memory storage (MemStorage) for data persistence. While you might see database-related configuration files in the codebase (like `drizzle.config.ts` and `server/db.ts`), these are not currently used and can be ignored during deployment. The data is stored in memory and will be reset when the application restarts.
+
+You can safely ignore any database-related environment variables (like DATABASE_URL) as they are not used in the current implementation.
+
 ## 1. Initial VPS Setup
 
 1. Log in to your Hostinger VPS via SSH:
@@ -19,7 +24,7 @@ adduser appuser
 usermod -aG sudo appuser
 ```
 
-## 2. Installing Requirements
+## 2. Installing Node.js
 
 1. Install Node.js 20.x:
 ```bash
@@ -27,19 +32,10 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 apt install -y nodejs
 ```
 
-2. Install PostgreSQL 16:
-```bash
-sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-sudo apt update
-sudo apt install -y postgresql-16
-```
-
-3. Verify installations:
+2. Verify installations:
 ```bash
 node --version  # Should show v20.x.x
 npm --version   # Should show 9.x.x or higher
-psql --version  # Should show PostgreSQL 16.x
 ```
 
 ## 3. Project Setup
@@ -56,21 +52,6 @@ cd restaurant-app
 npm install
 ```
 
-## 4. Database Configuration
-
-1. Create a PostgreSQL database and user:
-```bash
-sudo -u postgres psql
-```
-
-2. In the PostgreSQL prompt:
-```sql
-CREATE DATABASE restaurant_db;
-CREATE USER restaurant_user WITH PASSWORD 'your_secure_password';
-GRANT ALL PRIVILEGES ON DATABASE restaurant_db TO restaurant_user;
-\q
-```
-
 3. Set up environment variables:
 ```bash
 nano /etc/environment
@@ -78,12 +59,12 @@ nano /etc/environment
 
 Add these lines:
 ```
-DATABASE_URL="postgresql://restaurant_user:your_secure_password@localhost:5432/restaurant_db"
 PORT=5000
 NODE_ENV=production
+SESSION_SECRET=your_secure_secret_key  # Used for session encryption
 ```
 
-## 5. Running the Application
+## 4. Running the Application
 
 1. Build the application:
 ```bash
@@ -109,7 +90,8 @@ module.exports = {
     args: "start",
     env: {
       NODE_ENV: "production",
-      PORT: 5000
+      PORT: 5000,
+      SESSION_SECRET: "your_secure_secret_key"
     },
     instances: "max",
     exec_mode: "cluster",
@@ -127,7 +109,7 @@ pm2 save
 pm2 startup
 ```
 
-## 6. Nginx Configuration
+## 5. Nginx Configuration
 
 1. Install Nginx:
 ```bash
@@ -162,6 +144,11 @@ server {
         add_header X-Content-Type-Options "nosniff" always;
         add_header Referrer-Policy "no-referrer-when-downgrade" always;
         add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+
+        # Hostinger-specific optimizations
+        client_max_body_size 100M;
+        keepalive_timeout 65;
+        keepalive_requests 100;
     }
 
     # Enable gzip compression
@@ -180,7 +167,7 @@ nginx -t
 systemctl restart nginx
 ```
 
-## 7. SSL Configuration
+## 6. SSL Configuration
 
 1. Install Certbot:
 ```bash
@@ -192,7 +179,7 @@ apt install -y certbot python3-certbot-nginx
 certbot --nginx -d your-domain.com
 ```
 
-## 8. Security Settings
+## 7. Security Settings
 
 1. Configure firewall:
 ```bash
@@ -234,17 +221,12 @@ pm2 restart restaurant-app
 
 ## Common Issues and Troubleshooting
 
-1. Database connection issues:
-   - Check PostgreSQL status: `systemctl status postgresql`
-   - Verify DATABASE_URL environment variable
-   - Check PostgreSQL logs: `tail -f /var/log/postgresql/postgresql-16-main.log`
-
-2. Application not starting:
+1. Application not starting:
    - Check PM2 logs: `pm2 logs`
    - Verify NODE_ENV and PORT environment variables
    - Check application logs in /var/log/pm2/
 
-3. SSL/HTTPS issues:
+2. SSL/HTTPS issues:
    - Verify Nginx configuration: `nginx -t`
    - Check SSL certificate renewal: `certbot renew --dry-run`
    - Review Nginx error logs
@@ -255,23 +237,55 @@ pm2 restart restaurant-app
    - Keep system and packages updated regularly
    - Monitor server resources and logs
    - Implement rate limiting for API endpoints
-   - Regular database backups
    - Monitor SSL certificate expiration
 
 2. Performance optimization:
    - Enable Nginx caching for static assets
    - Configure PM2 clustering based on CPU cores
-   - Optimize PostgreSQL settings based on server resources
-   - Implement proper indexing for database queries
+   - Implement proper caching strategies
 
 3. Backup strategy:
-   - Regular database backups
+   - Regular file system backups of the data directory
    - Configuration files backup
    - Automated backup scripts
    - Off-site backup storage
+
+## Additional Considerations for In-Memory Storage
+
+1. Data Persistence:
+   - Be aware that data will be reset when the application restarts
+   - Implement regular backups of the data directory to preserve information
+   - Consider scheduling automatic backups of the `/var/www/restaurant-app/data` directory
+
+2. Memory Management:
+   - Monitor memory usage carefully as all data is stored in RAM
+   - Configure PM2 with appropriate memory limits
+   - Set up monitoring alerts for memory usage
+
+3. Backup Strategy:
+   - Regular backups of the data directory are crucial
+   - Implement automated backup scripts
+   - Store backups in a secure, off-site location
+   - Test backup restoration procedures regularly
+
+## Hostinger VPS Specific Notes
+
+1. Resource Monitoring:
+   - Use Hostinger's VPS control panel to monitor resource usage
+   - Set up email alerts for high resource usage
+   - Monitor memory usage closely due to in-memory storage
+
+2. Backup Management:
+   - Use Hostinger's backup features for system-level backups
+   - Set up automated backups through the control panel
+   - Keep local backups of the data directory
+
+3. Domain Management:
+   - Configure DNS through Hostinger's DNS manager
+   - Point your domain to the VPS IP address
+   - Set appropriate TTL values for DNS records
 
 Replace the following placeholders:
 - `your_server_ip` with your VPS IP address
 - `your_repository_url` with your Git repository URL
 - `your-domain.com` with your actual domain name
-- `your_secure_password` with a strong password
