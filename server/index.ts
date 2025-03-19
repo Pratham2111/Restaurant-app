@@ -48,18 +48,16 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
+    let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (capturedJsonResponse) {
+      logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
     }
+
+    if (logLine.length > 80) {
+      logLine = logLine.slice(0, 79) + "…";
+    }
+
+    log(logLine);
   });
 
   next();
@@ -71,29 +69,62 @@ app.get('/health', (_req, res) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  try {
+    log("Starting server initialization...");
 
-  // Global error handler
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    console.error('Error:', err);
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const server = await registerRoutes(app);
+    log("Routes registered successfully");
 
-    res.status(status).json({ message });
-  });
+    // Global error handler
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      console.error('Error:', err);
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      log(`Error encountered: ${status} - ${message}`);
+      res.status(status).json({ message });
+    });
 
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+    if (app.get("env") === "development") {
+      log("Setting up Vite for development...");
+      await setupVite(app, server);
+      log("Vite setup completed");
+    } else {
+      log("Setting up static file serving for production...");
+      serveStatic(app);
+    }
+
+    const port = 5000;
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`Server running on port ${port}`);
+    });
+
+    // Handle server errors
+    server.on('error', (error: any) => {
+      if (error.syscall !== 'listen') {
+        throw error;
+      }
+
+      switch (error.code) {
+        case 'EACCES':
+          log(`Port ${port} requires elevated privileges`);
+          process.exit(1);
+          break;
+        case 'EADDRINUSE':
+          log(`Port ${port} is already in use`);
+          process.exit(1);
+          break;
+        default:
+          throw error;
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    log(`Server initialization failed: ${error}`);
+    process.exit(1);
   }
-
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`Server running on port ${port}`);
-  });
 })();
