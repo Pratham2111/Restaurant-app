@@ -59,6 +59,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
+      // Check if user is active
+      if (!user.isActive) {
+        console.log("Inactive user attempted to login:", email);
+        return res.status(401).json({ message: "Account is deactivated. Please contact support." });
+      }
+
       console.log("User found:", { id: user.id, email: user.email, role: user.role });
       console.log("Stored password hash:", user.password);
       console.log("Attempting to compare with provided password");
