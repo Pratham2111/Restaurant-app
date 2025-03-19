@@ -7,6 +7,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMenuItemSchema } from "@shared/schema";
 import { PageSection } from "@/components/ui/page-section";
+import { usePagination } from "@/hooks/use-pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   Card,
   CardContent,
@@ -241,6 +251,16 @@ export default function MenuManagement() {
 
   const filteredItems = menuItems?.filter(
     item => selectedCategory === "all" || item.categoryId === parseInt(selectedCategory)
+  );
+
+  const pagination = usePagination({
+    totalItems: filteredItems?.length || 0,
+    itemsPerPage: 8
+  });
+
+  const paginatedItems = filteredItems?.slice(
+    pagination.startIndex,
+    pagination.endIndex
   );
 
   const handleArrayInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: any, index: number) => {
@@ -625,7 +645,7 @@ export default function MenuManagement() {
                   </div>
 
                   <div className="space-y-4">
-                    {filteredItems?.map(item => (
+                    {paginatedItems?.map(item => (
                       <Card key={item.id}>
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
@@ -691,6 +711,42 @@ export default function MenuManagement() {
                       </Card>
                     ))}
                   </div>
+
+                  {/* Pagination */}
+                  {filteredItems && filteredItems.length > 0 && (
+                    <div className="mt-6">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={pagination.prevPage}
+                              className={pagination.currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                          </PaginationItem>
+                          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => pagination.goToPage(page)}
+                                isActive={pagination.currentPage === page}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={pagination.nextPage}
+                              className={
+                                pagination.currentPage === pagination.totalPages
+                                  ? "pointer-events-none opacity-50"
+                                  : ""
+                              }
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

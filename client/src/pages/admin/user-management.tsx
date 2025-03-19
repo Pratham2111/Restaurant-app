@@ -6,6 +6,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { usePagination } from "@/hooks/use-pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   Card,
   CardContent,
@@ -91,7 +101,6 @@ export default function UserManagement() {
 
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserInput) => {
-      // Remove confirmPassword before sending to API
       const { confirmPassword, ...userData } = data;
 
       const res = await apiRequest("POST", "/api/users", {
@@ -131,7 +140,6 @@ export default function UserManagement() {
           isActive: isActive
         });
 
-        // Check if response is JSON
         const contentType = res.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           throw new Error("Server returned an invalid response format");
@@ -184,6 +192,16 @@ export default function UserManagement() {
   const filteredUsers = users?.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const pagination = usePagination({
+    totalItems: filteredUsers?.length || 0,
+    itemsPerPage: 8
+  });
+
+  const paginatedUsers = filteredUsers?.slice(
+    pagination.startIndex,
+    pagination.endIndex
   );
 
   return (
@@ -305,7 +323,7 @@ export default function UserManagement() {
         </div>
 
         <div className="grid gap-4">
-          {filteredUsers?.map(user => (
+          {paginatedUsers?.map(user => (
             <Card key={user.id}>
               <CardContent className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -386,6 +404,42 @@ export default function UserManagement() {
             </Card>
           ))}
         </div>
+
+        {/* Pagination */}
+        {filteredUsers && filteredUsers.length > 0 && (
+          <div className="mt-6">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={pagination.prevPage}
+                    className={pagination.currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => pagination.goToPage(page)}
+                      isActive={pagination.currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={pagination.nextPage}
+                    className={
+                      pagination.currentPage === pagination.totalPages
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
         {/* User Details Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

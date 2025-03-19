@@ -24,6 +24,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Search } from "lucide-react";
+import { usePagination } from "@/hooks/use-pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type Order = {
   id: number;
@@ -99,6 +109,16 @@ export default function OrderManagement() {
            order.id.toString().includes(searchLower);
   });
 
+  const pagination = usePagination({
+    totalItems: filteredOrders?.length || 0,
+    itemsPerPage: 10
+  });
+
+  const paginatedOrders = filteredOrders?.slice(
+    pagination.startIndex,
+    pagination.endIndex
+  );
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -141,7 +161,7 @@ export default function OrderManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders?.map((order) => (
+                {paginatedOrders?.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>#{order.id}</TableCell>
                     <TableCell>{format(new Date(order.createdAt), "PPp")}</TableCell>
@@ -213,7 +233,7 @@ export default function OrderManagement() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredOrders?.length === 0 && (
+                {paginatedOrders?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
                       {translate("No orders found")}
@@ -222,6 +242,42 @@ export default function OrderManagement() {
                 )}
               </TableBody>
             </Table>
+
+            {/* Pagination */}
+            {filteredOrders && filteredOrders.length > 0 && (
+              <div className="mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={pagination.prevPage}
+                        className={pagination.currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => pagination.goToPage(page)}
+                          isActive={pagination.currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={pagination.nextPage}
+                        className={
+                          pagination.currentPage === pagination.totalPages
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

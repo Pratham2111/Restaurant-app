@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label"; // Added import for Label component
+import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, Loader2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +49,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePagination } from "@/hooks/use-pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function EventsManagement() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -85,14 +95,13 @@ export default function EventsManagement() {
     queryKey: ["/api/events"]
   });
 
-  // Filter events based on search and filters
   const filteredEvents = events?.filter(event => {
-    const matchesSearch = 
+    const matchesSearch =
       searchQuery === "" ||
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesFeatured = 
+    const matchesFeatured =
       filterFeatured === "all" ||
       (filterFeatured === "featured" && event.featured) ||
       (filterFeatured === "non-featured" && !event.featured);
@@ -217,6 +226,16 @@ export default function EventsManagement() {
       addEventMutation.mutate(eventData);
     }
   }
+
+  const pagination = usePagination({
+    totalItems: filteredEvents?.length || 0,
+    itemsPerPage: 8
+  });
+
+  const paginatedEvents = filteredEvents?.slice(
+    pagination.startIndex,
+    pagination.endIndex
+  );
 
   return (
     <div className="w-full">
@@ -347,7 +366,7 @@ export default function EventsManagement() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Featured Status</Label> {/*FormLabel changed to Label*/}
+                      <Label>Featured Status</Label>
                       <Select
                         value={filterFeatured}
                         onValueChange={setFilterFeatured}
@@ -364,7 +383,7 @@ export default function EventsManagement() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Date Range</Label> {/*FormLabel changed to Label*/}
+                      <Label>Date Range</Label>
                       <Select
                         value={filterDateRange}
                         onValueChange={setFilterDateRange}
@@ -405,7 +424,7 @@ export default function EventsManagement() {
                         exit={{ opacity: 0 }}
                         className="space-y-4"
                       >
-                        {filteredEvents?.map(event => (
+                        {paginatedEvents?.map(event => (
                           <motion.div
                             key={event.id}
                             initial={{ opacity: 0, y: 20 }}
@@ -476,6 +495,41 @@ export default function EventsManagement() {
                             </Card>
                           </motion.div>
                         ))}
+
+                        {filteredEvents && filteredEvents.length > 0 && (
+                          <div className="mt-6">
+                            <Pagination>
+                              <PaginationContent>
+                                <PaginationItem>
+                                  <PaginationPrevious
+                                    onClick={pagination.prevPage}
+                                    className={pagination.currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                  />
+                                </PaginationItem>
+                                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                                  <PaginationItem key={page}>
+                                    <PaginationLink
+                                      onClick={() => pagination.goToPage(page)}
+                                      isActive={pagination.currentPage === page}
+                                    >
+                                      {page}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                ))}
+                                <PaginationItem>
+                                  <PaginationNext
+                                    onClick={pagination.nextPage}
+                                    className={
+                                      pagination.currentPage === pagination.totalPages
+                                        ? "pointer-events-none opacity-50"
+                                        : ""
+                                    }
+                                  />
+                                </PaginationItem>
+                              </PaginationContent>
+                            </Pagination>
+                          </div>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
