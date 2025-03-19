@@ -25,16 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
-
-type Booking = {
-  id: number;
-  tableId: number;
-  date: string;
-  name: string;
-  email: string;
-  phone: string;
-  guestCount: number;
-};
+import type { Booking } from "@shared/schema";
 
 type Table = {
   id: number;
@@ -66,10 +57,27 @@ export default function BookingManagement() {
       booking.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.phone.includes(searchQuery);
 
-    const matchesDate = dateFilter === "all" || 
-      (dateFilter === "today" && new Date(booking.date).toDateString() === new Date().toDateString()) ||
-      (dateFilter === "tomorrow" && new Date(booking.date).toDateString() === new Date(Date.now() + 86400000).toDateString()) ||
-      (dateFilter === "thisWeek" && new Date(booking.date) <= new Date(Date.now() + 7 * 86400000));
+    let matchesDate = true;
+    const bookingDate = new Date(booking.date);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    switch (dateFilter) {
+      case "today":
+        matchesDate = bookingDate.toDateString() === today.toDateString();
+        break;
+      case "tomorrow":
+        matchesDate = bookingDate.toDateString() === tomorrow.toDateString();
+        break;
+      case "thisWeek":
+        matchesDate = bookingDate <= nextWeek;
+        break;
+      default:
+        matchesDate = true;
+    }
 
     return matchesSearch && matchesDate;
   });
@@ -83,82 +91,80 @@ export default function BookingManagement() {
   }
 
   return (
-    <div className="w-full">
-      <PageSection className="bg-background py-8">
-        <div className="max-w-[1440px] mx-auto px-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Table Bookings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <Input
-                  placeholder="Search by name, email or phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="sm:max-w-[300px]"
-                />
-                <Select
-                  value={dateFilter}
-                  onValueChange={setDateFilter}
-                >
-                  <SelectTrigger className="sm:max-w-[200px]">
-                    <SelectValue placeholder="Filter by date" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Dates</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                    <SelectItem value="thisWeek">This Week</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+    <PageSection>
+      <div className="max-w-[1440px] mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Table Bookings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <Input
+                placeholder="Search by name, email or phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="sm:max-w-[300px]"
+              />
+              <Select
+                value={dateFilter}
+                onValueChange={setDateFilter}
+              >
+                <SelectTrigger className="sm:max-w-[200px]">
+                  <SelectValue placeholder="Filter by date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Dates</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                  <SelectItem value="thisWeek">This Week</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Table</TableHead>
-                      <TableHead>Guest Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Guests</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {bookings && bookings.length > 0 ? (
-                      bookings.map((booking) => (
-                        <TableRow key={booking.id}>
-                          <TableCell>
-                            {format(new Date(booking.date), "PPP")}
-                          </TableCell>
-                          <TableCell>{getTableName(booking.tableId)}</TableCell>
-                          <TableCell>{booking.name}</TableCell>
-                          <TableCell>
-                            <div>
-                              <div>{booking.email}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {booking.phone}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{booking.guestCount}</TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8">
-                          {loadingBookings ? "Loading bookings..." : "No bookings found"}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Table</TableHead>
+                    <TableHead>Guest Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Guests</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredBookings && filteredBookings.length > 0 ? (
+                    filteredBookings.map((booking) => (
+                      <TableRow key={booking.id}>
+                        <TableCell>
+                          {format(new Date(booking.date), "PPP p")}
                         </TableCell>
+                        <TableCell>{getTableName(booking.tableId)}</TableCell>
+                        <TableCell>{booking.name}</TableCell>
+                        <TableCell>
+                          <div>
+                            <div>{booking.email}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {booking.phone}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{booking.guestCount}</TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </PageSection>
-    </div>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        {loadingBookings ? "Loading bookings..." : "No bookings found"}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </PageSection>
   );
 }

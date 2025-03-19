@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { PageSection } from "@/components/ui/page-section";
 import {
   Form,
   FormControl,
@@ -150,26 +151,28 @@ export default function Booking() {
   }
 
   return (
-    <div className="w-full">
-      <div className="bg-background py-8">
+    <PageSection>
+      <div className="max-w-[1440px] mx-auto p-4"> {/* Added p-4 for padding */}
         <h1 className="text-3xl font-bold mb-8">{translate("Book a Table")}</h1>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8">
           <div>
             <h2 className="text-lg font-semibold mb-4">{translate("1. Select a Date")}</h2>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              disabled={{ before: new Date() }}
-              className="rounded-md border shadow"
-            />
+            <div className="bg-card rounded-lg p-4 border">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                disabled={{ before: new Date() }}
+                className="rounded-md"
+              />
+            </div>
           </div>
 
           {selectedDate && tables && (
             <div>
               <h2 className="text-lg font-semibold mb-4">{translate("2. Choose a Table")}</h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {tables.map(table => {
                   const isAvailable = table.status === 'available';
                   return (
@@ -227,7 +230,7 @@ export default function Booking() {
         </div>
 
         {selectedDate && selectedTableId > 0 && (
-          <div className="mt-8">
+          <div className="mt-8 max-w-lg mx-auto">
             <h2 className="text-lg font-semibold mb-4">{translate("3. Enter Your Details")}</h2>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -305,6 +308,6 @@ export default function Booking() {
           </div>
         )}
       </div>
-    </div>
+    </PageSection>
   );
 }
