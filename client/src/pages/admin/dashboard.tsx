@@ -27,9 +27,10 @@ import {
   CalendarRange,
   ClipboardList,
   PartyPopper,
-  Settings
+  Settings,
+  UserCog
 } from "lucide-react";
-import type { Table, Order, MenuItem, Booking } from "@shared/schema";
+import type { Table, Order, MenuItem, Booking, User } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { PageSection } from "@/components/ui/page-section";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -112,6 +113,23 @@ export default function Dashboard() {
 
           {/* Quick Actions */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 mb-8">
+            <Link href="/admin/user-management">
+              <a>
+                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <UserCog className="h-5 w-5" />
+                      {translate("User Management")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {translate("Manage users and permissions")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
             <Link href="/admin/tables">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -201,7 +219,6 @@ export default function Dashboard() {
                 </Card>
               </a>
             </Link>
-
             <Link href="/admin/events">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">

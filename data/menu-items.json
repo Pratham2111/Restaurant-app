@@ -199,46 +199,5 @@
     "preparationTime": "10 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
     "updatedAt": "2025-03-19T00:00:00.000Z"
-  },
-  {
-    "id": 9,
-    "categoryId": 4,
-    "name": "Signature Martini",
-    "description": "House-infused botanical gin with dry vermouth and olive tincture",
-    "price": 16.99,
-    "imageUrl": "https://images.unsplash.com/photo-1575023782549-62ca0d244b39",
-    "isSpecial": true,
-    "nutritionInfo": [
-      "Calories: 220",
-      "Sugar: 0g"
-    ],
-    "ingredients": [
-      "Botanical Gin",
-      "Dry Vermouth",
-      "Olive Tincture"
-    ],
-    "allergens": [],
-    "servingSize": "6 oz",
-    "preparationTime": "5 minutes",
-    "createdAt": "2025-03-19T00:00:00.000Z",
-    "updatedAt": "2025-03-19T00:00:00.000Z"
-  },
-  {
-    "id": 9,
-    "categoryId": 2,
-    "name": "Brownie",
-    "description": "a",
-    "price": 23,
-    "imageUrl": "https://d3m7xw68ay40x8.cloudfront.net/assets/2023/12/JAN24-Recipes_Hot-Cocoa-Fudge-Brownies-1__MattHulsman.jpg",
-    "isSpecial": true,
-    "nutritionInfo": [],
-    "ingredients": [],
-    "allergens": [],
-    "chefsStory": "",
-    "preparationTime": "",
-    "spicyLevel": "",
-    "servingSize": "",
-    "createdAt": "2025-03-19T18:56:49.094Z",
-    "updatedAt": "2025-03-19T18:56:49.094Z"
   }
 ]

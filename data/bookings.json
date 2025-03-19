@@ -42,5 +42,16 @@
     "guestCount": 2,
     "createdAt": "2025-03-19T19:26:35.138Z",
     "updatedAt": "2025-03-19T19:26:35.138Z"
+  },
+  {
+    "id": 5,
+    "tableId": 3,
+    "date": "2025-03-20T18:30:00.000Z",
+    "name": "Brownie",
+    "email": "admin@admin.com",
+    "phone": "2134446629",
+    "guestCount": 2,
+    "createdAt": "2025-03-19T19:44:59.390Z",
+    "updatedAt": "2025-03-19T19:44:59.390Z"
   }
 ]
