@@ -113,7 +113,7 @@ export default function Dashboard() {
 
           {/* Quick Actions */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 mb-8">
-            <Link href="/admin/user-management">
+            <Link href="/admin/users">
               <a>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                   <CardHeader>
