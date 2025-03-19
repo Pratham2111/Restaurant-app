@@ -121,13 +121,27 @@ export default function UserManagement() {
 
   const updateUserStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: number; isActive: boolean }) => {
-      const res = await apiRequest("PATCH", `/api/users/${userId}/status`, { isActive });
+      try {
+        const res = await apiRequest("PATCH", `/api/users/${userId}/status`, {
+          isActive: isActive
+        });
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || translate('Failed to update user status'));
+        // Check if response is JSON
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Server returned an invalid response format");
+        }
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || translate('Failed to update user status'));
+        }
+
+        return res.json();
+      } catch (error) {
+        console.error('Status update error:', error);
+        throw error;
       }
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
