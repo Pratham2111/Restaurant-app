@@ -57,6 +57,7 @@ export default function TableManagement() {
   const [selectedSection, setSelectedSection] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null); // Added state for selected table in assignment
   const { toast } = useToast();
 
   const form = useForm({
@@ -97,6 +98,27 @@ export default function TableManagement() {
   const { data: servers, isLoading: loadingServers } = useQuery<Server[]>({
     queryKey: ["/api/servers/active"]
   });
+
+  // Add query for table assignments
+  const { data: tableAssignments, isLoading: loadingAssignments } = useQuery({
+    queryKey: ["/api/table-assignments"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/table-assignments?status=active");
+      if (!res.ok) {
+        throw new Error("Failed to fetch table assignments");
+      }
+      return res.json();
+    }
+  });
+
+  // Function to get assigned server for a table
+  const getAssignedServer = (tableId: number) => {
+    const assignment = tableAssignments?.find(a => a.tableId === tableId && a.status === "active");
+    if (assignment) {
+      return servers?.find(s => s.id === assignment.serverId);
+    }
+    return null;
+  };
 
   const createTableMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -211,7 +233,7 @@ export default function TableManagement() {
       const res = await apiRequest("POST", "/api/table-assignments", {
         tableId,
         serverId,
-        startTime: new Date().toISOString(), // Send as ISO string
+        startTime: new Date().toISOString(), 
         status: "active",
       });
       if (!res.ok) {
@@ -226,6 +248,7 @@ export default function TableManagement() {
         title: "Server Assigned",
         description: "Server has been assigned to the table successfully.",
       });
+      setSelectedTable(null); //Added to clear selection after assignment
     },
     onError: (error: Error) => {
       toast({
@@ -235,6 +258,32 @@ export default function TableManagement() {
       });
     },
   });
+
+  const clearAssignmentMutation = useMutation({
+    mutationFn: async (assignmentId: number) => {
+      const res = await apiRequest("DELETE", `/api/table-assignments/${assignmentId}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to clear assignment");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/table-assignments"] });
+      toast({
+        title: "Assignment Cleared",
+        description: "Server assignment has been cleared successfully.",
+      });
+      setSelectedTable(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Clear Assignment Failed",
+        description: error.message || "Failed to clear server assignment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  })
 
   function onSubmit(data: any) {
     if (editingTable) {
@@ -260,7 +309,7 @@ export default function TableManagement() {
     setDialogOpen(true);
   };
 
-  if (loadingTables || loadingServers) {
+  if (loadingTables || loadingServers || loadingAssignments) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <Loader2 className="h-8 w-8 animate-spin text-restaurant-yellow" />
@@ -539,26 +588,52 @@ export default function TableManagement() {
                       </div>
                     </TabsContent>
                     <TabsContent value="assign">
-                      <Select
-                        onValueChange={(value) => {
-                          createAssignmentMutation.mutate({
-                            tableId: table.id,
-                            serverId: parseInt(value)
-                          });
-                        }}
-                        disabled={createAssignmentMutation.isPending}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Assign server" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {servers?.map(server => (
-                            <SelectItem key={server.id} value={server.id.toString()}>
-                              {server.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {getAssignedServer(table.id) ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium">Currently Assigned:</p>
+                              <p className="text-sm text-muted-foreground">
+                                {getAssignedServer(table.id)?.name}
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const assignment = tableAssignments?.find(a => a.tableId === table.id && a.status === "active");
+                                if (assignment) {
+                                  clearAssignmentMutation.mutate(assignment.id);
+                                }
+                                setSelectedTable(table);
+                              }}
+                            >
+                              Change Server
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Select
+                          onValueChange={(value) => {
+                            createAssignmentMutation.mutate({
+                              tableId: table.id,
+                              serverId: parseInt(value)
+                            });
+                          }}
+                          disabled={createAssignmentMutation.isPending}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Assign server" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {servers?.map(server => (
+                              <SelectItem key={server.id} value={server.id.toString()}>
+                                {server.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </TabsContent>
                   </Tabs>
                 </div>

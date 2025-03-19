@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "tableId": 1,
+    "serverId": 3,
+    "startTime": "2025-03-19T20:35:43.287Z",
+    "status": "active",
+    "createdAt": "2025-03-19T20:35:36.726Z",
+    "updatedAt": "2025-03-19T20:35:36.726Z"
+  },
+  {
+    "id": 2,
+    "tableId": 1,
+    "serverId": 4,
+    "startTime": "2025-03-19T20:35:54.479Z",
+    "status": "active",
+    "createdAt": "2025-03-19T20:35:47.919Z",
+    "updatedAt": "2025-03-19T20:35:47.919Z"
+  }
+]
