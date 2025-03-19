@@ -9,13 +9,53 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { PageSection } from "@/components/ui/page-section";
 import type { User, LoyaltyTier, LoyaltyPoint, LoyaltyReward } from "@shared/schema";
-import { Moon, Sun, LogOut, Gift, Award, Star } from "lucide-react";
+import { Moon, Sun, LogOut, Gift, Award, Star, Lock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string()
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type PasswordChangeInput = z.infer<typeof passwordChangeSchema>;
 
 export default function Account() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const [passwordDialogOpen, setPasswordDialogOpen] = React.useState(false);
+
+  const passwordForm = useForm<PasswordChangeInput>({
+    resolver: zodResolver(passwordChangeSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
   const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ["/api/auth/me"],
@@ -39,6 +79,32 @@ export default function Account() {
   const { data: rewards } = useQuery<LoyaltyReward[]>({
     queryKey: ["/api/loyalty/rewards"],
     enabled: !!user
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: PasswordChangeInput) => {
+      const res = await apiRequest("POST", "/api/auth/change-password", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to change password");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Your password has been changed successfully."
+      });
+      setPasswordDialogOpen(false);
+      passwordForm.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change password",
+        variant: "destructive"
+      });
+    }
   });
 
   const redeemMutation = useMutation({
@@ -83,6 +149,14 @@ export default function Account() {
         description: "Failed to logout. Please try again.",
         variant: "destructive"
       });
+    }
+  };
+
+  const onPasswordSubmit = async (data: PasswordChangeInput) => {
+    try {
+      await changePasswordMutation.mutateAsync(data);
+    } catch (error) {
+      console.error("Password change error:", error);
     }
   };
 
@@ -134,7 +208,71 @@ export default function Account() {
                 </p>
               </div>
 
-              <div className="pt-4 border-t">
+              <div className="flex gap-2">
+                <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Lock className="mr-2 h-4 w-4" />
+                      Change Password
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Change Password</DialogTitle>
+                    </DialogHeader>
+                    <Form {...passwordForm}>
+                      <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                        <FormField
+                          control={passwordForm.control}
+                          name="currentPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Current Password</FormLabel>
+                              <FormControl>
+                                <Input type="password" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={passwordForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>New Password</FormLabel>
+                              <FormControl>
+                                <Input type="password" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={passwordForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Confirm New Password</FormLabel>
+                              <FormControl>
+                                <Input type="password" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={changePasswordMutation.isPending}
+                        >
+                          {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+
                 <Button 
                   variant="destructive"
                   className="w-full"
