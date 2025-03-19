@@ -1,4 +1,4 @@
-# Deployment Guide for Restaurant Management Platform on Hostinger VPS
+# Deployment Guide for Restaurant Management Platform
 
 ## 1. Initial VPS Setup
 
@@ -44,7 +44,7 @@ psql --version  # Should show PostgreSQL 16.x
 
 ## 3. Project Setup
 
-1. Clone the project (replace with your repository URL):
+1. Clone the project:
 ```bash
 cd /var/www
 git clone your_repository_url restaurant-app
@@ -80,11 +80,7 @@ Add these lines:
 ```
 DATABASE_URL="postgresql://restaurant_user:your_secure_password@localhost:5432/restaurant_db"
 PORT=5000
-```
-
-4. Initialize the database schema:
-```bash
-npm run db:push
+NODE_ENV=production
 ```
 
 ## 5. Running the Application
@@ -114,7 +110,12 @@ module.exports = {
     env: {
       NODE_ENV: "production",
       PORT: 5000
-    }
+    },
+    instances: "max",
+    exec_mode: "cluster",
+    max_memory_restart: "1G",
+    error_file: "/var/log/pm2/restaurant-app-error.log",
+    out_file: "/var/log/pm2/restaurant-app-out.log"
   }]
 }
 ```
@@ -126,7 +127,7 @@ pm2 save
 pm2 startup
 ```
 
-## 6. Domain and SSL Configuration
+## 6. Nginx Configuration
 
 1. Install Nginx:
 ```bash
@@ -151,7 +152,24 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "no-referrer-when-downgrade" always;
+        add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
     }
+
+    # Enable gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1000;
+    gzip_comp_level 5;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
 }
 ```
 
@@ -162,13 +180,34 @@ nginx -t
 systemctl restart nginx
 ```
 
-4. Install SSL certificate using Certbot:
+## 7. SSL Configuration
+
+1. Install Certbot:
 ```bash
 apt install -y certbot python3-certbot-nginx
+```
+
+2. Get SSL certificate:
+```bash
 certbot --nginx -d your-domain.com
 ```
 
-## Maintenance and Monitoring
+## 8. Security Settings
+
+1. Configure firewall:
+```bash
+ufw allow OpenSSH
+ufw allow 'Nginx Full'
+ufw enable
+```
+
+2. Set up automatic security updates:
+```bash
+apt install -y unattended-upgrades
+dpkg-reconfigure -plow unattended-upgrades
+```
+
+## Maintenance Commands
 
 1. Monitor the application:
 ```bash
@@ -177,7 +216,11 @@ pm2 monit
 
 2. View logs:
 ```bash
+# Application logs
 pm2 logs restaurant-app
+
+# Nginx logs
+tail -f /var/log/nginx/error.log
 ```
 
 3. Update the application:
@@ -189,26 +232,46 @@ npm run build
 pm2 restart restaurant-app
 ```
 
+## Common Issues and Troubleshooting
+
+1. Database connection issues:
+   - Check PostgreSQL status: `systemctl status postgresql`
+   - Verify DATABASE_URL environment variable
+   - Check PostgreSQL logs: `tail -f /var/log/postgresql/postgresql-16-main.log`
+
+2. Application not starting:
+   - Check PM2 logs: `pm2 logs`
+   - Verify NODE_ENV and PORT environment variables
+   - Check application logs in /var/log/pm2/
+
+3. SSL/HTTPS issues:
+   - Verify Nginx configuration: `nginx -t`
+   - Check SSL certificate renewal: `certbot renew --dry-run`
+   - Review Nginx error logs
+
 ## Important Notes
 
-1. Replace placeholders:
-   - `your_server_ip` with your VPS IP address
-   - `your-domain.com` with your actual domain
-   - `your_secure_password` with a strong password
+1. Security best practices:
+   - Keep system and packages updated regularly
+   - Monitor server resources and logs
+   - Implement rate limiting for API endpoints
+   - Regular database backups
+   - Monitor SSL certificate expiration
 
-2. Security considerations:
-   - Configure firewall (UFW)
-   - Set up regular backups
-   - Keep system and packages updated
-   - Use strong passwords
-   - Implement rate limiting
+2. Performance optimization:
+   - Enable Nginx caching for static assets
+   - Configure PM2 clustering based on CPU cores
+   - Optimize PostgreSQL settings based on server resources
+   - Implement proper indexing for database queries
 
-3. Performance optimization:
-   - Enable Nginx caching
-   - Configure PM2 clustering
-   - Optimize PostgreSQL settings
+3. Backup strategy:
+   - Regular database backups
+   - Configuration files backup
+   - Automated backup scripts
+   - Off-site backup storage
 
-4. Troubleshooting:
-   - Check logs: `pm2 logs`
-   - Monitor system resources: `htop`
-   - Check Nginx logs: `/var/log/nginx/error.log`
+Replace the following placeholders:
+- `your_server_ip` with your VPS IP address
+- `your_repository_url` with your Git repository URL
+- `your-domain.com` with your actual domain name
+- `your_secure_password` with a strong password

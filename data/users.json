@@ -3,14 +3,14 @@
     "id": 1,
     "name": "Rock",
     "email": "tl@tl.com",
-    "password": "$2b$10$j1nU4PdA0aVoaw6IT8NIH.Oup21axSdnDY7mODaptzV.7Z9Ddd9D6",
+    "password": "$2b$10$gTjdPOTz687h4U/Z.mDYN.iH2RU4GcYS6M1FlomKzkvf.mx9t1b3a",
     "confirmPassword": "tl@tl.com",
     "role": "customer",
     "isActive": true,
     "totalPoints": 0,
     "currentTierId": null,
     "createdAt": "2025-03-19T18:37:04.504Z",
-    "updatedAt": "2025-03-19T21:07:45.788Z"
+    "updatedAt": "2025-03-19T22:05:14.068Z"
   },
   {
     "id": 2,
