@@ -50,6 +50,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Search, UserCog, UserPlus } from "lucide-react";
 import type { User } from "@shared/schema";
+import { PageSection } from "@/components/ui/page-section";
 
 const createUserSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -134,7 +135,11 @@ export default function UserManagement() {
   });
 
   async function onSubmit(data: CreateUserInput) {
-    createUserMutation.mutate(data);
+    try {
+      await createUserMutation.mutateAsync(data);
+    } catch (error) {
+      console.error('Create user error:', error);
+    }
   }
 
   if (isLoading) {
@@ -150,17 +155,9 @@ export default function UserManagement() {
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   return (
-    <div className="flex flex-col items-center py-8 px-4">
-      <div className="w-full max-w-7xl">
+    <PageSection>
+      <div className="max-w-[1440px] mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold">User Management</h1>
           <div className="flex items-center gap-4">
@@ -370,12 +367,6 @@ export default function UserManagement() {
                   </Badge>
                 </div>
                 <div>
-                  <h3 className="font-medium">Joined Date</h3>
-                  <p className="text-muted-foreground">
-                    {formatDate(selectedUser.createdAt)}
-                  </p>
-                </div>
-                <div>
                   <h3 className="font-medium">Status</h3>
                   <Badge variant={selectedUser.isActive ? "default" : "secondary"}>
                     {selectedUser.isActive ? "Active" : "Inactive"}
@@ -386,6 +377,6 @@ export default function UserManagement() {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </PageSection>
   );
 }
