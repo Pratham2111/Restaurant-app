@@ -11,5 +11,29 @@
     "currentTierId": null,
     "createdAt": "2025-03-19T18:37:04.504Z",
     "updatedAt": "2025-03-19T20:16:53.067Z"
+  },
+  {
+    "id": 2,
+    "name": "Peter Patel",
+    "email": "tl2@tl.com",
+    "password": "$2b$10$WU7c8vc9GbJjUat93EGkm.iOaCJX4VMmMAq0tRX4ZQh77Z5LWFd2m",
+    "role": "customer",
+    "isActive": true,
+    "totalPoints": 0,
+    "currentTierId": null,
+    "createdAt": "2025-03-19T20:23:53.445Z",
+    "updatedAt": "2025-03-19T20:23:59.889Z"
+  },
+  {
+    "id": 3,
+    "name": "Server 1",
+    "email": "tm4@tm.com",
+    "password": "$2b$10$QtXm9mAvo9YZohtGdsemV.GblhAOTgdnduP4gXd0RfqB4BUIOG0VS",
+    "role": "server",
+    "isActive": true,
+    "totalPoints": 0,
+    "currentTierId": null,
+    "createdAt": "2025-03-19T20:25:36.295Z",
+    "updatedAt": "2025-03-19T20:25:36.295Z"
   }
 ]

@@ -413,9 +413,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(servers);
   });
 
+  // Update the active servers endpoint to filter by role and active status
   app.get("/api/servers/active", async (_req, res) => {
-    const servers = await storage.getActiveServers();
-    res.json(servers);
+    try {
+      const users = await storage.getUsers();
+      const activeServers = users.filter(user => 
+        user.role === "server" && user.isActive
+      );
+      // Remove sensitive information before sending
+      const safeServers = activeServers.map(({ password, ...server }) => server);
+      res.json(safeServers);
+    } catch (error) {
+      console.error("Failed to fetch active servers:", error);
+      res.status(500).json({ message: "Failed to fetch active servers" });
+    }
   });
 
   app.post("/api/servers", async (req, res) => {

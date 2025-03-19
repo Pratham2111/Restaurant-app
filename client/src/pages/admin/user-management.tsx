@@ -58,7 +58,7 @@ const createUserSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
-  role: z.enum(["admin", "server", "customer"]),
+  role: z.enum(["server", "customer"]), // Removed admin from options
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -279,7 +279,6 @@ export default function UserManagement() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="admin">{translate("Admin")}</SelectItem>
                               <SelectItem value="server">{translate("Server")}</SelectItem>
                               <SelectItem value="customer">{translate("Customer")}</SelectItem>
                             </SelectContent>
