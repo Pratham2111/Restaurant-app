@@ -25,25 +25,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
-import type { Booking } from "@shared/schema";
-
-type Table = {
-  id: number;
-  name: string;
-  section: string;
-  seats: number;
-};
+import type { Booking, Table as TableType } from "@shared/schema";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 export default function BookingManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const { translate } = useSiteSettings();
 
   const { data: bookings, isLoading: loadingBookings } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
+    queryKey: ["/api/bookings"]
   });
 
-  const { data: tables } = useQuery<Table[]>({
-    queryKey: ["/api/tables"],
+  const { data: tables } = useQuery<TableType[]>({
+    queryKey: ["/api/tables"]
   });
 
   const getTableName = (tableId: number) => {
@@ -60,6 +55,7 @@ export default function BookingManagement() {
     let matchesDate = true;
     const bookingDate = new Date(booking.date);
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     const nextWeek = new Date(today);
@@ -67,13 +63,15 @@ export default function BookingManagement() {
 
     switch (dateFilter) {
       case "today":
-        matchesDate = bookingDate.toDateString() === today.toDateString();
+        matchesDate = bookingDate >= today && bookingDate < tomorrow;
         break;
       case "tomorrow":
-        matchesDate = bookingDate.toDateString() === tomorrow.toDateString();
+        const dayAfterTomorrow = new Date(tomorrow);
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+        matchesDate = bookingDate >= tomorrow && bookingDate < dayAfterTomorrow;
         break;
       case "thisWeek":
-        matchesDate = bookingDate <= nextWeek;
+        matchesDate = bookingDate >= today && bookingDate <= nextWeek;
         break;
       default:
         matchesDate = true;
@@ -95,12 +93,12 @@ export default function BookingManagement() {
       <div className="max-w-[1440px] mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Table Bookings</CardTitle>
+            <CardTitle>{translate("Table Bookings")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <Input
-                placeholder="Search by name, email or phone..."
+                placeholder={translate("Search by name, email or phone...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="sm:max-w-[300px]"
@@ -110,13 +108,13 @@ export default function BookingManagement() {
                 onValueChange={setDateFilter}
               >
                 <SelectTrigger className="sm:max-w-[200px]">
-                  <SelectValue placeholder="Filter by date" />
+                  <SelectValue placeholder={translate("Filter by date")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Dates</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                  <SelectItem value="thisWeek">This Week</SelectItem>
+                  <SelectItem value="all">{translate("All Dates")}</SelectItem>
+                  <SelectItem value="today">{translate("Today")}</SelectItem>
+                  <SelectItem value="tomorrow">{translate("Tomorrow")}</SelectItem>
+                  <SelectItem value="thisWeek">{translate("This Week")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -125,11 +123,11 @@ export default function BookingManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Table</TableHead>
-                    <TableHead>Guest Name</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Guests</TableHead>
+                    <TableHead>{translate("Date & Time")}</TableHead>
+                    <TableHead>{translate("Table")}</TableHead>
+                    <TableHead>{translate("Guest Name")}</TableHead>
+                    <TableHead>{translate("Contact")}</TableHead>
+                    <TableHead>{translate("Guests")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -155,7 +153,9 @@ export default function BookingManagement() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-8">
-                        {loadingBookings ? "Loading bookings..." : "No bookings found"}
+                        {loadingBookings 
+                          ? translate("Loading bookings...") 
+                          : translate("No bookings found")}
                       </TableCell>
                     </TableRow>
                   )}
