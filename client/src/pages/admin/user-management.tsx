@@ -332,51 +332,53 @@ export default function UserManagement() {
                       >
                         {translate("View Details")}
                       </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant={user.isActive ? "destructive" : "default"}
-                            size="sm"
-                            className="w-full sm:w-auto"
-                          >
-                            {user.isActive ? translate("Deactivate") : translate("Activate")}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="sm:max-w-[425px] w-[95vw] sm:w-full">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {user.isActive ? translate("Deactivate User") : translate("Activate User")}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {user.isActive
-                                ? translate("This will prevent the user from logging in. Are you sure?")
-                                : translate("This will allow the user to log in again. Continue?")
-                              }
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                            <AlertDialogCancel className="w-full sm:w-auto">{translate("Cancel")}</AlertDialogCancel>
-                            <AlertDialogAction
+                      {user.role !== "admin" && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant={user.isActive ? "destructive" : "default"}
+                              size="sm"
                               className="w-full sm:w-auto"
-                              onClick={() =>
-                                updateUserStatusMutation.mutate({
-                                  userId: user.id,
-                                  isActive: !user.isActive
-                                })
-                              }
                             >
-                              {updateUserStatusMutation.isPending ? (
-                                <span className="flex items-center">
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  {translate("Updating...")}
-                                </span>
-                              ) : (
-                                translate("Continue")
-                              )}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              {user.isActive ? translate("Deactivate") : translate("Activate")}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="sm:max-w-[425px] w-[95vw] sm:w-full">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {user.isActive ? translate("Deactivate User") : translate("Activate User")}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {user.isActive
+                                  ? translate("This will prevent the user from logging in. Are you sure?")
+                                  : translate("This will allow the user to log in again. Continue?")
+                                }
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                              <AlertDialogCancel className="w-full sm:w-auto">{translate("Cancel")}</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="w-full sm:w-auto"
+                                onClick={() =>
+                                  updateUserStatusMutation.mutate({
+                                    userId: user.id,
+                                    isActive: !user.isActive
+                                  })
+                                }
+                              >
+                                {updateUserStatusMutation.isPending ? (
+                                  <span className="flex items-center">
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    {translate("Updating...")}
+                                  </span>
+                                ) : (
+                                  translate("Continue")
+                                )}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </div>
                 </div>
