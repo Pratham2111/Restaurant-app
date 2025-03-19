@@ -189,26 +189,26 @@ export default function UserManagement() {
   return (
     <PageSection>
       <div className="max-w-[1440px] mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold">{translate("User Management")}</h1>
-          <div className="flex items-center gap-4">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
+            <div className="relative flex-grow sm:flex-grow-0">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={translate("Search users...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-[300px]"
+                className="pl-9 w-full sm:w-[300px]"
               />
             </div>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full sm:w-auto">
                   <UserPlus className="mr-2 h-4 w-4" />
                   {translate("Create User")}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="sm:max-w-[425px] w-[95vw] sm:w-full">
                 <DialogHeader>
                   <DialogTitle>{translate("Create New User")}</DialogTitle>
                 </DialogHeader>
@@ -307,25 +307,24 @@ export default function UserManagement() {
         <div className="grid gap-4">
           {filteredUsers?.map(user => (
             <Card key={user.id}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col">
-                      <h3 className="text-lg font-semibold">{user.name}</h3>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                      <Badge variant="outline" className="mt-1 w-fit">
-                        {user.role}
-                      </Badge>
-                    </div>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-lg font-semibold">{user.name}</h3>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <Badge variant="outline" className="w-fit">
+                      {user.role}
+                    </Badge>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Badge variant={user.isActive ? "default" : "secondary"}>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    <Badge variant={user.isActive ? "default" : "secondary"} className="text-center">
                       {user.isActive ? translate("Active") : translate("Inactive")}
                     </Badge>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="outline"
                         size="sm"
+                        className="w-full sm:w-auto"
                         onClick={() => {
                           setSelectedUser(user);
                           setDialogOpen(true);
@@ -338,11 +337,12 @@ export default function UserManagement() {
                           <Button
                             variant={user.isActive ? "destructive" : "default"}
                             size="sm"
+                            className="w-full sm:w-auto"
                           >
                             {user.isActive ? translate("Deactivate") : translate("Activate")}
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="sm:max-w-[425px] w-[95vw] sm:w-full">
                           <AlertDialogHeader>
                             <AlertDialogTitle>
                               {user.isActive ? translate("Deactivate User") : translate("Activate User")}
@@ -354,9 +354,10 @@ export default function UserManagement() {
                               }
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{translate("Cancel")}</AlertDialogCancel>
+                          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                            <AlertDialogCancel className="w-full sm:w-auto">{translate("Cancel")}</AlertDialogCancel>
                             <AlertDialogAction
+                              className="w-full sm:w-auto"
                               onClick={() =>
                                 updateUserStatusMutation.mutate({
                                   userId: user.id,
@@ -386,7 +387,7 @@ export default function UserManagement() {
 
         {/* User Details Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px] w-[95vw] sm:w-full">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <UserCog className="h-5 w-5" />
