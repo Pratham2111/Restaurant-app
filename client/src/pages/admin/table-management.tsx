@@ -57,7 +57,7 @@ export default function TableManagement() {
   const [selectedSection, setSelectedSection] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null); 
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const { toast } = useToast();
 
   const form = useForm({
@@ -230,7 +230,7 @@ export default function TableManagement() {
       const res = await apiRequest("POST", "/api/table-assignments", {
         tableId,
         serverId,
-        startTime: new Date().toISOString(), 
+        startTime: new Date().toISOString(),
         status: "active",
       });
       if (!res.ok) {
@@ -597,32 +597,50 @@ export default function TableManagement() {
                                 {getAssignedServer(table.id)?.name}
                               </p>
                             </div>
-                            <Select
-                              onValueChange={(value) => {
-                                const assignment = tableAssignments?.find(
-                                  a => a.tableId === table.id && a.status === "active"
-                                );
-                                if (assignment) {
-                                  clearAssignmentMutation.mutate(assignment.id);
-                                }
-                                createAssignmentMutation.mutate({
-                                  tableId: table.id,
-                                  serverId: parseInt(value)
-                                });
-                              }}
-                              disabled={createAssignmentMutation.isPending || clearAssignmentMutation.isPending}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Change Server" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {servers?.map(server => (
-                                  <SelectItem key={server.id} value={server.id.toString()}>
-                                    {server.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <div className="flex gap-2">
+                              <Select
+                                defaultValue={getAssignedServer(table.id)?.id.toString()}
+                                onValueChange={(value) => {
+                                  const assignment = tableAssignments?.find(
+                                    a => a.tableId === table.id && a.status === "active"
+                                  );
+                                  if (assignment) {
+                                    clearAssignmentMutation.mutate(assignment.id);
+                                  }
+                                  createAssignmentMutation.mutate({
+                                    tableId: table.id,
+                                    serverId: parseInt(value)
+                                  });
+                                }}
+                                disabled={createAssignmentMutation.isPending || clearAssignmentMutation.isPending}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Change Server" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {servers?.map(server => (
+                                    <SelectItem key={server.id} value={server.id.toString()}>
+                                      {server.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const assignment = tableAssignments?.find(
+                                    a => a.tableId === table.id && a.status === "active"
+                                  );
+                                  if (assignment) {
+                                    clearAssignmentMutation.mutate(assignment.id);
+                                  }
+                                }}
+                                disabled={clearAssignmentMutation.isPending}
+                              >
+                                Remove Server
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ) : (
