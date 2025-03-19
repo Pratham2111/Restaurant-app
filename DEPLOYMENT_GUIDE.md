@@ -1,7 +1,18 @@
 # Deployment Guide for Restaurant Management Platform
 
 ## Important Note About Storage
-This application uses in-memory storage (MemStorage) for data persistence. While you might see database-related configuration files in the codebase (like `drizzle.config.ts` and `server/db.ts`), these are not currently used and can be ignored during deployment. The data is stored in memory and will be reset when the application restarts.
+This application uses in-memory storage (MemStorage) for data persistence. While you might see database-related configuration files in the codebase (like `drizzle.config.ts` and `server/db.ts`), these are not currently used and can be ignored during deployment.
+
+The data is stored in two places:
+1. In memory during runtime (MemStorage class in server/storage.ts)
+2. JSON files in the `/var/www/restaurant-app/data/` directory for persistence across restarts:
+   - users.json: User accounts and roles
+   - menu-items.json: Menu items and their details
+   - categories.json: Menu categories
+   - tables.json: Restaurant table information
+   - bookings.json: Table bookings
+   - orders.json: Customer orders
+   - site-settings.json: Application settings
 
 You can safely ignore any database-related environment variables (like DATABASE_URL) as they are not used in the current implementation.
 
@@ -250,23 +261,52 @@ pm2 restart restaurant-app
    - Automated backup scripts
    - Off-site backup storage
 
+
 ## Additional Considerations for In-Memory Storage
 
 1. Data Persistence:
-   - Be aware that data will be reset when the application restarts
-   - Implement regular backups of the data directory to preserve information
-   - Consider scheduling automatic backups of the `/var/www/restaurant-app/data` directory
+   - Data is primarily stored in memory while the application runs
+   - JSON files in `/var/www/restaurant-app/data/` provide persistence across restarts
+   - Set up regular backups of the data directory using cron:
+     ```bash
+     # Add to crontab for daily backups at 2 AM
+     0 2 * * * tar -czf /backup/restaurant-data-$(date +\%Y\%m\%d).tar.gz /var/www/restaurant-app/data/
+     ```
 
 2. Memory Management:
    - Monitor memory usage carefully as all data is stored in RAM
    - Configure PM2 with appropriate memory limits
    - Set up monitoring alerts for memory usage
+   - Check memory usage regularly:
+     ```bash
+     pm2 monit
+     free -m
+     ```
 
 3. Backup Strategy:
-   - Regular backups of the data directory are crucial
-   - Implement automated backup scripts
-   - Store backups in a secure, off-site location
-   - Test backup restoration procedures regularly
+   - Set up automated backups of the data directory:
+     ```bash
+     # Create backup directory
+     mkdir -p /backup/restaurant-data
+
+     # Create backup script
+     cat > /usr/local/bin/backup-restaurant-data.sh << 'EOF'
+     #!/bin/bash
+     BACKUP_DIR="/backup/restaurant-data"
+     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+     tar -czf "$BACKUP_DIR/restaurant-data-$TIMESTAMP.tar.gz" /var/www/restaurant-app/data/
+     find "$BACKUP_DIR" -type f -mtime +7 -delete
+     EOF
+
+     # Make script executable
+     chmod +x /usr/local/bin/backup-restaurant-data.sh
+
+     # Add to crontab
+     echo "0 */6 * * * /usr/local/bin/backup-restaurant-data.sh" | crontab -
+     ```
+   - Keep at least 7 days of backups
+   - Test backup restoration regularly
+   - Consider off-site backup storage
 
 ## Hostinger VPS Specific Notes
 
