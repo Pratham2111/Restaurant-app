@@ -42,6 +42,7 @@ export const Navbar: React.FC = () => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { translate } = useSiteSettings();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { data: user, isLoading } = useQuery<UserType>({
     queryKey: ["/api/auth/me"],
@@ -95,10 +96,15 @@ export const Navbar: React.FC = () => {
     window.location.href = "tel:+15551234567";
   };
 
+  const handleNavigation = (path: string) => {
+    setIsMenuOpen(false); // Close menu after navigation
+    navigate(path);
+  };
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="max-w-[1440px] mx-auto flex h-14 sm:h-16 items-center px-4">
-        <Sheet>
+        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" className="md:hidden mr-2">
               <Menu className="h-5 w-5" />
@@ -109,21 +115,21 @@ export const Navbar: React.FC = () => {
               <SheetTitle>{translate("Menu")}</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-4 mt-4">
-              <Link href="/">
-                <a className="text-base sm:text-lg font-medium">{translate("Home")}</a>
-              </Link>
-              <Link href="/menu">
-                <a className="text-base sm:text-lg font-medium">{translate("Menu")}</a>
-              </Link>
-              <Link href="/booking">
-                <a className="text-base sm:text-lg font-medium">{translate("Book a Table")}</a>
-              </Link>
-              <Link href="/events">
-                <a className="text-base sm:text-lg font-medium">{translate("Events")}</a>
-              </Link>
-              <Link href="/admin/dashboard">
-                <a className="text-base sm:text-lg font-medium">{translate("Restaurant Dashboard")}</a>
-              </Link>
+              <a className="text-base sm:text-lg font-medium" onClick={() => handleNavigation("/")}>
+                {translate("Home")}
+              </a>
+              <a className="text-base sm:text-lg font-medium" onClick={() => handleNavigation("/menu")}>
+                {translate("Menu")}
+              </a>
+              <a className="text-base sm:text-lg font-medium" onClick={() => handleNavigation("/booking")}>
+                {translate("Book a Table")}
+              </a>
+              <a className="text-base sm:text-lg font-medium" onClick={() => handleNavigation("/events")}>
+                {translate("Events")}
+              </a>
+              <a className="text-base sm:text-lg font-medium" onClick={() => handleNavigation("/admin/dashboard")}>
+                {translate("Restaurant Dashboard")}
+              </a>
             </div>
           </SheetContent>
         </Sheet>
