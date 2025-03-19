@@ -51,6 +51,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Search, UserCog, UserPlus } from "lucide-react";
 import type { User } from "@shared/schema";
 import { PageSection } from "@/components/ui/page-section";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 const createUserSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -67,6 +68,7 @@ export default function UserManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { translate } = useSiteSettings();
 
   const form = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
@@ -84,7 +86,14 @@ export default function UserManagement() {
 
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserInput) => {
-      const res = await apiRequest("POST", "/api/users", data);
+      const res = await apiRequest("POST", "/api/users", {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+        isActive: true
+      });
+
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || 'Failed to create user');
@@ -94,16 +103,17 @@ export default function UserManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       toast({
-        title: "Success",
-        description: "User has been created successfully."
+        title: translate("Success"),
+        description: translate("User has been created successfully.")
       });
       setCreateDialogOpen(false);
       form.reset();
     },
     onError: (error: Error) => {
+      console.error('Create user error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to create user. Please try again.",
+        title: translate("Error"),
+        description: error.message || translate("Failed to create user. Please try again."),
         variant: "destructive"
       });
     }
@@ -112,23 +122,25 @@ export default function UserManagement() {
   const updateUserStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: number; isActive: boolean }) => {
       const res = await apiRequest("PATCH", `/api/users/${userId}/status`, { isActive });
+
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Failed to update user status');
+        throw new Error(error.message || translate('Failed to update user status'));
       }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       toast({
-        title: "Success",
-        description: "User status has been updated successfully."
+        title: translate("Success"),
+        description: translate("User status has been updated successfully.")
       });
     },
     onError: (error: Error) => {
+      console.error('Update user status error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to update user status. Please try again.",
+        title: translate("Error"),
+        description: error.message || translate("Failed to update user status. Please try again."),
         variant: "destructive"
       });
     }
@@ -138,7 +150,7 @@ export default function UserManagement() {
     try {
       await createUserMutation.mutateAsync(data);
     } catch (error) {
-      console.error('Create user error:', error);
+      console.error('Submit error:', error);
     }
   }
 
@@ -159,12 +171,12 @@ export default function UserManagement() {
     <PageSection>
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold">User Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{translate("User Management")}</h1>
           <div className="flex items-center gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search users..."
+                placeholder={translate("Search users...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 w-[300px]"
@@ -174,12 +186,12 @@ export default function UserManagement() {
               <DialogTrigger asChild>
                 <Button>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Create User
+                  {translate("Create User")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New User</DialogTitle>
+                  <DialogTitle>{translate("Create New User")}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -188,7 +200,7 @@ export default function UserManagement() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name</FormLabel>
+                          <FormLabel>{translate("Name")}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -201,7 +213,7 @@ export default function UserManagement() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{translate("Email")}</FormLabel>
                           <FormControl>
                             <Input type="email" {...field} />
                           </FormControl>
@@ -214,7 +226,7 @@ export default function UserManagement() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{translate("Password")}</FormLabel>
                           <FormControl>
                             <Input type="password" {...field} />
                           </FormControl>
@@ -227,17 +239,17 @@ export default function UserManagement() {
                       name="role"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Role</FormLabel>
+                          <FormLabel>{translate("Role")}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a role" />
+                                <SelectValue placeholder={translate("Select a role")} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="server">Server</SelectItem>
-                              <SelectItem value="customer">Customer</SelectItem>
+                              <SelectItem value="admin">{translate("Admin")}</SelectItem>
+                              <SelectItem value="server">{translate("Server")}</SelectItem>
+                              <SelectItem value="customer">{translate("Customer")}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -248,10 +260,10 @@ export default function UserManagement() {
                       {createUserMutation.isPending ? (
                         <span className="flex items-center">
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
+                          {translate("Creating...")}
                         </span>
                       ) : (
-                        "Create User"
+                        translate("Create User")
                       )}
                     </Button>
                   </form>
@@ -277,7 +289,7 @@ export default function UserManagement() {
                   </div>
                   <div className="flex items-center gap-4">
                     <Badge variant={user.isActive ? "default" : "secondary"}>
-                      {user.isActive ? "Active" : "Inactive"}
+                      {user.isActive ? translate("Active") : translate("Inactive")}
                     </Badge>
                     <div className="flex gap-2">
                       <Button
@@ -288,7 +300,7 @@ export default function UserManagement() {
                           setDialogOpen(true);
                         }}
                       >
-                        View Details
+                        {translate("View Details")}
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -296,23 +308,23 @@ export default function UserManagement() {
                             variant={user.isActive ? "destructive" : "default"}
                             size="sm"
                           >
-                            {user.isActive ? "Deactivate" : "Activate"}
+                            {user.isActive ? translate("Deactivate") : translate("Activate")}
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              {user.isActive ? "Deactivate User" : "Activate User"}
+                              {user.isActive ? translate("Deactivate User") : translate("Activate User")}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                               {user.isActive
-                                ? "This will prevent the user from logging in. Are you sure?"
-                                : "This will allow the user to log in again. Continue?"
+                                ? translate("This will prevent the user from logging in. Are you sure?")
+                                : translate("This will allow the user to log in again. Continue?")
                               }
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{translate("Cancel")}</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() =>
                                 updateUserStatusMutation.mutate({
@@ -324,10 +336,10 @@ export default function UserManagement() {
                               {updateUserStatusMutation.isPending ? (
                                 <span className="flex items-center">
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Updating...
+                                  {translate("Updating...")}
                                 </span>
                               ) : (
-                                "Continue"
+                                translate("Continue")
                               )}
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -347,29 +359,29 @@ export default function UserManagement() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <UserCog className="h-5 w-5" />
-                User Details
+                {translate("User Details")}
               </DialogTitle>
             </DialogHeader>
             {selectedUser && (
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-medium">Name</h3>
+                  <h3 className="font-medium">{translate("Name")}</h3>
                   <p className="text-muted-foreground">{selectedUser.name}</p>
                 </div>
                 <div>
-                  <h3 className="font-medium">Email</h3>
+                  <h3 className="font-medium">{translate("Email")}</h3>
                   <p className="text-muted-foreground">{selectedUser.email}</p>
                 </div>
                 <div>
-                  <h3 className="font-medium">Role</h3>
+                  <h3 className="font-medium">{translate("Role")}</h3>
                   <Badge variant="outline" className="mt-1">
                     {selectedUser.role}
                   </Badge>
                 </div>
                 <div>
-                  <h3 className="font-medium">Status</h3>
+                  <h3 className="font-medium">{translate("Status")}</h3>
                   <Badge variant={selectedUser.isActive ? "default" : "secondary"}>
-                    {selectedUser.isActive ? "Active" : "Inactive"}
+                    {selectedUser.isActive ? translate("Active") : translate("Inactive")}
                   </Badge>
                 </div>
               </div>
