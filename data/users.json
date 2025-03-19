@@ -35,5 +35,17 @@
     "currentTierId": null,
     "createdAt": "2025-03-19T20:25:36.295Z",
     "updatedAt": "2025-03-19T20:25:36.295Z"
+  },
+  {
+    "id": 4,
+    "name": "Server 2",
+    "email": "tm5@tm.com",
+    "password": "$2b$10$B0giOiNeKkJk7XFiMOWOn./0jYNhQx0JB56CPeVOlUET6K2OnSIry",
+    "role": "server",
+    "isActive": true,
+    "totalPoints": 0,
+    "currentTierId": null,
+    "createdAt": "2025-03-19T20:31:28.775Z",
+    "updatedAt": "2025-03-19T20:31:28.775Z"
   }
 ]

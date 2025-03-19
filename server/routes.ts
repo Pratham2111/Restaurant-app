@@ -452,7 +452,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/table-assignments", async (req, res) => {
     try {
-      const assignment = insertTableAssignmentSchema.parse(req.body);
+      const assignment = insertTableAssignmentSchema.parse({
+        ...req.body,
+        startTime: new Date(req.body.startTime) // Convert ISO string to Date object
+      });
       const result = await storage.createTableAssignment(assignment);
       res.status(201).json(result);
     } catch (error) {
@@ -688,8 +691,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
-
-
 
   const httpServer = createServer(app);
   return httpServer;

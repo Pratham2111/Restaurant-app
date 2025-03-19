@@ -211,7 +211,7 @@ export default function TableManagement() {
       const res = await apiRequest("POST", "/api/table-assignments", {
         tableId,
         serverId,
-        startTime: new Date().toISOString(),
+        startTime: new Date().toISOString(), // Send as ISO string
         status: "active",
       });
       if (!res.ok) {
