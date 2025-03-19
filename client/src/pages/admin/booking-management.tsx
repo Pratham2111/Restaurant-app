@@ -24,9 +24,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import type { Booking, Table as TableType } from "@shared/schema";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+import { usePagination } from "@/hooks/use-pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function BookingManagement() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,9 +46,9 @@ export default function BookingManagement() {
 
   const { data: bookings, isLoading: loadingBookings, error: bookingsError } = useQuery<Booking[]>({
     queryKey: ["/api/bookings"],
-    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchInterval: 5000,
     refetchOnWindowFocus: true,
-    staleTime: 0 // Consider data stale immediately
+    staleTime: 0
   });
 
   const { data: tables } = useQuery<TableType[]>({
@@ -86,6 +96,16 @@ export default function BookingManagement() {
     return matchesSearch && matchesDate;
   });
 
+  const pagination = usePagination({
+    totalItems: filteredBookings?.length || 0,
+    itemsPerPage: 10
+  });
+
+  const paginatedBookings = filteredBookings?.slice(
+    pagination.startIndex,
+    pagination.endIndex
+  );
+
   if (loadingBookings) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -111,12 +131,15 @@ export default function BookingManagement() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <Input
-                placeholder={translate("Search by name, email or phone...")}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="sm:max-w-[300px]"
-              />
+              <div className="relative flex-grow sm:flex-grow-0">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={translate("Search by name, email or phone...")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-full sm:w-[300px]"
+                />
+              </div>
               <Select
                 value={dateFilter}
                 onValueChange={setDateFilter}
@@ -145,8 +168,8 @@ export default function BookingManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredBookings && filteredBookings.length > 0 ? (
-                    filteredBookings
+                  {paginatedBookings && paginatedBookings.length > 0 ? (
+                    paginatedBookings
                       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                       .map((booking) => (
                         <TableRow key={booking.id}>
@@ -176,6 +199,42 @@ export default function BookingManagement() {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination */}
+            {filteredBookings && filteredBookings.length > 0 && (
+              <div className="mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={pagination.prevPage}
+                        className={pagination.currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => pagination.goToPage(page)}
+                          isActive={pagination.currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={pagination.nextPage}
+                        className={
+                          pagination.currentPage === pagination.totalPages
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
