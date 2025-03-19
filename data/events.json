@@ -5,9 +5,9 @@
     "description": "Join us for an exclusive wine tasting event featuring premium selections from Napa Valley. Includes cheese pairing and expert sommelier guidance.",
     "imageUrl": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3",
     "date": "2025-04-15T19:00:00.000Z",
-    "featured": true,
+    "featured": false,
     "createdAt": "2025-03-19T00:00:00.000Z",
-    "updatedAt": "2025-03-19T00:00:00.000Z"
+    "updatedAt": "2025-03-19T18:50:41.087Z"
   },
   {
     "id": 2,

@@ -7,9 +7,21 @@
     "price": 12.99,
     "imageUrl": "https://images.unsplash.com/photo-1506280754576-f6fa8a873550",
     "isSpecial": false,
-    "nutritionInfo": ["Calories: 220", "Protein: 5g", "Carbs: 25g"],
-    "ingredients": ["Sourdough Bread", "Tomatoes", "Basil", "Garlic", "Olive Oil"],
-    "allergens": ["Gluten"],
+    "nutritionInfo": [
+      "Calories: 220",
+      "Protein: 5g",
+      "Carbs: 25g"
+    ],
+    "ingredients": [
+      "Sourdough Bread",
+      "Tomatoes",
+      "Basil",
+      "Garlic",
+      "Olive Oil"
+    ],
+    "allergens": [
+      "Gluten"
+    ],
     "servingSize": "3 pieces",
     "preparationTime": "10 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
@@ -23,9 +35,22 @@
     "price": 28.99,
     "imageUrl": "https://images.unsplash.com/photo-1580476262798-bddd9f4b7369",
     "isSpecial": true,
-    "nutritionInfo": ["Calories: 450", "Protein: 42g", "Omega-3: High"],
-    "ingredients": ["Atlantic Salmon", "Seasonal Vegetables", "Lemon", "Butter", "Herbs"],
-    "allergens": ["Fish", "Dairy"],
+    "nutritionInfo": [
+      "Calories: 450",
+      "Protein: 42g",
+      "Omega-3: High"
+    ],
+    "ingredients": [
+      "Atlantic Salmon",
+      "Seasonal Vegetables",
+      "Lemon",
+      "Butter",
+      "Herbs"
+    ],
+    "allergens": [
+      "Fish",
+      "Dairy"
+    ],
     "servingSize": "8 oz",
     "preparationTime": "25 minutes",
     "chefsStory": "Our salmon is sourced from sustainable fisheries and prepared using a secret house marinade",
@@ -40,9 +65,22 @@
     "price": 11.99,
     "imageUrl": "https://images.unsplash.com/photo-1541783245831-57d6fb0926d3",
     "isSpecial": false,
-    "nutritionInfo": ["Calories: 380", "Sugar: 25g"],
-    "ingredients": ["Dark Chocolate", "Butter", "Eggs", "Flour", "Vanilla Ice Cream"],
-    "allergens": ["Dairy", "Eggs", "Gluten"],
+    "nutritionInfo": [
+      "Calories: 380",
+      "Sugar: 25g"
+    ],
+    "ingredients": [
+      "Dark Chocolate",
+      "Butter",
+      "Eggs",
+      "Flour",
+      "Vanilla Ice Cream"
+    ],
+    "allergens": [
+      "Dairy",
+      "Eggs",
+      "Gluten"
+    ],
     "servingSize": "1 cake",
     "preparationTime": "15 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
@@ -56,27 +94,20 @@
     "price": 5.99,
     "imageUrl": "https://images.unsplash.com/photo-1556881286-fc6915169721",
     "isSpecial": false,
-    "nutritionInfo": ["Calories: 120", "Sugar: 20g"],
-    "ingredients": ["Lemon", "Sugar", "Mint", "Lavender", "Sparkling Water"],
+    "nutritionInfo": [
+      "Calories: 120",
+      "Sugar: 20g"
+    ],
+    "ingredients": [
+      "Lemon",
+      "Sugar",
+      "Mint",
+      "Lavender",
+      "Sparkling Water"
+    ],
     "allergens": [],
     "servingSize": "16 oz",
     "preparationTime": "5 minutes",
-    "createdAt": "2025-03-19T00:00:00.000Z",
-    "updatedAt": "2025-03-19T00:00:00.000Z"
-  },
-  {
-    "id": 5,
-    "categoryId": 2,
-    "name": "Truffle Risotto",
-    "description": "Creamy Arborio rice with wild mushrooms, finished with black truffle and aged Parmesan",
-    "price": 32.99,
-    "imageUrl": "https://images.unsplash.com/photo-1633964913076-5f6c7db78e23",
-    "isSpecial": true,
-    "nutritionInfo": ["Calories: 520", "Protein: 12g", "Carbs: 65g"],
-    "ingredients": ["Arborio Rice", "Wild Mushrooms", "Black Truffle", "Parmesan", "White Wine"],
-    "allergens": ["Dairy"],
-    "servingSize": "12 oz",
-    "preparationTime": "30 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
     "updatedAt": "2025-03-19T00:00:00.000Z"
   },
@@ -88,9 +119,22 @@
     "price": 18.99,
     "imageUrl": "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351",
     "isSpecial": false,
-    "nutritionInfo": ["Calories: 280", "Protein: 26g", "Fat: 18g"],
-    "ingredients": ["Yellowfin Tuna", "Sesame Oil", "Soy Sauce", "Wasabi", "Avocado"],
-    "allergens": ["Fish", "Soy"],
+    "nutritionInfo": [
+      "Calories: 280",
+      "Protein: 26g",
+      "Fat: 18g"
+    ],
+    "ingredients": [
+      "Yellowfin Tuna",
+      "Sesame Oil",
+      "Soy Sauce",
+      "Wasabi",
+      "Avocado"
+    ],
+    "allergens": [
+      "Fish",
+      "Soy"
+    ],
     "servingSize": "6 oz",
     "preparationTime": "15 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
@@ -104,9 +148,23 @@
     "price": 26.99,
     "imageUrl": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
     "isSpecial": true,
-    "nutritionInfo": ["Calories: 850", "Protein: 45g", "Fat: 52g"],
-    "ingredients": ["Wagyu Beef", "Brioche Bun", "Aged Cheddar", "Caramelized Onions", "Truffle Aioli"],
-    "allergens": ["Dairy", "Gluten", "Eggs"],
+    "nutritionInfo": [
+      "Calories: 850",
+      "Protein: 45g",
+      "Fat: 52g"
+    ],
+    "ingredients": [
+      "Wagyu Beef",
+      "Brioche Bun",
+      "Aged Cheddar",
+      "Caramelized Onions",
+      "Truffle Aioli"
+    ],
+    "allergens": [
+      "Dairy",
+      "Gluten",
+      "Eggs"
+    ],
     "servingSize": "8 oz patty",
     "preparationTime": "20 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
@@ -120,9 +178,21 @@
     "price": 12.99,
     "imageUrl": "https://images.unsplash.com/photo-1470324161839-ce2bb6fa6bc3",
     "isSpecial": false,
-    "nutritionInfo": ["Calories: 320", "Sugar: 22g", "Fat: 18g"],
-    "ingredients": ["Heavy Cream", "Vanilla Bean", "Egg Yolks", "Sugar"],
-    "allergens": ["Dairy", "Eggs"],
+    "nutritionInfo": [
+      "Calories: 320",
+      "Sugar: 22g",
+      "Fat: 18g"
+    ],
+    "ingredients": [
+      "Heavy Cream",
+      "Vanilla Bean",
+      "Egg Yolks",
+      "Sugar"
+    ],
+    "allergens": [
+      "Dairy",
+      "Eggs"
+    ],
     "servingSize": "6 oz",
     "preparationTime": "10 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
@@ -136,8 +206,15 @@
     "price": 16.99,
     "imageUrl": "https://images.unsplash.com/photo-1575023782549-62ca0d244b39",
     "isSpecial": true,
-    "nutritionInfo": ["Calories: 220", "Sugar: 0g"],
-    "ingredients": ["Botanical Gin", "Dry Vermouth", "Olive Tincture"],
+    "nutritionInfo": [
+      "Calories: 220",
+      "Sugar: 0g"
+    ],
+    "ingredients": [
+      "Botanical Gin",
+      "Dry Vermouth",
+      "Olive Tincture"
+    ],
     "allergens": [],
     "servingSize": "6 oz",
     "preparationTime": "5 minutes",

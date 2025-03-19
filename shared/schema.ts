@@ -176,7 +176,12 @@ export const insertMenuItemSchema = z.object({
   categoryId: z.number(),
   name: z.string().min(1),
   description: z.string(),
-  price: z.number().positive(),
+  price: z.union([
+    z.number(),
+    z.string().transform((val) => parseFloat(val))
+  ]).refine((val) => !isNaN(val) && val > 0, {
+    message: "Price must be a positive number"
+  }),
   imageUrl: z.string().url(),
   isSpecial: z.boolean().default(false),
   nutritionInfo: z.array(z.string()).optional().default([]),

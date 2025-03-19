@@ -96,17 +96,5 @@
     "notes": "Premium bar seating with window view",
     "createdAt": "2025-03-19T00:00:00.000Z",
     "updatedAt": "2025-03-19T00:00:00.000Z"
-  },
-  {
-    "id": 9,
-    "name": "Table 4",
-    "section": "main",
-    "seats": 8,
-    "shape": "rectangular",
-    "status": "available",
-    "isActive": true,
-    "notes": "Near fireplace, cozy atmosphere",
-    "createdAt": "2025-03-19T00:00:00.000Z",
-    "updatedAt": "2025-03-19T00:00:00.000Z"
   }
 ]
