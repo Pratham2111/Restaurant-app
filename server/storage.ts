@@ -1,3 +1,5 @@
+import { promises as fs } from 'fs';
+import { join } from 'path';
 import {
   type Category, type MenuItem, type Table, type Booking, type Order,
   type TableAssignment, type Server, type User,
@@ -5,12 +7,9 @@ import {
   type InsertOrder, type InsertTableAssignment, type InsertServer, type InsertUser,
   type Event, type InsertEvent, type LoyaltyTier, type LoyaltyPoint, type LoyaltyReward,
   type InsertLoyaltyTier, type InsertLoyaltyPoint, type InsertLoyaltyReward,
-  users, menuItems, menuCategories, tables, events, servers, tableAssignments,
-  loyaltyTiers, loyaltyPoints, loyaltyRewards, bookings, siteSettings, type SiteSettings, type InsertSiteSettings,
-  orders
+  type SiteSettings, type InsertSiteSettings,
 } from "@shared/schema";
-import { db } from "./db";
-import { eq, and, isNull } from "drizzle-orm";
+
 
 export interface IStorage {
   // Categories
@@ -88,421 +87,459 @@ export interface IStorage {
   updateSiteSettings(settings: InsertSiteSettings): Promise<SiteSettings>;
 }
 
-export class DatabaseStorage implements IStorage {
+const DATA_DIR = join(process.cwd(), 'data');
+
+// Ensure data directory exists
+async function ensureDataDir() {
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+  } catch (error) {
+    console.error('Error creating data directory:', error);
+  }
+}
+
+// Generic function to read JSON file
+async function readJsonFile<T>(filename: string): Promise<T[]> {
+  try {
+    const filepath = join(DATA_DIR, filename);
+    const data = await fs.readFile(filepath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    return [];
+  }
+}
+
+// Generic function to write JSON file
+async function writeJsonFile<T>(filename: string, data: T[]): Promise<void> {
+  try {
+    const filepath = join(DATA_DIR, filename);
+    await fs.writeFile(filepath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error(`Error writing to ${filename}:`, error);
+    throw error;
+  }
+}
+
+export class MemStorage implements IStorage {
+  private users: User[] = [];
+  private menuItems: MenuItem[] = [];
+  private categories: Category[] = [];
+  private tables: Table[] = [];
+  private bookings: Booking[] = [];
+  private orders: Order[] = [];
+  private servers: Server[] = [];
+  private tableAssignments: TableAssignment[] = [];
+  private events: Event[] = [];
+  private loyaltyTiers: LoyaltyTier[] = [];
+  private loyaltyPoints: LoyaltyPoint[] = [];
+  private loyaltyRewards: LoyaltyReward[] = [];
+  private settings: SiteSettings | null = null;
+
+  constructor() {
+    this.loadData();
+  }
+
+  private async loadData() {
+    await ensureDataDir();
+    this.users = await readJsonFile<User>('users.json');
+    this.menuItems = await readJsonFile<MenuItem>('menu-items.json');
+    this.categories = await readJsonFile<Category>('categories.json');
+    this.tables = await readJsonFile<Table>('tables.json');
+    this.bookings = await readJsonFile<Booking>('bookings.json');
+    this.orders = await readJsonFile<Order>('orders.json');
+    this.servers = await readJsonFile<Server>('servers.json');
+    this.tableAssignments = await readJsonFile<TableAssignment>('table-assignments.json');
+    this.events = await readJsonFile<Event>('events.json');
+    this.loyaltyTiers = await readJsonFile<LoyaltyTier>('loyalty-tiers.json');
+    this.loyaltyPoints = await readJsonFile<LoyaltyPoint>('loyalty-points.json');
+    this.loyaltyRewards = await readJsonFile<LoyaltyReward>('loyalty-rewards.json');
+
+    const settings = await readJsonFile<SiteSettings>('site-settings.json');
+    this.settings = settings[0] || null;
+  }
+
+  private async saveData(type: string, data: any[]) {
+    await writeJsonFile(`${type}.json`, data);
+  }
+
+  // Users
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+    return this.users.find(user => user.email === email);
   }
 
   async getUserById(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return this.users.find(user => user.id === id);
   }
 
   async createUser(userData: Omit<InsertUser, "confirmPassword">): Promise<User> {
-    const [user] = await db.insert(users).values(userData).returning();
-    return user;
+    const newUser: User = {
+      id: this.users.length + 1,
+      ...userData,
+      isActive: true,
+      totalPoints: 0,
+      currentTierId: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.users.push(newUser);
+    await this.saveData('users', this.users);
+    return newUser;
   }
 
   async getUsers(): Promise<User[]> {
-    return db.select().from(users);
+    return this.users;
   }
 
   async updateUserStatus(id: number, isActive: boolean): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ isActive, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
+    const user = this.users.find(u => u.id === id);
+    if (!user) throw new Error('User not found');
+    user.isActive = isActive;
+    user.updatedAt = new Date();
+    await this.saveData('users', this.users);
     return user;
   }
 
+  // Menu Items
   async getMenuItems(): Promise<MenuItem[]> {
-    return db.select().from(menuItems);
+    return this.menuItems;
   }
 
   async getMenuItemsByCategory(categoryId: number): Promise<MenuItem[]> {
-    return db.select()
-      .from(menuItems)
-      .where(eq(menuItems.categoryId, categoryId));
+    return this.menuItems.filter(item => item.categoryId === categoryId);
   }
 
-  async getCategories(): Promise<Category[]> {
-    return db.select().from(menuCategories);
-  }
   async createMenuItem(item: InsertMenuItem): Promise<MenuItem> {
-    const [menuItem] = await db.insert(menuItems).values(item).returning();
-    return menuItem;
+    const newItem: MenuItem = {
+      id: this.menuItems.length + 1,
+      ...item,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.menuItems.push(newItem);
+    await this.saveData('menu-items', this.menuItems);
+    return newItem;
+  }
+
+  // Categories
+  async getCategories(): Promise<Category[]> {
+    return this.categories;
+  }
+
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const newCategory: Category = {
+      id: this.categories.length + 1,
+      ...category,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.categories.push(newCategory);
+    await this.saveData('categories', this.categories);
+    return newCategory;
   }
 
   async updateMenuItem(id: number, item: InsertMenuItem): Promise<MenuItem> {
-    const [updatedItem] = await db
-      .update(menuItems)
-      .set(item)
-      .where(eq(menuItems.id, id))
-      .returning();
-    return updatedItem;
+    const index = this.menuItems.findIndex(i => i.id === id);
+    if (index === -1) throw new Error('Menu Item not found');
+    this.menuItems[index] = { ...this.menuItems[index], ...item, updatedAt: new Date() };
+    await this.saveData('menu-items', this.menuItems);
+    return this.menuItems[index];
   }
 
   async deleteMenuItem(id: number): Promise<void> {
-    await db.delete(menuItems).where(eq(menuItems.id, id));
+    this.menuItems = this.menuItems.filter(item => item.id !== id);
+    await this.saveData('menu-items', this.menuItems);
   }
+
   async getTables(): Promise<Table[]> {
-    return db.select().from(tables);
+    return this.tables;
   }
 
   async getTableById(id: number): Promise<Table | undefined> {
-    const [table] = await db.select()
-      .from(tables)
-      .where(eq(tables.id, id));
-    return table;
+    return this.tables.find(table => table.id === id);
   }
 
   async getTablesBySection(section: string): Promise<Table[]> {
-    return db.select()
-      .from(tables)
-      .where(eq(tables.section, section));
+    return this.tables.filter(table => table.section === section);
   }
 
   async getTablesByStatus(status: string): Promise<Table[]> {
-    return db.select()
-      .from(tables)
-      .where(eq(tables.status, status));
+    return this.tables.filter(table => table.status === status);
   }
 
   async updateTableStatus(id: number, status: string): Promise<Table> {
-    const [updatedTable] = await db
-      .update(tables)
-      .set({ status })
-      .where(eq(tables.id, id))
-      .returning();
-    return updatedTable;
+    const table = this.tables.find(t => t.id === id);
+    if (!table) throw new Error('Table not found');
+    table.status = status;
+    table.updatedAt = new Date();
+    await this.saveData('tables', this.tables);
+    return table;
   }
 
   async createTable(table: InsertTable): Promise<Table> {
-    const [newTable] = await db.insert(tables).values(table).returning();
+    const newTable: Table = {
+      id: this.tables.length + 1,
+      ...table,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.tables.push(newTable);
+    await this.saveData('tables', this.tables);
     return newTable;
   }
 
   async updateTable(id: number, table: InsertTable): Promise<Table> {
-    const [updatedTable] = await db
-      .update(tables)
-      .set(table)
-      .where(eq(tables.id, id))
-      .returning();
-    return updatedTable;
+    const index = this.tables.findIndex(t => t.id === id);
+    if (index === -1) throw new Error('Table not found');
+    this.tables[index] = { ...this.tables[index], ...table, updatedAt: new Date() };
+    await this.saveData('tables', this.tables);
+    return this.tables[index];
   }
 
   async deleteTable(id: number): Promise<void> {
-    await db.delete(tables).where(eq(tables.id, id));
+    this.tables = this.tables.filter(table => table.id !== id);
+    await this.saveData('tables', this.tables);
   }
 
   async getAvailableTables(date: Date): Promise<Table[]> {
-    return db.select()
-      .from(tables)
-      .where(eq(tables.status, 'available'))
-      .where(eq(tables.isActive, true));
+    return this.tables.filter(table => table.status === 'available' && table.isActive);
   }
 
   async getEvents(): Promise<Event[]> {
-    return db.select().from(events);
+    return this.events;
   }
 
   async createEvent(event: InsertEvent): Promise<Event> {
-    const [newEvent] = await db.insert(events).values(event).returning();
+    const newEvent: Event = {
+      id: this.events.length + 1,
+      ...event,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.events.push(newEvent);
+    await this.saveData('events', this.events);
     return newEvent;
   }
 
   async updateEvent(id: number, event: InsertEvent): Promise<Event> {
-    const [updatedEvent] = await db
-      .update(events)
-      .set(event)
-      .where(eq(events.id, id))
-      .returning();
-    return updatedEvent;
+    const index = this.events.findIndex(e => e.id === id);
+    if (index === -1) throw new Error('Event not found');
+    this.events[index] = { ...this.events[index], ...event, updatedAt: new Date() };
+    await this.saveData('events', this.events);
+    return this.events[index];
   }
 
   async deleteEvent(id: number): Promise<void> {
-    await db.delete(events).where(eq(events.id, id));
+    this.events = this.events.filter(event => event.id !== id);
+    await this.saveData('events', this.events);
   }
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
-    try {
-      const [newBooking] = await db
-        .insert(bookings)
-        .values({
-          tableId: booking.tableId,
-          date: booking.date,
-          name: booking.name,
-          email: booking.email,
-          phone: booking.phone,
-          guestCount: booking.guestCount
-        })
-        .returning();
-      return newBooking;
-    } catch (error) {
-      console.error('Error creating booking:', error);
-      throw new Error('Failed to create booking');
-    }
+    const newBooking: Booking = {
+      id: this.bookings.length + 1,
+      ...booking,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.bookings.push(newBooking);
+    await this.saveData('bookings', this.bookings);
+    return newBooking;
   }
+
   async getBookings(): Promise<Booking[]> {
-    return db.select().from(bookings);
+    return this.bookings;
   }
+
   async createOrder(order: InsertOrder): Promise<Order> {
-    try {
-      // Convert order.items to a JSON string for storage
-      const itemsArray = Array.isArray(order.items) ? order.items : [];
-
-      const orderData = {
-        customerName: order.customerName,
-        customerEmail: order.customerEmail,
-        customerPhone: order.customerPhone,
-        items: JSON.stringify(itemsArray),
-        total: order.total.toString(),
-        status: 'pending',
-        createdAt: new Date()
-      };
-
-      const [newOrder] = await db.insert(orders).values(orderData).returning();
-
-      return {
-        ...newOrder,
-        items: JSON.parse(newOrder.items as string)
-      };
-    } catch (error) {
-      console.error('Error creating order:', error);
-      throw new Error('Failed to create order');
-    }
+    const newOrder: Order = {
+      id: this.orders.length + 1,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone,
+      items: order.items,
+      total: order.total,
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.orders.push(newOrder);
+    await this.saveData('orders', this.orders);
+    return newOrder;
   }
 
   async getOrder(id: number): Promise<Order | undefined> {
-    try {
-      const [order] = await db.select().from(orders).where(eq(orders.id, id));
-      if (!order) return undefined;
-
-      return {
-        ...order,
-        items: JSON.parse(order.items as string)
-      };
-    } catch (error) {
-      console.error('Error fetching order:', error);
-      throw new Error('Failed to fetch order');
-    }
+    return this.orders.find(order => order.id === id);
   }
 
   async getOrders(): Promise<Order[]> {
-    try {
-      const ordersList = await db.select().from(orders);
-      return ordersList.map(order => ({
-        ...order,
-        items: JSON.parse(order.items as string)
-      }));
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      throw new Error('Failed to fetch orders');
-    }
+    return this.orders;
   }
 
   async updateOrderStatus(id: number, status: string): Promise<Order> {
-    try {
-      const [updatedOrder] = await db
-        .update(orders)
-        .set({ status })
-        .where(eq(orders.id, id))
-        .returning();
-
-      return {
-        ...updatedOrder,
-        items: JSON.parse(updatedOrder.items as string)
-      };
-    } catch (error) {
-      console.error('Error updating order status:', error);
-      throw new Error('Failed to update order status');
-    }
+    const order = this.orders.find(o => o.id === id);
+    if (!order) throw new Error('Order not found');
+    order.status = status;
+    order.updatedAt = new Date();
+    await this.saveData('orders', this.orders);
+    return order;
   }
 
   async getServers(): Promise<Server[]> {
-    return db.select().from(servers);
+    return this.servers;
   }
 
   async getActiveServers(): Promise<Server[]> {
-    return db.select()
-      .from(servers)
-      .where(eq(servers.isActive, true));
+    return this.servers.filter(server => server.isActive);
   }
 
   async createServer(server: InsertServer): Promise<Server> {
-    const [newServer] = await db.insert(servers).values(server).returning();
+    const newServer: Server = {
+      id: this.servers.length + 1,
+      ...server,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.servers.push(newServer);
+    await this.saveData('servers', this.servers);
     return newServer;
   }
 
   async getTableAssignments(status?: string): Promise<TableAssignment[]> {
-    let query = db.select().from(tableAssignments);
     if (status) {
-      query = query.where(eq(tableAssignments.status, status));
+      return this.tableAssignments.filter(assignment => assignment.status === status);
     }
-    return query;
+    return this.tableAssignments;
   }
 
   async createTableAssignment(assignment: InsertTableAssignment): Promise<TableAssignment> {
-    const [newAssignment] = await db.insert(tableAssignments).values(assignment).returning();
+    const newAssignment: TableAssignment = {
+      id: this.tableAssignments.length + 1,
+      ...assignment,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.tableAssignments.push(newAssignment);
+    await this.saveData('table-assignments', this.tableAssignments);
     return newAssignment;
   }
 
   async updateTableAssignment(id: number, endTime: Date): Promise<TableAssignment> {
-    const [updatedAssignment] = await db
-      .update(tableAssignments)
-      .set({
-        endTime,
-        status: 'completed'
-      })
-      .where(eq(tableAssignments.id, id))
-      .returning();
-    return updatedAssignment;
+    const assignment = this.tableAssignments.find(a => a.id === id);
+    if (!assignment) throw new Error('Table assignment not found');
+    assignment.endTime = endTime;
+    assignment.status = 'completed';
+    assignment.updatedAt = new Date();
+    await this.saveData('table-assignments', this.tableAssignments);
+    return assignment;
   }
 
   async getActiveAssignmentsByServer(serverId: number): Promise<TableAssignment[]> {
-    return db.select()
-      .from(tableAssignments)
-      .where(
-        and(
-          eq(tableAssignments.serverId, serverId),
-          eq(tableAssignments.status, 'active'),
-          isNull(tableAssignments.endTime)
-        )
-      );
+    return this.tableAssignments.filter(assignment =>
+      assignment.serverId === serverId && assignment.status === 'active' && !assignment.endTime
+    );
   }
 
   async getLoyaltyTiers(): Promise<LoyaltyTier[]> {
-    return db.select().from(loyaltyTiers);
+    return this.loyaltyTiers;
   }
 
   async getLoyaltyTierById(id: number): Promise<LoyaltyTier | undefined> {
-    const [tier] = await db.select()
-      .from(loyaltyTiers)
-      .where(eq(loyaltyTiers.id, id));
-    return tier;
+    return this.loyaltyTiers.find(tier => tier.id === id);
   }
 
   async createLoyaltyTier(tier: InsertLoyaltyTier): Promise<LoyaltyTier> {
-    const [newTier] = await db.insert(loyaltyTiers).values(tier).returning();
+    const newTier: LoyaltyTier = {
+      id: this.loyaltyTiers.length + 1,
+      ...tier,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.loyaltyTiers.push(newTier);
+    await this.saveData('loyalty-tiers', this.loyaltyTiers);
     return newTier;
   }
 
   async getLoyaltyPoints(userId: number): Promise<LoyaltyPoint[]> {
-    return db.select()
-      .from(loyaltyPoints)
-      .where(eq(loyaltyPoints.userId, userId));
+    return this.loyaltyPoints.filter(point => point.userId === userId);
   }
 
   async addLoyaltyPoints(point: InsertLoyaltyPoint): Promise<LoyaltyPoint> {
-    const [newPoint] = await db.insert(loyaltyPoints).values(point).returning();
+    const newPoint: LoyaltyPoint = {
+      id: this.loyaltyPoints.length + 1,
+      ...point,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.loyaltyPoints.push(newPoint);
+    await this.saveData('loyalty-points', this.loyaltyPoints);
     return newPoint;
   }
 
   async getLoyaltyRewards(): Promise<LoyaltyReward[]> {
-    return db.select().from(loyaltyRewards);
+    return this.loyaltyRewards;
   }
 
   async getLoyaltyRewardById(id: number): Promise<LoyaltyReward | undefined> {
-    const [reward] = await db.select()
-      .from(loyaltyRewards)
-      .where(eq(loyaltyRewards.id, id));
-    return reward;
+    return this.loyaltyRewards.find(reward => reward.id === id);
   }
 
   async createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward> {
-    const [newReward] = await db.insert(loyaltyRewards).values(reward).returning();
+    const newReward: LoyaltyReward = {
+      id: this.loyaltyRewards.length + 1,
+      ...reward,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.loyaltyRewards.push(newReward);
+    await this.saveData('loyalty-rewards', this.loyaltyRewards);
     return newReward;
   }
 
   async updateUserPoints(userId: number, pointsToAdd: number): Promise<User> {
-    const user = await this.getUserById(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        totalPoints: user.totalPoints + pointsToAdd,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId))
-      .returning();
-
-    return updatedUser;
+    const user = this.users.find(u => u.id === userId);
+    if (!user) throw new Error('User not found');
+    user.totalPoints += pointsToAdd;
+    user.updatedAt = new Date();
+    await this.saveData('users', this.users);
+    return user;
   }
 
   async updateUserTier(userId: number, tierId: number): Promise<User> {
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        currentTierId: tierId,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId))
-      .returning();
-
-    return updatedUser;
+    const user = this.users.find(u => u.id === userId);
+    if (!user) throw new Error('User not found');
+    user.currentTierId = tierId;
+    user.updatedAt = new Date();
+    await this.saveData('users', this.users);
+    return user;
   }
 
+  // Site Settings
   async getSiteSettings(): Promise<SiteSettings> {
-    try {
-      const [settings] = await db.select().from(siteSettings);
-      if (!settings) {
-        // Return default settings if none exist
-        return {
-          id: 1,
-          language: "en",
-          country: "US",
-          currency: "USD",
-          translations: {},
-          privacyPolicy: "",
-          cookiePolicy: "",
-          termsConditions: "",
-          updatedAt: new Date()
-        };
-      }
-      return settings;
-    } catch (error) {
-      console.error('Error fetching site settings:', error);
-      throw new Error('Failed to fetch site settings');
+    if (!this.settings) {
+      this.settings = {
+        id: 1,
+        language: "en",
+        country: "US",
+        currency: "USD",
+        translations: {},
+        privacyPolicy: "",
+        cookiePolicy: "",
+        termsConditions: "",
+        updatedAt: new Date()
+      };
+      await this.saveData('site-settings', [this.settings]);
     }
+    return this.settings;
   }
 
   async updateSiteSettings(settings: InsertSiteSettings): Promise<SiteSettings> {
-    try {
-      const [existingSettings] = await db.select().from(siteSettings);
-
-      if (existingSettings) {
-        // Update existing settings
-        const [updatedSettings] = await db
-          .update(siteSettings)
-          .set({
-            ...settings,
-            updatedAt: new Date()
-          })
-          .where(eq(siteSettings.id, existingSettings.id))
-          .returning();
-        return updatedSettings;
-      } else {
-        // Create new settings
-        const [newSettings] = await db
-          .insert(siteSettings)
-          .values({
-            ...settings,
-            id: 1,
-            updatedAt: new Date()
-          })
-          .returning();
-        return newSettings;
-      }
-    } catch (error) {
-      console.error('Error updating site settings:', error);
-      throw new Error('Failed to update site settings');
-    }
+    this.settings = {
+      ...settings,
+      id: 1,
+      updatedAt: new Date()
+    };
+    await this.saveData('site-settings', [this.settings]);
+    return this.settings;
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();

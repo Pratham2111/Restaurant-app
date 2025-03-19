@@ -1,226 +1,297 @@
-import { pgTable, text, serial, integer, timestamp, decimal, boolean, json } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Define tables first
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  totalPoints: integer("total_points").notNull().default(0),
-  currentTierId: integer("current_tier_id").notNull().default(1),
-  role: text("role").notNull().default("customer"),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+// Types
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  totalPoints: number;
+  currentTierId: number | null;
+  role: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const events = pgTable("events", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  imageUrl: text("image_url").notNull(),
-  date: timestamp("date").notNull(),
-  featured: boolean("featured").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export interface Event {
+  id: number;
+  title: string;
+  description: string;
+  imageUrl: string;
+  date: Date;
+  featured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-// Rest of the tables
-export const menuItems = pgTable("menu_items", {
-  id: serial("id").primaryKey(),
-  categoryId: integer("category_id").notNull(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  imageUrl: text("image_url").notNull(),
-  isSpecial: boolean("is_special").notNull().default(false),
-  nutritionInfo: text("nutrition_info").array(),
-  ingredients: text("ingredients").array(),
-  chefsStory: text("chefs_story"),
-  preparationTime: text("preparation_time"),
-  spicyLevel: text("spicy_level"),
-  allergens: text("allergens").array(),
-  servingSize: text("serving_size")
-});
+export interface MenuItem {
+  id: number;
+  categoryId: number;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  isSpecial: boolean;
+  nutritionInfo: string[];
+  ingredients: string[];
+  chefsStory?: string;
+  preparationTime?: string;
+  spicyLevel?: string;
+  allergens: string[];
+  servingSize?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const menuCategories = pgTable("menu_categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  imageUrl: text("image_url").notNull()
-});
+export interface Category {
+  id: number;
+  name: string;
+  description: string;
+  imageUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const tables = pgTable("tables", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  section: text("section").notNull(),
-  seats: integer("seats").notNull(),
-  shape: text("shape").notNull(), // 'round', 'square', 'rectangular'
-  status: text("status").notNull().default('available'), // 'available', 'occupied', 'reserved', 'maintenance'
-  isActive: boolean("is_active").notNull().default(true),
-  minimumSpend: decimal("minimum_spend", { precision: 10, scale: 2 }),
-  notes: text("notes"),
-});
+export interface Table {
+  id: number;
+  name: string;
+  section: string;
+  seats: number;
+  shape: string;
+  status: string;
+  isActive: boolean;
+  minimumSpend?: number;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const tableAssignments = pgTable("table_assignments", {
-  id: serial("id").primaryKey(),
-  tableId: integer("table_id").notNull(),
-  serverId: integer("server_id").notNull(),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time"),
-  status: text("status").notNull(), // 'active', 'completed', 'cancelled'
-  notes: text("notes")
-});
+export interface TableAssignment {
+  id: number;
+  tableId: number;
+  serverId: number;
+  startTime: Date;
+  endTime?: Date;
+  status: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const servers = pgTable("servers", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  code: text("code").notNull(),
-  isActive: boolean("is_active").notNull().default(true)
-});
+export interface Server {
+  id: number;
+  name: string;
+  code: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const bookings = pgTable("bookings", {
-  id: serial("id").primaryKey(),
-  tableId: integer("table_id").notNull(),
-  date: timestamp("date").notNull(),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
-  phone: text("phone").notNull(),
-  guestCount: integer("guest_count").notNull()
-});
+export interface Booking {
+  id: number;
+  tableId: number;
+  date: Date;
+  name: string;
+  email: string;
+  phone: string;
+  guestCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const orders = pgTable("orders", {
-  id: serial("id").primaryKey(),
-  items: text("items").array().notNull(),
-  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").notNull(),
-  customerName: text("customer_name").notNull(),
-  customerEmail: text("customer_email").notNull(),
-  customerPhone: text("customer_phone").notNull(),
-  createdAt: timestamp("created_at").notNull()
-});
+export interface Order {
+  id: number;
+  items: Array<{
+    id: number;
+    quantity: number;
+    name: string;
+    price: number;
+  }>;
+  total: number;
+  status: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const loyaltyTiers = pgTable("loyalty_tiers", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  minimumPoints: integer("minimum_points").notNull(),
-  pointsMultiplier: decimal("points_multiplier", { precision: 3, scale: 2 }).notNull(),
-  benefits: text("benefits").array().notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export interface LoyaltyTier {
+  id: number;
+  name: string;
+  minimumPoints: number;
+  pointsMultiplier: number;
+  benefits: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const loyaltyPoints = pgTable("loyalty_points", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  points: integer("points").notNull(),
-  description: text("description").notNull(),
-  orderId: integer("order_id"),
-  type: text("type").notNull(), // 'earned' or 'redeemed'
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export interface LoyaltyPoint {
+  id: number;
+  userId: number;
+  points: number;
+  description: string;
+  orderId?: number;
+  type: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const loyaltyRewards = pgTable("loyalty_rewards", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  pointsCost: integer("points_cost").notNull(),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export interface LoyaltyReward {
+  id: number;
+  name: string;
+  description: string;
+  pointsCost: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const siteSettings = pgTable("site_settings", {
-  id: serial("id").primaryKey(),
-  language: text("language").notNull().default("en"),
-  country: text("country").notNull().default("US"),
-  currency: text("currency").notNull().default("USD"),
-  translations: json("translations").notNull().default({}),
-  privacyPolicy: text("privacy_policy").notNull().default(""),
-  cookiePolicy: text("cookie_policy").notNull().default(""),
-  termsConditions: text("terms_conditions").notNull().default(""),
-  updatedAt: timestamp("updated_at").notNull().defaultNow()
-});
+export interface SiteSettings {
+  id: number;
+  language: string;
+  country: string;
+  currency: string;
+  translations: Record<string, Record<string, string>>;
+  privacyPolicy: string;
+  cookiePolicy: string;
+  termsConditions: string;
+  updatedAt: Date;
+}
 
-// Insert schemas
-export const insertCategorySchema = createInsertSchema(menuCategories);
-export const insertMenuItemSchema = createInsertSchema(menuItems).extend({
-  nutritionInfo: z.array(z.string()).optional().default([]),
-  ingredients: z.array(z.string()).optional().default([]),
-  allergens: z.array(z.string()).optional().default([]),
-  chefsStory: z.string().optional().default(""),
-  preparationTime: z.string().optional().default(""),
-  spicyLevel: z.string().optional().default(""),
-  servingSize: z.string().optional().default("")
-});
-export const insertTableSchema = createInsertSchema(tables).extend({
-  section: z.enum(['main', 'outdoor', 'private', 'bar']),
-  shape: z.enum(['round', 'square', 'rectangular']),
-  status: z.enum(['available', 'occupied', 'reserved', 'maintenance']),
-});
-
-export const insertBookingSchema = createInsertSchema(bookings).extend({
-  date: z.string().transform(str => new Date(str))
-});
-
-export const insertOrderSchema = createInsertSchema(orders).extend({
-  items: z.array(z.object({
-    id: z.number(),
-    quantity: z.number(),
-    name: z.string(),
-    price: z.number()
-  }))
-});
-
-export const insertTableAssignmentSchema = createInsertSchema(tableAssignments);
-export const insertServerSchema = createInsertSchema(servers);
-export const insertUserSchema = createInsertSchema(users).extend({
+// Zod Schemas for validation
+export const insertUserSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string()
+  confirmPassword: z.string(),
+  role: z.string().default("customer"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
 
-export const insertEventSchema = createInsertSchema(events).extend({
-  date: z.string().transform(str => new Date(str))
+export const insertMenuItemSchema = z.object({
+  categoryId: z.number(),
+  name: z.string().min(1),
+  description: z.string(),
+  price: z.number().positive(),
+  imageUrl: z.string().url(),
+  isSpecial: z.boolean().default(false),
+  nutritionInfo: z.array(z.string()).optional().default([]),
+  ingredients: z.array(z.string()).optional().default([]),
+  allergens: z.array(z.string()).optional().default([]),
+  chefsStory: z.string().optional(),
+  preparationTime: z.string().optional(),
+  spicyLevel: z.string().optional(),
+  servingSize: z.string().optional()
 });
 
-export const insertLoyaltyTierSchema = createInsertSchema(loyaltyTiers);
-export const insertLoyaltyPointSchema = createInsertSchema(loyaltyPoints);
-export const insertLoyaltyRewardSchema = createInsertSchema(loyaltyRewards);
+export const insertTableSchema = z.object({
+  name: z.string(),
+  section: z.enum(['main', 'outdoor', 'private', 'bar']),
+  seats: z.number().int().positive(),
+  shape: z.enum(['round', 'square', 'rectangular']),
+  status: z.enum(['available', 'occupied', 'reserved', 'maintenance']),
+  isActive: z.boolean().default(true),
+  minimumSpend: z.number().optional(),
+  notes: z.string().optional()
+});
 
-export const insertSiteSettingsSchema = createInsertSchema(siteSettings).extend({
+export const insertBookingSchema = z.object({
+  tableId: z.number(),
+  date: z.string().transform(str => new Date(str)),
+  name: z.string(),
+  email: z.string().email(),
+  phone: z.string(),
+  guestCount: z.number().int().positive()
+});
+
+export const insertOrderSchema = z.object({
+  items: z.array(z.object({
+    id: z.number(),
+    quantity: z.number(),
+    name: z.string(),
+    price: z.number()
+  })),
+  customerName: z.string(),
+  customerEmail: z.string().email(),
+  customerPhone: z.string(),
+  total: z.number().positive()
+});
+
+export const insertEventSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  imageUrl: z.string().url(),
+  date: z.string().transform(str => new Date(str)),
+  featured: z.boolean().default(false)
+});
+
+export const insertCategorySchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  imageUrl: z.string().url()
+});
+
+export const insertTableAssignmentSchema = z.object({
+  tableId: z.number(),
+  serverId: z.number(),
+  startTime: z.date(),
+  endTime: z.date().optional(),
+  status: z.string(),
+  notes: z.string().optional()
+});
+
+export const insertServerSchema = z.object({
+  name: z.string(),
+  code: z.string(),
+  isActive: z.boolean().default(true)
+});
+
+export const insertLoyaltyTierSchema = z.object({
+  name: z.string(),
+  minimumPoints: z.number(),
+  pointsMultiplier: z.number(),
+  benefits: z.array(z.string())
+});
+
+export const insertLoyaltyPointSchema = z.object({
+  userId: z.number(),
+  points: z.number(),
+  description: z.string(),
+  orderId: z.number().optional(),
+  type: z.string()
+});
+
+export const insertLoyaltyRewardSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  pointsCost: z.number(),
+  isActive: z.boolean().default(true)
+});
+
+export const insertSiteSettingsSchema = z.object({
+  language: z.string(),
+  country: z.string(),
+  currency: z.string(),
   translations: z.record(z.string(), z.record(z.string(), z.string())),
+  privacyPolicy: z.string(),
+  cookiePolicy: z.string(),
+  termsConditions: z.string()
 });
-
-// Types
-export type Category = typeof menuCategories.$inferSelect;
-export type MenuItem = typeof menuItems.$inferSelect;
-export type Table = typeof tables.$inferSelect;
-export type Booking = typeof bookings.$inferSelect;
-export type Order = typeof orders.$inferSelect;
-export type TableAssignment = typeof tableAssignments.$inferSelect;
-export type Server = typeof servers.$inferSelect;
-export type User = typeof users.$inferSelect;
-export type Event = typeof events.$inferSelect;
-export type LoyaltyTier = typeof loyaltyTiers.$inferSelect;
-export type LoyaltyPoint = typeof loyaltyPoints.$inferSelect;
-export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
-export type SiteSettings = typeof siteSettings.$inferSelect;
 
 // Insert Types
-export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type InsertTable = z.infer<typeof insertTableSchema>;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type InsertTableAssignment = z.infer<typeof insertTableAssignmentSchema>;
 export type InsertServer = z.infer<typeof insertServerSchema>;
-export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertLoyaltyTier = z.infer<typeof insertLoyaltyTierSchema>;
 export type InsertLoyaltyPoint = z.infer<typeof insertLoyaltyPointSchema>;
 export type InsertLoyaltyReward = z.infer<typeof insertLoyaltyRewardSchema>;
