@@ -1,0 +1,51 @@
+[
+  {
+    "id": 1,
+    "name": "Table 1",
+    "section": "main",
+    "seats": 4,
+    "shape": "round",
+    "status": "available",
+    "isActive": true,
+    "notes": "Near window with city view",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Table 2",
+    "section": "outdoor",
+    "seats": 6,
+    "shape": "rectangular",
+    "status": "available",
+    "isActive": true,
+    "notes": "Garden patio seating",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "name": "VIP 1",
+    "section": "private",
+    "seats": 8,
+    "shape": "rectangular",
+    "status": "available",
+    "isActive": true,
+    "minimumSpend": 300,
+    "notes": "Private dining room with AV equipment",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "name": "Bar 1",
+    "section": "bar",
+    "seats": 2,
+    "shape": "square",
+    "status": "available",
+    "isActive": true,
+    "notes": "Bar high-top seating",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  }
+]

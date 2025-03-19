@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Appetizers",
+    "description": "Start your meal with our delicious appetizers",
+    "imageUrl": "https://images.unsplash.com/photo-1541795795328-f073b763494e",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Main Course",
+    "description": "Signature dishes crafted with care",
+    "imageUrl": "https://images.unsplash.com/photo-1544025162-d76694265947",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "name": "Desserts",
+    "description": "Sweet endings to your perfect meal",
+    "imageUrl": "https://images.unsplash.com/photo-1551024506-0bccd828d307",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "name": "Beverages",
+    "description": "Refreshing drinks and fine wines",
+    "imageUrl": "https://images.unsplash.com/photo-1544145945-f90425340c7e",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  }
+]

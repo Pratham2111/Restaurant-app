@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "name": "Rock",
+    "email": "tl@tl.com",
+    "password": "$2b$10$j1nU4PdA0aVoaw6IT8NIH.Oup21axSdnDY7mODaptzV.7Z9Ddd9D6",
+    "confirmPassword": "tl@tl.com",
+    "role": "customer",
+    "isActive": true,
+    "totalPoints": 0,
+    "currentTierId": null,
+    "createdAt": "2025-03-19T18:37:04.504Z",
+    "updatedAt": "2025-03-19T18:37:04.504Z"
+  }
+]
