@@ -66,7 +66,7 @@ export default function Cart() {
       customerName: "",
       customerEmail: "",
       customerPhone: "",
-      items: [],
+      items: cartItems,
       total: 0,
       status: "pending"
     }
@@ -74,20 +74,26 @@ export default function Cart() {
 
   const orderMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/orders", {
-        ...data,
-        items: data.items.map((item: CartItem) => ({
+      // Format the order data
+      const orderData = {
+        items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
-          price: item.price,
+          price: Number(item.price),
           quantity: item.quantity
         })),
-        total: data.total,
+        customerName: data.customerName,
+        customerEmail: data.customerEmail,
+        customerPhone: data.customerPhone,
+        total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         status: "pending"
-      });
+      };
+
+      const res = await apiRequest("POST", "/api/orders", orderData);
+
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Failed to place order');
+        throw new Error(error.message || translate('Failed to place order'));
       }
       return res.json();
     },
@@ -145,11 +151,7 @@ export default function Cart() {
       return;
     }
 
-    orderMutation.mutate({
-      ...data,
-      items: cartItems,
-      total: total
-    });
+    orderMutation.mutate(data);
   }
 
   if (cartItems.length === 0) {

@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "items": [
+      {
+        "id": 1,
+        "name": "Bruschetta",
+        "price": 12.99,
+        "quantity": 2
+      }
+    ],
+    "total": 25.98,
+    "status": "pending",
+    "customerName": "John Doe",
+    "customerEmail": "john@example.com",
+    "customerPhone": "123-456-7890",
+    "createdAt": "2025-03-19T00:00:00.000Z",
+    "updatedAt": "2025-03-19T00:00:00.000Z"
+  }
+]

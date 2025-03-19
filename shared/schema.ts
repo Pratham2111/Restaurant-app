@@ -216,14 +216,15 @@ export const insertBookingSchema = z.object({
 export const insertOrderSchema = z.object({
   items: z.array(z.object({
     id: z.number(),
-    quantity: z.number(),
     name: z.string(),
-    price: z.number()
+    price: z.number(),
+    quantity: z.number().int().positive()
   })),
-  customerName: z.string(),
-  customerEmail: z.string().email(),
-  customerPhone: z.string(),
-  total: z.number().positive()
+  customerName: z.string().min(1, "Name is required"),
+  customerEmail: z.string().email("Invalid email"),
+  customerPhone: z.string().min(1, "Phone is required"),
+  total: z.number().positive("Total must be greater than 0"),
+  status: z.string().default("pending")
 });
 
 export const insertEventSchema = z.object({
