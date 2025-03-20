@@ -288,7 +288,7 @@ export const insertSiteSettingsSchema = z.object({
   termsConditions: z.string()
 });
 
-// Insert Types
+// Insert Types (these are type aliases from Zod schemas, not database-specific)
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type InsertTable = z.infer<typeof insertTableSchema>;
