@@ -16,6 +16,16 @@ The data is stored in two places:
 
 You can safely ignore any database-related environment variables (like DATABASE_URL) as they are not used in the current implementation.
 
+## Session Configuration
+For proper session management and login persistence, ensure these environment variables are set:
+
+```bash
+# Add to /etc/environment or your environment configuration
+export SESSION_SECRET="your_very_secure_random_string"  # Used for encrypting sessions
+export DOMAIN="your-domain.com"  # Your actual domain name
+export NODE_ENV="production"
+```
+
 ## 1. Initial VPS Setup
 
 1. Log in to your Hostinger VPS via SSH:

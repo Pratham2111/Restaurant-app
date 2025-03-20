@@ -7,7 +7,7 @@ import cors from "cors";
 
 const app = express();
 
-// Add CORS middleware
+// Add CORS middleware with credentials support
 app.use(cors({
   origin: true,
   credentials: true
@@ -16,22 +16,27 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Configure session middleware with better security
+// Configure session middleware with better security and persistence
 const MemoryStoreSession = MemoryStore(session);
 app.use(session({
   cookie: {
     maxAge: 86400000, // 24 hours
-    secure: process.env.NODE_ENV === "production",
-    sameSite: 'lax',
-    httpOnly: true
+    secure: process.env.NODE_ENV === "production", // Must be true in production
+    sameSite: 'strict',
+    httpOnly: true,
+    path: '/',
+    domain: process.env.NODE_ENV === "production" ? process.env.DOMAIN : undefined // Use your domain in production
   },
   store: new MemoryStoreSession({
-    checkPeriod: 86400000 // prune expired entries every 24h
+    checkPeriod: 86400000, // prune expired entries every 24h
+    ttl: 86400000 // session TTL (24 hours)
   }),
   secret: process.env.SESSION_SECRET || 'dev-secret-key',
   resave: false,
   saveUninitialized: false,
-  name: 'restaurant.sid' // Custom session ID name
+  name: 'restaurant.sid', // Custom session ID name
+  rolling: true, // Refresh session with each request
+  proxy: process.env.NODE_ENV === "production" // Trust proxy in production
 }));
 
 // Add request logging middleware
@@ -39,6 +44,9 @@ app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  // Log session information for debugging
+  log(`Session ID: ${req.sessionID}, User ID: ${req.session?.userId}, Path: ${path}`);
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
