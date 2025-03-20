@@ -7,7 +7,7 @@ apt update && apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 apt install -y nodejs
 
-# 3. Install required packages
+# 3. Install required packages (removed PostgreSQL)
 apt install -y nginx certbot python3-certbot-nginx
 
 # 4. Set up project directory
