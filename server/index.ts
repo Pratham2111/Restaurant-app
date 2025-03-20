@@ -28,8 +28,7 @@ app.use(session({
     secure: true, // Required for HTTPS
     sameSite: 'none', // Required for cross-site cookies
     httpOnly: true,
-    path: '/',
-    domain: '.icanserveyou.com' // Include subdomain support
+    path: '/'
   },
   store: new MemoryStoreSession({
     checkPeriod: 86400000, // prune expired entries every 24h
@@ -52,6 +51,7 @@ app.use((req, res, next) => {
   // Log session information for debugging
   log(`Session ID: ${req.sessionID}, User ID: ${req.session?.userId}, Path: ${path}`);
   log(`Headers: ${JSON.stringify(req.headers)}`);
+  log(`Cookies: ${JSON.stringify(req.headers.cookie)}`);
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
@@ -71,6 +71,8 @@ app.use((req, res, next) => {
     }
 
     log(logLine);
+    // Log response headers for debugging
+    log(`Response Headers: ${JSON.stringify(res.getHeaders())}`);
   });
 
   next();
