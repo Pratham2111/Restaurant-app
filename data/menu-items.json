@@ -93,7 +93,7 @@
     "description": "Fresh squeezed lemonade with mint and a hint of lavender",
     "price": 5.99,
     "imageUrl": "https://images.unsplash.com/photo-1556881286-fc6915169721",
-    "isSpecial": true,
+    "isSpecial": false,
     "nutritionInfo": [
       "Calories: 120",
       "Sugar: 20g"
@@ -109,7 +109,7 @@
     "servingSize": "16 oz",
     "preparationTime": "5 minutes",
     "createdAt": "2025-03-19T00:00:00.000Z",
-    "updatedAt": "2025-03-20T02:08:45.858Z",
+    "updatedAt": "2025-03-20T19:35:36.907Z",
     "chefsStory": "",
     "spicyLevel": ""
   },
