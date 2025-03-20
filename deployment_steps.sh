@@ -112,9 +112,9 @@ module.exports = {
 }
 EOL
 
-# 11. Create data directory and set permissions
-mkdir -p /var/www/restaurant-app/data
-chown -R www-data:www-data /var/www/restaurant-app/data
+# 11. Create log directory and set permissions
+mkdir -p /var/log/pm2
+chown -R www-data:www-data /var/log/pm2
 
 # 12. Set up log rotation
 cat > /etc/logrotate.d/restaurant-app << EOL
