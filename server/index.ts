@@ -7,25 +7,29 @@ import cors from "cors";
 
 const app = express();
 
-// Add CORS middleware with credentials support
+// Add CORS middleware with specific domain
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: process.env.NODE_ENV === "production" 
+    ? "https://icanserveyou.com"
+    : "http://localhost:5000",
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Configure session middleware with better security and persistence
+// Configure session middleware with production settings
 const MemoryStoreSession = MemoryStore(session);
 app.use(session({
   cookie: {
     maxAge: 86400000, // 24 hours
-    secure: process.env.NODE_ENV === "production", // Must be true in production
-    sameSite: 'strict',
+    secure: true, // Required for HTTPS
+    sameSite: 'none', // Required for cross-site cookies
     httpOnly: true,
     path: '/',
-    domain: process.env.NODE_ENV === "production" ? process.env.DOMAIN : undefined // Use your domain in production
+    domain: '.icanserveyou.com' // Include subdomain support
   },
   store: new MemoryStoreSession({
     checkPeriod: 86400000, // prune expired entries every 24h
@@ -36,7 +40,7 @@ app.use(session({
   saveUninitialized: false,
   name: 'restaurant.sid', // Custom session ID name
   rolling: true, // Refresh session with each request
-  proxy: process.env.NODE_ENV === "production" // Trust proxy in production
+  proxy: true // Trust proxy
 }));
 
 // Add request logging middleware
@@ -47,6 +51,7 @@ app.use((req, res, next) => {
 
   // Log session information for debugging
   log(`Session ID: ${req.sessionID}, User ID: ${req.session?.userId}, Path: ${path}`);
+  log(`Headers: ${JSON.stringify(req.headers)}`);
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {

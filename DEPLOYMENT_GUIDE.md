@@ -75,7 +75,7 @@ npm install
 
 3. Set up environment variables:
 ```bash
-nano /etc/environment
+sudo nano /etc/environment
 ```
 
 Add these lines:
@@ -131,22 +131,33 @@ pm2 startup
 ```
 
 ## 5. Nginx Configuration
+# Nginx Configuration Update for Session Support
 
-1. Install Nginx:
 ```bash
-apt install -y nginx
+sudo nano /etc/nginx/sites-available/restaurant-app
 ```
 
-2. Create Nginx configuration:
-```bash
-nano /etc/nginx/sites-available/restaurant-app
-```
+Replace the existing configuration with:
 
-Add this configuration:
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com;
+    server_name icanserveyou.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name icanserveyou.com;
+
+    # SSL configuration
+    ssl_certificate /etc/letsencrypt/live/icanserveyou.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/icanserveyou.com/privkey.pem;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
 
     location / {
         proxy_pass http://localhost:5000;
@@ -155,21 +166,25 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
+
+        # Important headers for session handling
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
 
         # Security headers
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-XSS-Protection "1; mode=block" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Referrer-Policy "no-referrer-when-downgrade" always;
         add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
 
-        # Hostinger-specific optimizations
-        client_max_body_size 100M;
-        keepalive_timeout 65;
-        keepalive_requests 100;
+        # Cookie security
+        proxy_cookie_path / "/; secure; HttpOnly; SameSite=None";
+        proxy_cookie_domain localhost icanserveyou.com;
     }
 
     # Enable gzip compression
@@ -181,11 +196,27 @@ server {
 }
 ```
 
-3. Enable the site:
 ```bash
-ln -s /etc/nginx/sites-available/restaurant-app /etc/nginx/sites-enabled/
-nginx -t
-systemctl restart nginx
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Update environment variables:
+
+
+```bash
+sudo nano /etc/environment
+```
+
+Add or modify these lines:  (replace "generate_a_secure_random_string_here" with a strong random string)
+
+```bash
+NODE_ENV="production"
+SESSION_SECRET="generate_a_secure_random_string_here"
+```
+
+```bash
+pm2 restart restaurant-app
 ```
 
 ## 6. SSL Configuration
@@ -197,7 +228,7 @@ apt install -y certbot python3-certbot-nginx
 
 2. Get SSL certificate:
 ```bash
-certbot --nginx -d your-domain.com
+certbot --nginx -d icanserveyou.com
 ```
 
 ## 7. Security Settings
@@ -339,3 +370,4 @@ Replace the following placeholders:
 - `your_server_ip` with your VPS IP address
 - `your_repository_url` with your Git repository URL
 - `your-domain.com` with your actual domain name
+- `your_secure_secret_key` with a strong randomly generated secret key
