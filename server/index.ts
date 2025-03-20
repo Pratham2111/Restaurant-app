@@ -35,7 +35,7 @@ app.use(session({
     checkPeriod: 86400000, // prune expired entries every 24h
     ttl: 86400000 // session TTL (24 hours)
   }),
-  secret: process.env.SESSION_SECRET || 'dev-secret-key',
+  secret: "1E1F935ACB2A1B4AE3A634D3A5D4F",
   resave: false,
   saveUninitialized: false,
   name: 'restaurant.sid', // Custom session ID name
