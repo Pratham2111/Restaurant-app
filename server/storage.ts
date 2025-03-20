@@ -10,7 +10,6 @@ import {
   type SiteSettings, type InsertSiteSettings,
 } from "@shared/schema";
 
-
 export interface IStorage {
   // Categories
   getCategories(): Promise<Category[]>;
