@@ -91,7 +91,7 @@ pm2 start ecosystem.config.js
 pm2 save
 pm2 startup
 
-# Create PM2 ecosystem file
+# Create PM2 ecosystem file for production environment
 cat > ecosystem.config.js << EOL
 module.exports = {
   apps: [{

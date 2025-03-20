@@ -10,6 +10,11 @@ import {
   type SiteSettings, type InsertSiteSettings,
 } from "@shared/schema";
 
+/**
+ * IStorage defines the interface for data persistence.
+ * This implementation uses in-memory storage with JSON file persistence
+ * for development and testing purposes.
+ */
 export interface IStorage {
   // Categories
   getCategories(): Promise<Category[]>;
@@ -120,6 +125,10 @@ async function writeJsonFile<T>(filename: string, data: T[]): Promise<void> {
   }
 }
 
+/**
+ * In-memory storage implementation that persists data to JSON files.
+ * This implementation is designed for development and testing.
+ */
 export class MemStorage implements IStorage {
   private users: User[] = [];
   private menuItems: MenuItem[] = [];

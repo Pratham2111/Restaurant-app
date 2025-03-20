@@ -193,17 +193,18 @@ export default function EventsManagement() {
     }
   });
 
-  const handleEditClick = (event: Event) => {
+  // Fix date type conversion in handleEditClick
+  function handleEditClick(event: Event) {
     setEditingEvent(event);
     form.reset({
       title: event.title,
       description: event.description,
       imageUrl: event.imageUrl,
       featured: event.featured,
-      date: event.date
+      date: event.date.toISOString() // Convert Date to ISO string
     });
     setSelectedDate(new Date(event.date));
-  };
+  }
 
   function onSubmit(data: any) {
     if (!selectedDate) {
@@ -384,9 +385,10 @@ export default function EventsManagement() {
 
                     <div className="space-y-2">
                       <Label>Date Range</Label>
+                      {/* Fix type for Select's onValueChange */}
                       <Select
                         value={filterDateRange}
-                        onValueChange={setFilterDateRange}
+                        onValueChange={(value: "all" | "upcoming" | "past") => setFilterDateRange(value)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Filter by date" />

@@ -2,6 +2,68 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { SiteSettings } from "@shared/schema";
 
+interface SiteSettingsContextType {
+  settings: SiteSettings | null;
+  isLoading: boolean;
+  translate: (key: string) => string;
+  formatCurrency: (amount: number) => string;
+}
+
+const SiteSettingsContext = createContext<SiteSettingsContextType>({
+  settings: null,
+  isLoading: true,
+  translate: (key: string) => key,
+  formatCurrency: (amount: number) => `$${amount.toFixed(2)}`,
+});
+
+export function SiteSettingsProvider({ children }: { children: React.ReactNode }) {
+  const { data: settings, isLoading } = useQuery<SiteSettings>({
+    queryKey: ["/api/settings"],
+  });
+
+  const translate = (key: string): string => {
+    if (!settings?.language) return key;
+
+    // Try to get translation from database settings first
+    const dbTranslations = settings.translations?.[settings.language] || {};
+    if (dbTranslations[key]) return dbTranslations[key];
+
+    // Fallback to default translations
+    const defaultLangTranslations = defaultTranslations[settings.language as keyof typeof defaultTranslations];
+    return defaultLangTranslations?.[key as keyof typeof defaultLangTranslations] || key;
+  };
+
+  const formatCurrency = (amount: number): string => {
+    if (!settings) return `$${amount.toFixed(2)}`;
+
+    return new Intl.NumberFormat(settings.language, {
+      style: 'currency',
+      currency: settings.currency
+    }).format(amount);
+  };
+
+  return (
+    <SiteSettingsContext.Provider 
+      value={{ 
+        settings: settings || null,
+        isLoading,
+        translate,
+        formatCurrency
+      }}
+    >
+      {children}
+    </SiteSettingsContext.Provider>
+  );
+}
+
+export function useSiteSettings() {
+  const context = useContext(SiteSettingsContext);
+  if (!context) {
+    throw new Error("useSiteSettings must be used within a SiteSettingsProvider");
+  }
+  return context;
+}
+
 const defaultTranslations = {
   en: {
     // Navigation
@@ -472,65 +534,3 @@ const defaultTranslations = {
     "cancelled": "storniert",
   }
 };
-
-interface SiteSettingsContextType {
-  settings: SiteSettings | null;
-  isLoading: boolean;
-  translate: (key: string) => string;
-  formatCurrency: (amount: number) => string;
-}
-
-const SiteSettingsContext = createContext<SiteSettingsContextType>({
-  settings: null,
-  isLoading: true,
-  translate: (key: string) => key,
-  formatCurrency: (amount: number) => `$${amount.toFixed(2)}`,
-});
-
-export function SiteSettingsProvider({ children }: { children: React.ReactNode }) {
-  const { data: settings, isLoading } = useQuery({
-    queryKey: ["/api/settings"],
-  });
-
-  const translate = (key: string): string => {
-    if (!settings?.language) return key;
-
-    // Try to get translation from database settings first
-    const dbTranslations = settings.translations?.[settings.language] || {};
-    if (dbTranslations[key]) return dbTranslations[key];
-
-    // Fallback to default translations
-    const defaultLangTranslations = defaultTranslations[settings.language as keyof typeof defaultTranslations];
-    return defaultLangTranslations?.[key] || key;
-  };
-
-  const formatCurrency = (amount: number): string => {
-    if (!settings) return `$${amount.toFixed(2)}`;
-
-    return new Intl.NumberFormat(settings.language, {
-      style: 'currency',
-      currency: settings.currency
-    }).format(amount);
-  };
-
-  return (
-    <SiteSettingsContext.Provider 
-      value={{ 
-        settings: settings || null,
-        isLoading,
-        translate,
-        formatCurrency
-      }}
-    >
-      {children}
-    </SiteSettingsContext.Provider>
-  );
-}
-
-export function useSiteSettings() {
-  const context = useContext(SiteSettingsContext);
-  if (!context) {
-    throw new Error("useSiteSettings must be used within a SiteSettingsProvider");
-  }
-  return context;
-}
