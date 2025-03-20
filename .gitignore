@@ -5,3 +5,8 @@ server/public
 vite.config.ts.*
 *.tar.gz
 DEPLOYMENT_GUIDE.md
+# Remove PostgreSQL related files
+drizzle.config.ts
+database_backup.sql
+*.sql
+migrations/
