@@ -1,0 +1,17 @@
+/* Font imports are already handled in client/index.html */
+
+.font-display {
+  font-family: 'Playfair Display', serif;
+}
+
+.font-sans {
+  font-family: 'Montserrat', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+}
+
+body, p, a, input, textarea, button, select {
+  font-family: 'Montserrat', sans-serif;
+}
