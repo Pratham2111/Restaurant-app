@@ -136,15 +136,15 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Check if the current user is a sub-admin
-   * @returns {boolean} - Whether the user is a sub-admin
+   * Check if the current user is a subadmin
+   * @returns {boolean} - Whether the user is a subadmin
    */
   const isSubAdmin = () => {
-    return user?.role === "sub-admin";
+    return user?.role === "subadmin";
   };
 
   /**
-   * Check if the current user has staff privileges (admin or sub-admin)
+   * Check if the current user has staff privileges (admin or subadmin)
    * @returns {boolean} - Whether the user has staff privileges
    */
   const isStaff = () => {
