@@ -653,11 +653,14 @@ class MongoStorage {
   /**
    * Retrieves a user by ID
    * @param {string} id - The user ID
+   * @param {boolean} includePassword - Whether to include the password field
    * @returns {Promise<Object|undefined>} The user object or undefined
    */
-  async getUserById(id) {
+  async getUserById(id, includePassword = false) {
     try {
-      const user = await User.findById(id).select('-password');
+      // If includePassword is true, don't exclude the password field
+      const selection = includePassword ? '' : '-password';
+      const user = await User.findById(id).select(selection);
       if (!user) return undefined;
       
       // Convert Mongoose document to plain object and ensure consistent id field

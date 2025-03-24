@@ -76,7 +76,14 @@ async function registerRoutes(app) {
         }
         
         // Get the user with password for verification
-        const fullUser = await storage.getUserById(id);
+        const fullUser = await storage.getUserById(id, true); // Include password
+        
+        console.log('Password verification:', !!fullUser?.password);
+        
+        // Check if password field exists
+        if (!fullUser || !fullUser.password) {
+          return res.status(400).json({ message: "Cannot verify password. Try logging out and logging in again." });
+        }
         
         // Verify current password using bcrypt
         const bcrypt = await import('bcryptjs');
