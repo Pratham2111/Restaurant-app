@@ -98,8 +98,11 @@ async function registerRoutes(app) {
           // Log detailed password verification information (remove in production)
           console.log('Password verification details:', {
             currentPasswordProvided: !!currentPassword,
+            currentPasswordLength: currentPassword?.length,
+            currentPassword_first3: currentPassword ? currentPassword.substring(0, 3) + '***' : 'none',
             storedPasswordLength: fullUser.password?.length,
-            passwordType: typeof fullUser.password
+            passwordType: typeof fullUser.password,
+            userObject: fullUser.toObject ? 'mongoose_document' : 'plain_object'
           });
           
           try {

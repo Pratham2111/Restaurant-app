@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
@@ -6,6 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { BookText, Utensils, Calendar, MessageCircle, Star, ShoppingBag, DollarSign, Users } from "lucide-react";
 import UserManagement from "./UserManagement";
+import CategoryManagement from "./CategoryManagement";
+import MenuManagement from "./MenuManagement";
+import BookingManagement from "./BookingManagement";
+import OrderManagement from "./OrderManagement";
 
 /**
  * Admin Dashboard page
@@ -14,6 +18,11 @@ function AdminDashboard() {
   const { user, isAdmin, isSubAdmin, loading } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [stats, setStats] = useState({
+    totalOrders: "Loading...",
+    totalBookings: "Loading...",
+    totalMenuItems: "Loading..."
+  });
 
   // Redirect to login if not authenticated
   if (!loading && !user) {
@@ -38,6 +47,70 @@ function AdminDashboard() {
     }
     
     return false;
+  };
+
+  // Fetch dashboard stats
+  useEffect(() => {
+    let isMounted = true;
+    
+    const getStats = async () => {
+      if (!loading && user) {
+        try {
+          await fetchStats();
+        } catch (error) {
+          console.error("Error in stats fetching:", error);
+        }
+      }
+    };
+    
+    getStats();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [loading, user]);
+
+  // Fetch dashboard statistics
+  const fetchStats = async () => {
+    try {
+      // Fetch orders count
+      try {
+        const ordersResponse = await fetch("/api/orders");
+        if (ordersResponse.ok) {
+          const ordersData = await ordersResponse.json();
+          setStats(prev => ({ ...prev, totalOrders: ordersData.length }));
+        }
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+        setStats(prev => ({ ...prev, totalOrders: "Error" }));
+      }
+
+      // Fetch bookings count
+      try {
+        const bookingsResponse = await fetch("/api/reservations");
+        if (bookingsResponse.ok) {
+          const bookingsData = await bookingsResponse.json();
+          setStats(prev => ({ ...prev, totalBookings: bookingsData.length }));
+        }
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+        setStats(prev => ({ ...prev, totalBookings: "Error" }));
+      }
+
+      // Fetch menu items count
+      try {
+        const menuItemsResponse = await fetch("/api/menu-items");
+        if (menuItemsResponse.ok) {
+          const menuItemsData = await menuItemsResponse.json();
+          setStats(prev => ({ ...prev, totalMenuItems: menuItemsData.length }));
+        }
+      } catch (err) {
+        console.error("Error fetching menu items:", err);
+        setStats(prev => ({ ...prev, totalMenuItems: "Error" }));
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+    }
   };
 
   // Handle tab switching
@@ -142,15 +215,15 @@ function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-primary/10 rounded-lg p-4">
                   <h3 className="font-medium">Total Orders</h3>
-                  <p className="text-2xl font-bold">Loading...</p>
+                  <p className="text-2xl font-bold">{stats.totalOrders}</p>
                 </div>
                 <div className="bg-primary/10 rounded-lg p-4">
                   <h3 className="font-medium">Total Bookings</h3>
-                  <p className="text-2xl font-bold">Loading...</p>
+                  <p className="text-2xl font-bold">{stats.totalBookings}</p>
                 </div>
                 <div className="bg-primary/10 rounded-lg p-4">
                   <h3 className="font-medium">Total Menu Items</h3>
-                  <p className="text-2xl font-bold">Loading...</p>
+                  <p className="text-2xl font-bold">{stats.totalMenuItems}</p>
                 </div>
               </div>
               <p className="mt-4 text-center text-muted-foreground">
@@ -160,23 +233,17 @@ function AdminDashboard() {
             
             <TabsContent value="categories" className="mt-6">
               <h2 className="text-2xl font-bold mb-4">Category Management</h2>
-              <p className="text-center py-10 text-muted-foreground">
-                Category management functionality will be implemented here.
-              </p>
+              <CategoryManagement />
             </TabsContent>
             
             <TabsContent value="menu" className="mt-6">
               <h2 className="text-2xl font-bold mb-4">Menu Management</h2>
-              <p className="text-center py-10 text-muted-foreground">
-                Menu management functionality will be implemented here.
-              </p>
+              <MenuManagement />
             </TabsContent>
             
             <TabsContent value="bookings" className="mt-6">
               <h2 className="text-2xl font-bold mb-4">Booking Management</h2>
-              <p className="text-center py-10 text-muted-foreground">
-                Booking management functionality will be implemented here.
-              </p>
+              <BookingManagement />
             </TabsContent>
             
             <TabsContent value="contacts" className="mt-6">
@@ -188,9 +255,7 @@ function AdminDashboard() {
             
             <TabsContent value="orders" className="mt-6">
               <h2 className="text-2xl font-bold mb-4">Order Management</h2>
-              <p className="text-center py-10 text-muted-foreground">
-                Order management functionality will be implemented here.
-              </p>
+              <OrderManagement />
             </TabsContent>
             
             <TabsContent value="testimonials" className="mt-6">
