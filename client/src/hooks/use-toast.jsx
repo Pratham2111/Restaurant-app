@@ -111,19 +111,42 @@ function useToaster() {
 /**
  * Creates a toast
  * @param {Object} props - Toast props
+ * @param {number} props.duration - Duration in milliseconds before auto-dismiss (default: 5000ms)
  * @returns {Object} Toast object with methods
  */
 function toast(props) {
   const id = genId();
+  const { duration = 5000, ...restProps } = props;
+  
+  // Auto-dismiss toast after specified duration
+  let autoCloseTimeout;
+  
+  const dismiss = () => {
+    if (autoCloseTimeout) {
+      clearTimeout(autoCloseTimeout);
+    }
+    
+    dispatch({
+      type: DISMISS_TOAST,
+      toastId: id,
+    });
+  };
   
   dispatch({
     type: ADD_TOAST,
     toast: {
       id,
       open: true,
-      ...props,
+      ...restProps,
     },
   });
+  
+  // Set the auto-dismiss timeout
+  if (duration !== 0) {
+    autoCloseTimeout = setTimeout(() => {
+      dismiss();
+    }, duration);
+  }
   
   return {
     id,
@@ -136,12 +159,7 @@ function toast(props) {
         },
       });
     },
-    dismiss: () => {
-      dispatch({
-        type: DISMISS_TOAST,
-        toastId: id,
-      });
-    },
+    dismiss,
   };
 }
 
