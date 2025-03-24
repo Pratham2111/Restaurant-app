@@ -19,8 +19,14 @@ function FeaturedMenu() {
   useEffect(() => {
     const fetchFeaturedItems = async () => {
       try {
-        const data = await apiRequest('/api/menu/featured');
-        setFeaturedItems(data || []);
+        // API integration will be implemented later
+        // For now use the placeholder data without making API calls
+        // Uncomment the next line when API is ready
+        // const data = await apiRequest('/api/menu/featured');
+        // setFeaturedItems(data || []);
+        
+        // Use placeholder data
+        setFeaturedItems(MENU_SECTION.featuredItems);
         setIsLoading(false);
       } catch (err) {
         console.error("Error fetching featured menu items:", err);
@@ -32,10 +38,13 @@ function FeaturedMenu() {
       }
     };
     
-    // For now, we'll use placeholder data since API is not yet implemented
-    // fetchFeaturedItems();
-    setFeaturedItems(MENU_SECTION.featuredItems);
-    setIsLoading(false);
+    // Execute the function safely
+    fetchFeaturedItems().catch(err => {
+      console.error("Unhandled error in fetchFeaturedItems:", err);
+      setError("Failed to load menu items. Please try again later.");
+      setFeaturedItems(MENU_SECTION.featuredItems);
+      setIsLoading(false);
+    });
   }, []);
 
   // Handle add to cart

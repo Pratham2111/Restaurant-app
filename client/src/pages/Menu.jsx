@@ -20,6 +20,10 @@ function Menu() {
   useEffect(() => {
     const fetchMenuData = async () => {
       try {
+        // API integration will be implemented later
+        // For now use the placeholder data without making API calls
+        // Uncomment the below code when API is ready
+        /*
         // Fetch categories
         const categoriesData = await apiRequest('/api/categories');
         setCategories(categoriesData || []);
@@ -31,6 +35,19 @@ function Menu() {
           const menuItemsData = await apiRequest(`/api/menu?categoryId=${categoriesData[0].id}`);
           setMenuItems(menuItemsData || []);
         }
+        */
+        
+        // Use placeholder data
+        const placeholderCategories = MENU_SECTION.categories;
+        const placeholderMenuItems = MENU_SECTION.items;
+        
+        setCategories(placeholderCategories);
+        if (placeholderCategories.length > 0) {
+          setActiveCategory(placeholderCategories[0].id);
+          setMenuItems(placeholderMenuItems.filter(item => 
+            item.categoryId === placeholderCategories[0].id
+          ));
+        }
         
         setIsLoading(false);
       } catch (err) {
@@ -38,7 +55,7 @@ function Menu() {
         setError(err.message);
         setIsLoading(false);
         
-        // Fallback to placeholder data
+        // Fallback to placeholder data if error occurs
         const placeholderCategories = MENU_SECTION.categories;
         const placeholderMenuItems = MENU_SECTION.items;
         
@@ -52,19 +69,25 @@ function Menu() {
       }
     };
     
-    // For now, we'll use placeholder data since API is not yet implemented
-    // fetchMenuData();
-    const placeholderCategories = MENU_SECTION.categories;
-    const placeholderMenuItems = MENU_SECTION.items;
-    
-    setCategories(placeholderCategories);
-    if (placeholderCategories.length > 0) {
-      setActiveCategory(placeholderCategories[0].id);
-      setMenuItems(placeholderMenuItems.filter(item => 
-        item.categoryId === placeholderCategories[0].id
-      ));
-    }
-    setIsLoading(false);
+    // Execute the function safely
+    fetchMenuData().catch(err => {
+      console.error("Unhandled error in fetchMenuData:", err);
+      setError("Failed to load menu. Please try again later.");
+      
+      // Ensure we always have data to display
+      const placeholderCategories = MENU_SECTION.categories;
+      const placeholderMenuItems = MENU_SECTION.items;
+      
+      setCategories(placeholderCategories);
+      if (placeholderCategories.length > 0) {
+        setActiveCategory(placeholderCategories[0].id);
+        setMenuItems(placeholderMenuItems.filter(item => 
+          item.categoryId === placeholderCategories[0].id
+        ));
+      }
+      
+      setIsLoading(false);
+    });
   }, []);
 
   // Handle category change
@@ -73,24 +96,28 @@ function Menu() {
     setIsLoading(true);
     
     try {
+      // API integration will be implemented later
+      // For now use the placeholder data without making API calls
+      // Uncomment the below code when API is ready
+      /*
       // Fetch menu items for the selected category
       const menuItemsData = await apiRequest(`/api/menu?categoryId=${categoryId}`);
       setMenuItems(menuItemsData || []);
+      */
+      
+      // Use placeholder data
+      const placeholderMenuItems = MENU_SECTION.items;
+      setMenuItems(placeholderMenuItems.filter(item => item.categoryId === categoryId));
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching menu items:", err);
       setError(err.message);
       setIsLoading(false);
       
-      // Fallback to placeholder data
+      // Fallback to placeholder data if error occurs
       const placeholderMenuItems = MENU_SECTION.items;
       setMenuItems(placeholderMenuItems.filter(item => item.categoryId === categoryId));
     }
-    
-    // For now, we'll use placeholder data since API is not yet implemented
-    const placeholderMenuItems = MENU_SECTION.items;
-    setMenuItems(placeholderMenuItems.filter(item => item.categoryId === categoryId));
-    setIsLoading(false);
   };
 
   // Handle add to cart
