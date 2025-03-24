@@ -1,10 +1,11 @@
-import { PlusCircle } from "lucide-react";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { useCart } from "../../hooks/useCart";
 import { useCurrency } from "../../hooks/useCurrency";
 
 /**
- * MenuItem component for displaying a single menu item
+ * MenuItem component
+ * Displays an individual menu item with details and add to cart button
  * @param {Object} props - Component props
  * @param {Object} props.menuItem - Menu item data
  */
@@ -12,50 +13,63 @@ export const MenuItem = ({ menuItem }) => {
   const { addToCart } = useCart();
   const { formatPrice } = useCurrency();
   
-  // Handle adding item to cart
+  // Handle add to cart
   const handleAddToCart = () => {
     addToCart(menuItem);
   };
   
   return (
-    <div className="flex gap-4">
+    <div className="border border-border rounded-lg overflow-hidden bg-card h-full flex flex-col">
       {/* Menu item image */}
       {menuItem.image && (
-        <div className="flex-shrink-0 h-24 w-24 rounded-md overflow-hidden">
+        <div className="relative h-48">
           <img
             src={menuItem.image}
             alt={menuItem.name}
             className="h-full w-full object-cover"
           />
+          
+          {/* Featured badge */}
+          {menuItem.featured && (
+            <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+              Featured
+            </Badge>
+          )}
         </div>
       )}
       
-      {/* Menu item content */}
-      <div className="flex-1">
-        <div className="flex justify-between items-start mb-1">
+      {/* Menu item details */}
+      <div className="p-4 flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-2">
           <h3 className="font-bold text-lg">{menuItem.name}</h3>
           <span className="font-medium text-primary">
             {formatPrice(menuItem.price)}
           </span>
         </div>
         
-        {/* Description */}
-        <p className="text-muted-foreground text-sm mb-3">
+        {/* Tags */}
+        {menuItem.tags && menuItem.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {menuItem.tags.map((tag, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+        
+        <p className="text-muted-foreground text-sm mb-4 flex-1">
           {menuItem.description}
         </p>
         
         {/* Add to cart button */}
-        <div className="flex justify-end">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-primary hover:text-primary-foreground hover:bg-primary"
-            onClick={handleAddToCart}
-          >
-            <PlusCircle className="h-4 w-4 mr-1" />
-            Add to Cart
-          </Button>
-        </div>
+        <Button 
+          onClick={handleAddToCart}
+          variant="outline"
+          className="w-full mt-auto text-primary hover:text-primary-foreground hover:bg-primary"
+        >
+          Add to Cart
+        </Button>
       </div>
     </div>
   );

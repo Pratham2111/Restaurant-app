@@ -1,68 +1,76 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { ShoppingBag, Trash2 } from "lucide-react";
-
-import { Button } from "../ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+import { 
+  ShoppingBag, 
+  CreditCard, 
+  Loader2, 
+  ArrowRight, 
+  CheckCircle 
+} from "lucide-react";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "../ui/card";
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { OrderItem } from "./OrderItem";
 import { useCart } from "../../hooks/useCart";
 import { useToast } from "../../hooks/use-toast";
 import { apiRequest } from "../../lib/queryClient";
 
-// Form validation schema
+/**
+ * Form schema for checkout validation
+ */
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters."
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address."
-  }),
-  phone: z.string().min(10, {
-    message: "Please enter a valid phone number."
-  }),
-  address: z.string().min(5, {
-    message: "Please enter your full address."
-  }),
+  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  phone: z.string().min(10, { message: "Please enter a valid phone number" }),
+  address: z.string().min(5, { message: "Please enter a valid address" }),
+  paymentMethod: z.string({ message: "Please select a payment method" }),
   notes: z.string().optional(),
 });
 
 /**
- * Cart component for the order page
- * Displays cart items, totals, and checkout form
+ * Cart component
+ * Shows the shopping cart with order items and checkout form
  */
 export const Cart = () => {
   const { toast } = useToast();
-  const [isCheckout, setIsCheckout] = useState(false);
-  
   const { 
     items, 
-    removeFromCart, 
     clearCart, 
-    updateQuantity, 
-    getItemCount,
-    getSubtotal,
-    getDeliveryFee,
-    getTax,
-    getTotal,
-    formatSubtotal,
-    formatDeliveryFee,
-    formatTax,
-    formatTotal,
+    getFormattedSubtotal, 
+    getFormattedDeliveryFee, 
+    getFormattedTax, 
+    getFormattedTotal 
   } = useCart();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
   
-  // Initialize form with default values
+  // Initialize form with react-hook-form
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -70,242 +78,280 @@ export const Cart = () => {
       email: "",
       phone: "",
       address: "",
+      paymentMethod: "",
       notes: "",
     },
   });
   
-  // Handle form submission with mutation
-  const mutation = useMutation({
-    mutationFn: (data) => {
+  // Mutation for creating order
+  const createOrder = useMutation({
+    mutationFn: async (data) => {
       return apiRequest("/api/orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...data,
-          items: items.map(item => ({
-            menuItemId: item.menuItemId,
-            quantity: item.quantity
-          })),
-          subtotal: getSubtotal(),
-          tax: getTax(),
-          deliveryFee: getDeliveryFee(),
-          total: getTotal(),
-        }),
+        body: data,
       });
     },
     onSuccess: () => {
       toast({
-        title: "Order Confirmed",
-        description: "Your order has been placed successfully. You'll receive a confirmation via email.",
+        title: "Order Placed Successfully",
+        description: "Your order has been received and is being processed.",
       });
-      clearCart();
-      setIsCheckout(false);
+      
+      // Reset form and clear cart
       form.reset();
+      clearCart();
+      setOrderSuccess(true);
     },
     onError: (error) => {
-      console.error("Order error:", error);
       toast({
-        title: "Something went wrong",
-        description: "There was an error placing your order. Please try again.",
+        title: "Error",
+        description: error.message || "Failed to place order. Please try again.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
     },
   });
   
   // Form submission handler
   const onSubmit = (data) => {
-    mutation.mutate(data);
+    if (items.length === 0) {
+      toast({
+        title: "Empty Cart",
+        description: "Please add items to your cart before checking out.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    // Convert form data to API format
+    const order = {
+      ...data,
+      items: items.map(item => ({
+        menuItemId: item.menuItemId,
+        quantity: item.quantity,
+      })),
+    };
+    
+    createOrder.mutate(order);
   };
   
-  // Toggle checkout form visibility
-  const toggleCheckout = () => {
-    setIsCheckout(!isCheckout);
-  };
-  
-  // Show empty cart message if cart is empty
-  if (items.length === 0) {
+  if (orderSuccess) {
     return (
-      <div className="bg-card p-6 rounded-lg border border-border text-center">
-        <div className="py-8">
-          <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">Your cart is empty</h3>
-          <p className="text-muted-foreground mb-6">
-            Add some delicious items to your cart and they will appear here.
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-center mb-2 text-primary">
+            <CheckCircle className="h-12 w-12" />
+          </div>
+          <CardTitle className="text-center">Order Confirmed!</CardTitle>
+          <CardDescription className="text-center">
+            Thank you for your order. We'll start preparing your food right away.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="mb-4">
+            We've sent a confirmation email with your order details.
           </p>
-          <Button 
-            variant="outline" 
-            className="w-full text-primary hover:text-primary-foreground hover:bg-primary"
-          >
-            Start Ordering
-          </Button>
-        </div>
-      </div>
+          <Button onClick={() => setOrderSuccess(false)}>Place New Order</Button>
+        </CardContent>
+      </Card>
     );
   }
   
   return (
-    <div className="bg-card p-6 rounded-lg border border-border">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold">Your Order</h3>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="text-muted-foreground hover:text-destructive"
-          onClick={clearCart}
-        >
-          <Trash2 className="h-4 w-4 mr-1" />
-          Clear
-        </Button>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <ShoppingBag className="mr-2 h-5 w-5" />
+          Your Order
+        </CardTitle>
+        <CardDescription>
+          {items.length === 0 
+            ? "Your cart is empty. Add items to place an order." 
+            : `You have ${items.length} item(s) in your cart.`}
+        </CardDescription>
+      </CardHeader>
       
-      {/* Cart items */}
-      <div className="space-y-4 mb-6">
-        {items.map((item) => (
-          <OrderItem 
-            key={item.menuItemId} 
-            item={item} 
-            onRemove={() => removeFromCart(item.menuItemId)}
-            onUpdateQuantity={(quantity) => updateQuantity(item.menuItemId, quantity)}
-          />
-        ))}
-      </div>
+      <CardContent className="space-y-4">
+        {/* Cart items */}
+        {items.length > 0 && (
+          <div className="space-y-4 max-h-[300px] overflow-y-auto mb-4 pr-2">
+            {items.map((item) => (
+              <OrderItem key={item.menuItemId} item={item} />
+            ))}
+          </div>
+        )}
+        
+        {/* Order summary */}
+        {items.length > 0 && (
+          <div className="space-y-2 border-t border-border pt-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>{getFormattedSubtotal()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Delivery Fee</span>
+              <span>{getFormattedDeliveryFee()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Tax</span>
+              <span>{getFormattedTax()}</span>
+            </div>
+            <div className="flex justify-between font-medium pt-2 border-t border-border">
+              <span>Total</span>
+              <span className="text-primary">{getFormattedTotal()}</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Checkout form - only show if there are items in cart */}
+        {items.length > 0 && (
+          <div className="mt-6 border-t border-border pt-6">
+            <h3 className="font-medium text-lg mb-4">Checkout Information</h3>
+            
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Name */}
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your full name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Email */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Enter your email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Phone */}
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your phone number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Address */}
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Delivery Address</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter your delivery address" 
+                          className="resize-none" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Payment method */}
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Method</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select payment method" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="cash">Cash on Delivery</SelectItem>
+                          <SelectItem value="card">Credit Card</SelectItem>
+                          <SelectItem value="paypal">PayPal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Notes */}
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Order Notes (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Any special instructions for your order" 
+                          className="resize-none" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          </div>
+        )}
+      </CardContent>
       
-      {/* Cart totals */}
-      <div className="border-t border-border pt-4 space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span>{formatSubtotal()}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Delivery Fee</span>
-          <span>{formatDeliveryFee()}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Tax</span>
-          <span>{formatTax()}</span>
-        </div>
-        <div className="flex justify-between font-bold pt-2 border-t border-border mt-2">
-          <span>Total</span>
-          <span className="text-primary">{formatTotal()}</span>
-        </div>
-      </div>
-      
-      {/* Checkout button or form */}
-      {!isCheckout ? (
-        <Button 
-          className="w-full mt-6" 
-          onClick={toggleCheckout}
-        >
-          Proceed to Checkout
-        </Button>
-      ) : (
-        <div className="mt-6 border-t border-border pt-6">
-          <h4 className="font-medium mb-4">Delivery Information</h4>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Name field */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your full name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Email field */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="your.email@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Phone field */}
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your phone number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Address field */}
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Delivery Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your full address" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Notes field */}
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Order Notes (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Any special requests or delivery instructions"
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Submit and cancel buttons */}
-              <div className="flex gap-2">
-                <Button 
-                  type="submit" 
-                  className="flex-1"
-                  disabled={mutation.isPending}
-                >
-                  {mutation.isPending ? "Processing..." : "Place Order"}
-                </Button>
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  onClick={toggleCheckout}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
-      )}
-    </div>
+      <CardFooter>
+        {items.length > 0 ? (
+          <Button 
+            className="w-full" 
+            onClick={form.handleSubmit(onSubmit)} 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Place Order
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button variant="outline" className="w-full" disabled>
+            <CreditCard className="mr-2 h-4 w-4" />
+            Checkout
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 };
