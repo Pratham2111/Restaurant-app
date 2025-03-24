@@ -37,20 +37,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: "Email already in use" });
     }
     
-    // Hash password
-    // Number of rounds for bcrypt hashing (use 10 to match admin login)
-    const saltRounds = 10;
-    // Let bcrypt handle both salt generation and hashing in one step
-    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-    
-    console.log('Password hashed successfully, length:', hashedPassword.length);
-    
-    // Create user with hashed password - ensure role is customer for public registrations
+    // No need to hash password here - Mongoose pre-save hook will do it
+    // Create user - ensure role is customer for public registrations
     const userToCreate = {
       ...userData,
-      role: "customer", // Force role to be customer for public registrations
-      password: hashedPassword
+      role: "customer" // Force role to be customer for public registrations
     };
+    
+    console.log('Creating user with plain password, will be hashed by Mongoose pre-save hook');
     
     console.log('Creating user with role:', userToCreate.role);
     const user = await req.app.locals.storage.createUser(userToCreate);
@@ -115,17 +109,13 @@ router.post('/admin/register', authenticate, authorizeAdmin, async (req, res) =>
       return res.status(400).json({ message: "Email already in use" });
     }
     
-    // Hash password (consistent with our public registration)
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-    
-    console.log('Admin registration: Password hashed successfully, length:', hashedPassword.length);
-    
-    // Create user with hashed password
+    // No need to hash password here - Mongoose pre-save hook will do it
+    // Create user directly
     const userToCreate = {
-      ...userData,
-      password: hashedPassword
+      ...userData
     };
+    
+    console.log('Admin registration: Creating user with plain password, will be hashed by Mongoose pre-save hook');
     
     const user = await req.app.locals.storage.createUser(userToCreate);
     
@@ -272,11 +262,12 @@ router.put('/users/:id', authenticate, authorizeAdmin, async (req, res) => {
       return res.status(400).json({ message: "Cannot change your own role" });
     }
     
-    // If password is being updated, hash it (consistent with our registration functions)
+    // If password is being updated, hash it manually
+    // We need to do this because findByIdAndUpdate bypasses the pre-save middleware
     if (userData.password) {
       const saltRounds = 10;
       userData.password = await bcrypt.hash(userData.password, saltRounds);
-      console.log('Admin update: Password hashed successfully, length:', userData.password.length);
+      console.log('Admin update: Password hashed manually, length:', userData.password.length);
     }
     
     const user = await req.app.locals.storage.updateUser(id, userData);

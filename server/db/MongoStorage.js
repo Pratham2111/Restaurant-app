@@ -706,11 +706,22 @@ class MongoStorage {
    */
   async updateUser(id, userData) {
     try {
-      return await User.findByIdAndUpdate(
+      // Find and update the user, returning the updated document
+      const updatedUser = await User.findByIdAndUpdate(
         id,
         userData,
         { new: true }
       ).select('-password');
+      
+      // Ensure ID is consistent
+      if (updatedUser) {
+        const userObj = updatedUser.toObject();
+        // Add id field that matches _id for consistency
+        userObj.id = userObj._id.toString();
+        return userObj;
+      }
+      
+      return undefined;
     } catch (error) {
       console.error('Error updating user:', error);
       return undefined;
