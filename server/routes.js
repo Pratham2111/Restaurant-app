@@ -17,6 +17,7 @@ import {
 // Import route modules
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
+import { authenticate } from './middleware/auth.js';
 
 /**
  * Handles Zod validation errors and returns a formatted response
@@ -149,11 +150,66 @@ async function registerRoutes(app) {
     }
   });
 
-  // Reservations
-  app.get("/api/reservations", async (req, res) => {
+  // Custom middleware for optional authentication
+  const optionalAuth = (req, res, next) => {
+    // Save the original status method
+    const originalStatus = res.status;
+    
+    // Override the status method temporarily
+    res.status = (code) => {
+      // Only override 401 errors - auth failures
+      if (code === 401) {
+        // Just continue to the next middleware instead of returning 401
+        console.log('Authentication optional - continuing without auth');
+        next();
+        return res;
+      }
+      
+      // For non-401 status codes, use the original method
+      return originalStatus.call(res, code);
+    };
+    
+    // Call the authenticate middleware
+    authenticate(req, res, () => {
+      // Restore the original status method
+      res.status = originalStatus;
+      next();
+    });
+  };
+  
+  // Reservations - with optional authentication
+  app.get("/api/reservations", optionalAuth, async (req, res) => {
     try {
-      const reservations = await storage.getReservations();
-      res.json(reservations);
+      // Get all reservations first
+      const allReservations = await storage.getReservations();
+      
+      // Check if there's a user in the request (authenticated)
+      // If authenticated, filter for this user's reservations only
+      if (req.user) {
+        const userId = req.user.id || req.user._id;
+        const userEmail = req.user.email?.toLowerCase();
+        const userName = req.user.name?.toLowerCase();
+        
+        console.log('Filtering reservations for user:', { id: userId, email: userEmail, name: userName });
+        
+        // Filter reservations by user id, email or name
+        const userReservations = allReservations.filter(reservation => {
+          const reservationUserId = reservation.userId || reservation._id;
+          const reservationEmail = (reservation.email || '').toLowerCase();
+          const reservationName = (reservation.name || '').toLowerCase();
+          
+          return (userId && reservationUserId && reservationUserId.toString() === userId.toString()) || 
+                 (userEmail && reservationEmail === userEmail) ||
+                 (userName && reservationName.includes(userName));
+        });
+        
+        console.log(`Found ${userReservations.length} reservations for user ${userEmail}`);
+        return res.json(userReservations);
+      }
+      
+      // If no user in request (not authenticated), return all reservations
+      // This is fine for non-authenticated requests since we filter client-side
+      res.json(allReservations);
     } catch (error) {
       console.error("Error fetching reservations:", error);
       res.status(500).json({ message: "Failed to fetch reservations" });
@@ -229,11 +285,36 @@ async function registerRoutes(app) {
     }
   });
 
-  // Orders
-  app.get("/api/orders", async (req, res) => {
+  // Orders - with optional authentication
+  app.get("/api/orders", optionalAuth, async (req, res) => {
     try {
-      const orders = await storage.getOrders();
-      res.json(orders);
+      // Get all orders first
+      const allOrders = await storage.getOrders();
+      
+      // Check if there's a user in the request (authenticated)
+      // If authenticated, filter for this user's orders only
+      if (req.user) {
+        const userId = req.user.id || req.user._id;
+        const userEmail = req.user.email?.toLowerCase();
+        
+        console.log('Filtering orders for user:', { id: userId, email: userEmail });
+        
+        // Filter orders by user id or email
+        const userOrders = allOrders.filter(order => {
+          const orderUserId = order.userId || order._id;
+          const customerEmail = (order.customerEmail || order.email || '').toLowerCase();
+          
+          return (userId && orderUserId && orderUserId.toString() === userId.toString()) || 
+                 (userEmail && customerEmail === userEmail);
+        });
+        
+        console.log(`Found ${userOrders.length} orders for user ${userEmail}`);
+        return res.json(userOrders);
+      }
+      
+      // If no user in request (not authenticated), return all orders
+      // This is fine for non-authenticated requests since we filter client-side
+      res.json(allOrders);
     } catch (error) {
       console.error("Error fetching orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });

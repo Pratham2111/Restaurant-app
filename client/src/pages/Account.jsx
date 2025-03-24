@@ -30,50 +30,38 @@ function Account() {
         // Log user info to help with debugging
         console.log('Current user in Account page:', user);
         
-        // Fetch orders
-        const ordersResponse = await fetch('/api/orders');
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        console.log('Using auth token for API requests:', token ? 'present' : 'not present');
+        
+        // Fetch orders - will be filtered on the server if authenticated
+        const ordersResponse = await fetch('/api/orders', {
+          headers,
+          credentials: 'include' // Include cookies as well
+        });
+        
         if (ordersResponse.ok) {
-          const allOrders = await ordersResponse.json();
-          console.log('All orders:', allOrders);
-          
-          // Filter orders that belong to this user (checking both email and _id/id)
-          const userOrders = allOrders.filter(order => {
-            const customerEmail = order.customerEmail || order.email;
-            const orderUserId = order.userId || order._id;
-            const userEmail = user.email;
-            const userId = user._id || user.id;
-            
-            return (customerEmail && customerEmail.toLowerCase() === userEmail.toLowerCase()) || 
-                   (orderUserId && userId && orderUserId.toString() === userId.toString());
-          });
-          
-          console.log('Filtered user orders:', userOrders);
+          const userOrders = await ordersResponse.json();
+          console.log('User orders from API:', userOrders);
           setOrders(userOrders);
         } else {
-          console.error('Failed to fetch orders');
+          console.error('Failed to fetch orders:', ordersResponse.status);
         }
         
-        // Fetch bookings
-        const bookingsResponse = await fetch('/api/reservations');
+        // Fetch bookings - will be filtered on the server if authenticated
+        const bookingsResponse = await fetch('/api/reservations', {
+          headers,
+          credentials: 'include' // Include cookies as well
+        });
+        
         if (bookingsResponse.ok) {
-          const allBookings = await bookingsResponse.json();
-          console.log('All bookings:', allBookings);
-          
-          // Filter bookings that belong to this user (checking both email and _id/id)
-          const userBookings = allBookings.filter(booking => {
-            const bookingEmail = booking.email;
-            const bookingUserId = booking.userId || booking._id;
-            const userEmail = user.email;
-            const userId = user._id || user.id;
-            
-            return (bookingEmail && bookingEmail.toLowerCase() === userEmail.toLowerCase()) || 
-                   (bookingUserId && userId && bookingUserId.toString() === userId.toString());
-          });
-          
-          console.log('Filtered user bookings:', userBookings);
+          const userBookings = await bookingsResponse.json();
+          console.log('User bookings from API:', userBookings);
           setBookings(userBookings);
         } else {
-          console.error('Failed to fetch bookings');
+          console.error('Failed to fetch bookings:', bookingsResponse.status);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
