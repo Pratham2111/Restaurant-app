@@ -4,10 +4,14 @@ import createMemoryStore from "memorystore";
 import passport from "passport";
 import cookieParser from "cookie-parser";
 import http from "http";
+import dotenv from "dotenv";
 import { registerRoutes } from "./routes.js";
 import { log, setupVite, serveStatic } from "./vite.js";
 import { connectDB } from "./db/mongoose.js";
 import { initializeStorage } from "./storage.js";
+
+// Load environment variables from .env file
+dotenv.config();
 
 const MemoryStore = createMemoryStore(session);
 
