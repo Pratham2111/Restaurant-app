@@ -1,6 +1,7 @@
-const express = require('express');
-const { z } = require('zod');
-const { storage } = require('./storage');
+const { Server } = require("http");
+const express = require("express");
+const { z } = require("zod");
+const { storage } = require("./storage");
 const {
   insertCategorySchema,
   insertMenuItemSchema,
@@ -8,335 +9,347 @@ const {
   insertContactMessageSchema,
   insertOrderSchema,
   insertTestimonialSchema,
-  insertCurrencySettingSchema
-} = require('../shared/schema');
+  insertCurrencySettingSchema,
+} = require("../shared/schema");
 
-// Helper function to handle Zod validation errors
+/**
+ * Handles Zod validation errors and returns a formatted response
+ * @param {unknown} error - The error object
+ * @param {express.Response} res - Express response object 
+ */
 const handleZodError = (error, res) => {
   if (error instanceof z.ZodError) {
-    const errorMessages = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-    res.status(400).json({ message: errorMessages });
-  } else {
-    console.error('Unexpected error:', error);
-    res.status(500).json({ message: 'An unexpected error occurred' });
+    const errorMessages = error.errors.map((err) => ({
+      path: err.path.join("."),
+      message: err.message,
+    }));
+    
+    return res.status(400).json({
+      message: "Validation error",
+      errors: errorMessages,
+    });
   }
+  
+  console.error("Unexpected validation error:", error);
+  return res.status(500).json({
+    message: "An unexpected error occurred during validation",
+  });
 };
 
+/**
+ * Registers all API routes
+ * @param {express.Express} app - Express application
+ * @returns {Promise<Server>} HTTP server
+ */
 async function registerRoutes(app) {
-  // Categories endpoints
-  app.get('/api/categories', async (req, res) => {
+  // Categories
+  app.get("/api/categories", async (req, res) => {
     try {
       const categories = await storage.getCategories();
       res.json(categories);
     } catch (error) {
-      console.error('Error getting categories:', error);
-      res.status(500).json({ message: 'Failed to retrieve categories' });
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
     }
   });
 
-  app.get('/api/categories/:id', async (req, res) => {
+  app.get("/api/categories/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const category = await storage.getCategoryById(id);
       
       if (!category) {
-        return res.status(404).json({ message: 'Category not found' });
+        return res.status(404).json({ message: "Category not found" });
       }
       
       res.json(category);
     } catch (error) {
-      console.error('Error getting category:', error);
-      res.status(500).json({ message: 'Failed to retrieve category' });
+      console.error("Error fetching category:", error);
+      res.status(500).json({ message: "Failed to fetch category" });
     }
   });
 
-  app.post('/api/categories', async (req, res) => {
+  app.post("/api/categories", async (req, res) => {
     try {
       const categoryData = insertCategorySchema.parse(req.body);
-      const newCategory = await storage.createCategory(categoryData);
-      res.status(201).json(newCategory);
+      const category = await storage.createCategory(categoryData);
+      res.status(201).json(category);
     } catch (error) {
       handleZodError(error, res);
     }
   });
 
-  // Menu Items endpoints
-  app.get('/api/menu-items', async (req, res) => {
+  // Menu Items
+  app.get("/api/menu-items", async (req, res) => {
     try {
       const menuItems = await storage.getMenuItems();
       res.json(menuItems);
     } catch (error) {
-      console.error('Error getting menu items:', error);
-      res.status(500).json({ message: 'Failed to retrieve menu items' });
+      console.error("Error fetching menu items:", error);
+      res.status(500).json({ message: "Failed to fetch menu items" });
     }
   });
 
-  app.get('/api/menu-items/:id', async (req, res) => {
+  app.get("/api/menu-items/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const menuItem = await storage.getMenuItemById(id);
       
       if (!menuItem) {
-        return res.status(404).json({ message: 'Menu item not found' });
+        return res.status(404).json({ message: "Menu item not found" });
       }
       
       res.json(menuItem);
     } catch (error) {
-      console.error('Error getting menu item:', error);
-      res.status(500).json({ message: 'Failed to retrieve menu item' });
+      console.error("Error fetching menu item:", error);
+      res.status(500).json({ message: "Failed to fetch menu item" });
     }
   });
 
-  app.get('/api/menu-items/category/:categoryId', async (req, res) => {
+  app.get("/api/menu-items/category/:categoryId", async (req, res) => {
     try {
       const categoryId = parseInt(req.params.categoryId);
       const menuItems = await storage.getMenuItemsByCategory(categoryId);
       res.json(menuItems);
     } catch (error) {
-      console.error('Error getting menu items by category:', error);
-      res.status(500).json({ message: 'Failed to retrieve menu items by category' });
+      console.error("Error fetching menu items by category:", error);
+      res.status(500).json({ message: "Failed to fetch menu items by category" });
     }
   });
 
-  app.get('/api/menu-items/featured', async (req, res) => {
+  app.get("/api/menu-items/featured", async (req, res) => {
     try {
       const featuredItems = await storage.getFeaturedMenuItems();
       res.json(featuredItems);
     } catch (error) {
-      console.error('Error getting featured menu items:', error);
-      res.status(500).json({ message: 'Failed to retrieve featured menu items' });
+      console.error("Error fetching featured menu items:", error);
+      res.status(500).json({ message: "Failed to fetch featured menu items" });
     }
   });
 
-  app.post('/api/menu-items', async (req, res) => {
+  app.post("/api/menu-items", async (req, res) => {
     try {
       const menuItemData = insertMenuItemSchema.parse(req.body);
-      const newMenuItem = await storage.createMenuItem(menuItemData);
-      res.status(201).json(newMenuItem);
+      const menuItem = await storage.createMenuItem(menuItemData);
+      res.status(201).json(menuItem);
     } catch (error) {
       handleZodError(error, res);
     }
   });
 
-  // Reservations endpoints
-  app.get('/api/reservations', async (req, res) => {
+  // Reservations
+  app.get("/api/reservations", async (req, res) => {
     try {
       const reservations = await storage.getReservations();
       res.json(reservations);
     } catch (error) {
-      console.error('Error getting reservations:', error);
-      res.status(500).json({ message: 'Failed to retrieve reservations' });
+      console.error("Error fetching reservations:", error);
+      res.status(500).json({ message: "Failed to fetch reservations" });
     }
   });
 
-  app.get('/api/reservations/:id', async (req, res) => {
+  app.get("/api/reservations/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const reservation = await storage.getReservationById(id);
       
       if (!reservation) {
-        return res.status(404).json({ message: 'Reservation not found' });
+        return res.status(404).json({ message: "Reservation not found" });
       }
       
       res.json(reservation);
     } catch (error) {
-      console.error('Error getting reservation:', error);
-      res.status(500).json({ message: 'Failed to retrieve reservation' });
+      console.error("Error fetching reservation:", error);
+      res.status(500).json({ message: "Failed to fetch reservation" });
     }
   });
 
-  app.post('/api/reservations', async (req, res) => {
+  app.post("/api/reservations", async (req, res) => {
     try {
-      // Ensure date is properly converted from string to Date
-      const data = { ...req.body };
-      if (typeof data.date === 'string') {
-        data.date = new Date(data.date);
-      }
-      
-      const reservationData = insertReservationSchema.parse(data);
-      const newReservation = await storage.createReservation(reservationData);
-      res.status(201).json(newReservation);
+      const reservationData = insertReservationSchema.parse(req.body);
+      const reservation = await storage.createReservation(reservationData);
+      res.status(201).json(reservation);
     } catch (error) {
       handleZodError(error, res);
     }
   });
 
-  app.patch('/api/reservations/:id/status', async (req, res) => {
+  app.patch("/api/reservations/:id/status", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;
       
-      if (!status || typeof status !== 'string') {
-        return res.status(400).json({ message: 'Status is required and must be a string' });
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({ message: "Status must be a string" });
       }
       
-      const updatedReservation = await storage.updateReservationStatus(id, status);
+      const reservation = await storage.updateReservationStatus(id, status);
       
-      if (!updatedReservation) {
-        return res.status(404).json({ message: 'Reservation not found' });
+      if (!reservation) {
+        return res.status(404).json({ message: "Reservation not found" });
       }
       
-      res.json(updatedReservation);
+      res.json(reservation);
     } catch (error) {
-      console.error('Error updating reservation status:', error);
-      res.status(500).json({ message: 'Failed to update reservation status' });
+      console.error("Error updating reservation status:", error);
+      res.status(500).json({ message: "Failed to update reservation status" });
     }
   });
 
-  // Contact Messages endpoints
-  app.get('/api/contact-messages', async (req, res) => {
+  // Contact Messages
+  app.get("/api/contact", async (req, res) => {
     try {
-      const contactMessages = await storage.getContactMessages();
-      res.json(contactMessages);
+      const messages = await storage.getContactMessages();
+      res.json(messages);
     } catch (error) {
-      console.error('Error getting contact messages:', error);
-      res.status(500).json({ message: 'Failed to retrieve contact messages' });
+      console.error("Error fetching contact messages:", error);
+      res.status(500).json({ message: "Failed to fetch contact messages" });
     }
   });
 
-  app.post('/api/contact-messages', async (req, res) => {
+  app.post("/api/contact", async (req, res) => {
     try {
-      const contactMessageData = insertContactMessageSchema.parse(req.body);
-      const newContactMessage = await storage.createContactMessage(contactMessageData);
-      res.status(201).json(newContactMessage);
+      const messageData = insertContactMessageSchema.parse(req.body);
+      const message = await storage.createContactMessage(messageData);
+      res.status(201).json(message);
     } catch (error) {
       handleZodError(error, res);
     }
   });
 
-  // Orders endpoints
-  app.get('/api/orders', async (req, res) => {
+  // Orders
+  app.get("/api/orders", async (req, res) => {
     try {
       const orders = await storage.getOrders();
       res.json(orders);
     } catch (error) {
-      console.error('Error getting orders:', error);
-      res.status(500).json({ message: 'Failed to retrieve orders' });
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
     }
   });
 
-  app.get('/api/orders/:id', async (req, res) => {
+  app.get("/api/orders/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const order = await storage.getOrderById(id);
       
       if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
+        return res.status(404).json({ message: "Order not found" });
       }
       
       res.json(order);
     } catch (error) {
-      console.error('Error getting order:', error);
-      res.status(500).json({ message: 'Failed to retrieve order' });
+      console.error("Error fetching order:", error);
+      res.status(500).json({ message: "Failed to fetch order" });
     }
   });
 
-  app.post('/api/orders', async (req, res) => {
+  app.post("/api/orders", async (req, res) => {
     try {
       const orderData = insertOrderSchema.parse(req.body);
-      const newOrder = await storage.createOrder(orderData);
-      res.status(201).json(newOrder);
+      const order = await storage.createOrder(orderData);
+      res.status(201).json(order);
     } catch (error) {
       handleZodError(error, res);
     }
   });
 
-  app.patch('/api/orders/:id/status', async (req, res) => {
+  app.patch("/api/orders/:id/status", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;
       
-      if (!status || typeof status !== 'string') {
-        return res.status(400).json({ message: 'Status is required and must be a string' });
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({ message: "Status must be a string" });
       }
       
-      const updatedOrder = await storage.updateOrderStatus(id, status);
+      const order = await storage.updateOrderStatus(id, status);
       
-      if (!updatedOrder) {
-        return res.status(404).json({ message: 'Order not found' });
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
       }
       
-      res.json(updatedOrder);
+      res.json(order);
     } catch (error) {
-      console.error('Error updating order status:', error);
-      res.status(500).json({ message: 'Failed to update order status' });
+      console.error("Error updating order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
     }
   });
 
-  // Testimonials endpoints
-  app.get('/api/testimonials', async (req, res) => {
+  // Testimonials
+  app.get("/api/testimonials", async (req, res) => {
     try {
       const testimonials = await storage.getTestimonials();
       res.json(testimonials);
     } catch (error) {
-      console.error('Error getting testimonials:', error);
-      res.status(500).json({ message: 'Failed to retrieve testimonials' });
+      console.error("Error fetching testimonials:", error);
+      res.status(500).json({ message: "Failed to fetch testimonials" });
     }
   });
 
-  app.post('/api/testimonials', async (req, res) => {
+  app.post("/api/testimonials", async (req, res) => {
     try {
       const testimonialData = insertTestimonialSchema.parse(req.body);
-      const newTestimonial = await storage.createTestimonial(testimonialData);
-      res.status(201).json(newTestimonial);
+      const testimonial = await storage.createTestimonial(testimonialData);
+      res.status(201).json(testimonial);
     } catch (error) {
       handleZodError(error, res);
     }
   });
 
-  // Currency Settings endpoints
-  app.get('/api/currency-settings', async (req, res) => {
+  // Currency Settings
+  app.get("/api/currency-settings", async (req, res) => {
     try {
       const currencySettings = await storage.getCurrencySettings();
       res.json(currencySettings);
     } catch (error) {
-      console.error('Error getting currency settings:', error);
-      res.status(500).json({ message: 'Failed to retrieve currency settings' });
+      console.error("Error fetching currency settings:", error);
+      res.status(500).json({ message: "Failed to fetch currency settings" });
     }
   });
 
-  app.get('/api/currency-settings/default', async (req, res) => {
+  app.get("/api/currency-settings/default", async (req, res) => {
     try {
       const defaultCurrency = await storage.getDefaultCurrency();
       
       if (!defaultCurrency) {
-        return res.status(404).json({ message: 'Default currency not found' });
+        return res.status(404).json({ message: "Default currency not found" });
       }
       
       res.json(defaultCurrency);
     } catch (error) {
-      console.error('Error getting default currency:', error);
-      res.status(500).json({ message: 'Failed to retrieve default currency' });
+      console.error("Error fetching default currency:", error);
+      res.status(500).json({ message: "Failed to fetch default currency" });
     }
   });
 
-  app.post('/api/currency-settings', async (req, res) => {
+  app.post("/api/currency-settings", async (req, res) => {
     try {
-      const currencySettingData = insertCurrencySettingSchema.parse(req.body);
-      const newCurrencySetting = await storage.createCurrencySetting(currencySettingData);
-      res.status(201).json(newCurrencySetting);
+      const currencyData = insertCurrencySettingSchema.parse(req.body);
+      const currency = await storage.createCurrencySetting(currencyData);
+      res.status(201).json(currency);
     } catch (error) {
       handleZodError(error, res);
     }
   });
 
-  app.patch('/api/currency-settings/:id/default', async (req, res) => {
+  app.patch("/api/currency-settings/:id/default", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const updatedCurrency = await storage.updateDefaultCurrency(id);
+      const currency = await storage.updateDefaultCurrency(id);
       
-      if (!updatedCurrency) {
-        return res.status(404).json({ message: 'Currency not found' });
+      if (!currency) {
+        return res.status(404).json({ message: "Currency not found" });
       }
       
-      res.json(updatedCurrency);
+      res.json(currency);
     } catch (error) {
-      console.error('Error updating default currency:', error);
-      res.status(500).json({ message: 'Failed to update default currency' });
+      console.error("Error updating default currency:", error);
+      res.status(500).json({ message: "Failed to update default currency" });
     }
   });
 
-  return app;
+  return app.get("server");
 }
 
 module.exports = { registerRoutes };

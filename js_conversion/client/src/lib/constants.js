@@ -1,77 +1,126 @@
+/**
+ * Restaurant information used throughout the site
+ */
 export const RESTAURANT_INFO = {
   name: "La Mason",
-  address: "123 Gourmet Street, Foodville, CA 92324",
-  phone: "(555) 123-4567",
+  tagline: "Fine Dining & Culinary Excellence",
+  address: "123 Gourmet Avenue, New York, NY 10001",
+  phone: "+1 (555) 123-4567",
   email: "info@lamason.com",
+  socialMedia: {
+    facebook: "https://facebook.com/lamason",
+    instagram: "https://instagram.com/lamason",
+    twitter: "https://twitter.com/lamason",
+  },
   openingHours: {
-    monday: "11:00 AM - 10:00 PM",
+    monday: "Closed",
     tuesday: "11:00 AM - 10:00 PM",
     wednesday: "11:00 AM - 10:00 PM",
     thursday: "11:00 AM - 10:00 PM",
     friday: "11:00 AM - 11:00 PM",
     saturday: "11:00 AM - 11:00 PM",
-    sunday: "11:00 AM - 9:00 PM"
+    sunday: "11:00 AM - 9:00 PM",
   },
-  socialMedia: {
-    facebook: "https://facebook.com/lamason",
-    instagram: "https://instagram.com/lamason",
-    twitter: "https://twitter.com/lamason"
-  }
+  deliveryFee: 5.99,
+  taxRate: 0.0825, // 8.25%
 };
 
+/**
+ * Currency options for the currency selector
+ */
 export const CURRENCY_OPTIONS = [
-  { id: 1, code: "USD", symbol: "$", name: "US Dollar" },
-  { id: 2, code: "EUR", symbol: "€", name: "Euro" },
-  { id: 3, code: "GBP", symbol: "£", name: "British Pound" }
+  { value: "USD", label: "$ USD" },
+  { value: "EUR", label: "€ EUR" },
+  { value: "GBP", label: "£ GBP" },
 ];
 
+/**
+ * Content for the hero section
+ */
 export const HERO_SECTION = {
-  heading: "Authentic Cuisine, Memorable Experience",
-  subheading: "Fine dining with a twist of tradition",
-  description: "Welcome to La Mason, where culinary artistry meets warmth and hospitality. Experience our chef-crafted dishes made with locally-sourced ingredients and international flavors.",
-  ctaText: "View Our Menu",
-  imageUrl: "https://images.unsplash.com/photo-1611599537845-1c7aca0091c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2574&q=80"
+  title: "Welcome to La Mason",
+  subtitle: "Experience the Art of Fine Dining",
+  description:
+    "Indulge in an unforgettable culinary journey with our award-winning menu crafted by world-class chefs using the finest ingredients.",
+  callToAction: "Order Now",
+  secondaryAction: "Book a Table",
+  image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=1000&h=750",
 };
 
+/**
+ * Content for the about section
+ */
 export const ABOUT_SECTION = {
-  heading: "Our Story",
-  description: "La Mason began with a simple vision: to create a dining experience that celebrates the art of cooking while honoring the traditions that make food culture so rich and diverse. Founded in 2010 by Chef Michael Reeves, our restaurant has grown from a small neighborhood spot to a culinary destination.\n\nEvery dish at La Mason tells a story of passion, creativity, and respect for ingredients. We source locally whenever possible, building relationships with farmers and producers who share our commitment to quality and sustainability.",
-  chefName: "Michael Reeves",
-  chefTitle: "Founder & Head Chef",
-  chefImage: "https://randomuser.me/api/portraits/men/32.jpg",
-  restaurantImage: "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2574&q=80"
+  title: "Our Story",
+  subtitle: "Passion for Culinary Excellence",
+  description:
+    "Founded in 2010, La Mason has been dedicated to providing an exceptional dining experience through our commitment to quality ingredients, innovative recipes, and impeccable service. Our team of experienced chefs bring creativity and precision to every dish, ensuring a memorable experience for all our guests.",
+  image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=500&h=350",
+  features: [
+    {
+      title: "Locally Sourced",
+      description: "We partner with local farmers to bring you the freshest ingredients",
+    },
+    {
+      title: "Award Winning",
+      description: "Recognized for culinary excellence with multiple industry awards",
+    },
+    {
+      title: "Expert Chefs",
+      description: "Our dishes are crafted by internationally trained master chefs",
+    },
+  ],
 };
 
+/**
+ * Content for the menu section
+ */
 export const MENU_SECTION = {
-  heading: "Our Menu",
-  description: "Discover our selection of expertly crafted dishes, prepared with fresh ingredients and inspired by both traditional and contemporary culinary techniques.",
-  categories: [
-    { id: 1, name: "Appetizers" },
-    { id: 2, name: "Main Courses" },
-    { id: 3, name: "Desserts" },
-    { id: 4, name: "Beverages" }
-  ]
+  title: "Our Menu",
+  subtitle: "Discover Culinary Excellence",
+  description:
+    "Explore our diverse menu featuring exquisite dishes crafted with passion and the finest ingredients. From appetizers to desserts, each plate is a masterpiece of flavor and presentation.",
 };
 
+/**
+ * Content for the booking section
+ */
 export const BOOKING_SECTION = {
-  heading: "Reserve Your Table",
-  description: "Make a reservation to secure your spot at La Mason. Whether it's a romantic dinner, family celebration, or business meeting, we're ready to make your experience unforgettable.",
-  imageUrl: "https://images.unsplash.com/photo-1544124499-58912cbddaad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2670&q=80"
+  title: "Book a Table",
+  subtitle: "Reserve Your Experience",
+  description:
+    "Make your dining experience special by reserving a table at La Mason. Whether it's a romantic dinner, family gathering, or business meeting, we're ready to serve you with excellence.",
+  image: "https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=500&h=350",
 };
 
+/**
+ * Content for the order section
+ */
 export const ORDER_SECTION = {
-  heading: "Order Online",
-  description: "Enjoy La Mason's exquisite cuisine in the comfort of your home. Our online ordering system makes it easy to bring the flavors of our restaurant to your table.",
-  imageUrl: "https://images.unsplash.com/photo-1583394293214-28ded15ee548?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2669&q=80"
+  title: "Order Online",
+  subtitle: "Enjoy Our Menu at Home",
+  description:
+    "Can't make it to our restaurant? Order your favorite dishes online and enjoy the La Mason experience in the comfort of your home.",
+  image: "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=500&h=350",
 };
 
+/**
+ * Content for the testimonials section
+ */
 export const TESTIMONIALS_SECTION = {
-  heading: "What Our Guests Say",
-  description: "Read genuine reviews from our valued customers who have experienced the La Mason dining experience."
+  title: "Customer Reviews",
+  subtitle: "What Our Guests Say",
+  description:
+    "Read what our valued guests have to say about their dining experiences at La Mason. We pride ourselves on providing exceptional food and service.",
 };
 
+/**
+ * Content for the contact section
+ */
 export const CONTACT_SECTION = {
-  heading: "Get in Touch",
-  description: "Have questions or feedback? We'd love to hear from you. Reach out to our team using the contact form below, or call us directly. We strive to respond to all inquiries within 24 hours.",
-  imageUrl: "https://images.unsplash.com/photo-1542282088-fe8426682b8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2574&q=80"
+  title: "Contact Us",
+  subtitle: "Get in Touch",
+  description:
+    "Have questions, feedback, or special requests? We'd love to hear from you. Reach out to our team using the form below or contact us directly.",
+  image: "https://images.unsplash.com/photo-1560254918-502e024acba8?auto=format&fit=crop&w=500&h=350",
 };

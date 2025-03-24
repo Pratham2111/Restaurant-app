@@ -1,128 +1,131 @@
 import React from "react";
 import { Link } from "wouter";
+import { PhoneIcon, MapPinIcon, MailIcon, Clock } from "lucide-react";
+import { 
+  FaFacebook, 
+  FaInstagram, 
+  FaTwitter 
+} from "react-icons/fa";
 import { RESTAURANT_INFO } from "@/lib/constants";
-import { Facebook, Instagram, Twitter, Phone, Mail, MapPin, Clock } from "lucide-react";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
   
+  // Navigation Sections
+  const sections = [
+    {
+      title: "Navigation",
+      links: [
+        { href: "/", label: "Home" },
+        { href: "/menu", label: "Our Menu" },
+        { href: "/booking", label: "Book a Table" },
+        { href: "/order", label: "Order Online" },
+        { href: "/contact", label: "Contact Us" },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { href: "#", label: "Privacy Policy" },
+        { href: "#", label: "Terms & Conditions" },
+        { href: "#", label: "Cookie Policy" },
+      ],
+    },
+  ];
+  
   return (
-    <footer className="bg-gray-900 text-gray-200 py-12">
+    <footer className="bg-gray-900 text-white pt-16 pb-8">
       <div className="container mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Restaurant Information */}
-          <div>
-            <h3 className="text-xl font-bold mb-4">{RESTAURANT_INFO.name}</h3>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <MapPin className="h-5 w-5 mr-2 mt-0.5 text-primary" />
-                <span>{RESTAURANT_INFO.address}</span>
-              </div>
-              <div className="flex items-center">
-                <Phone className="h-5 w-5 mr-2 text-primary" />
-                <span>{RESTAURANT_INFO.phone}</span>
-              </div>
-              <div className="flex items-center">
-                <Mail className="h-5 w-5 mr-2 text-primary" />
-                <a href={`mailto:${RESTAURANT_INFO.email}`} className="hover:text-primary">
-                  {RESTAURANT_INFO.email}
-                </a>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Restaurant Info */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold">{RESTAURANT_INFO.name}</h3>
+            <p className="text-gray-400 max-w-xs">
+              {RESTAURANT_INFO.description}
+            </p>
             
-            {/* Social Media Links */}
-            <div className="flex space-x-4 mt-4">
-              <a 
-                href={RESTAURANT_INFO.socialMedia.facebook} 
-                target="_blank" 
+            {/* Social Links */}
+            <div className="flex space-x-4 pt-2">
+              <a
+                href={RESTAURANT_INFO.social.facebook}
+                target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Facebook"
               >
-                <Facebook className="h-5 w-5" />
+                <FaFacebook className="h-5 w-5" />
               </a>
-              <a 
-                href={RESTAURANT_INFO.socialMedia.instagram} 
-                target="_blank" 
+              <a
+                href={RESTAURANT_INFO.social.instagram}
+                target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Instagram"
               >
-                <Instagram className="h-5 w-5" />
+                <FaInstagram className="h-5 w-5" />
               </a>
-              <a 
-                href={RESTAURANT_INFO.socialMedia.twitter} 
-                target="_blank" 
+              <a
+                href={RESTAURANT_INFO.social.twitter}
+                target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Twitter"
               >
-                <Twitter className="h-5 w-5" />
+                <FaTwitter className="h-5 w-5" />
               </a>
             </div>
           </div>
           
-          {/* Opening Hours */}
+          {/* Contact Info */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Opening Hours</h3>
-            <div className="space-y-2">
-              <div className="flex items-start">
-                <Clock className="h-5 w-5 mr-2 mt-0.5 text-primary" />
+            <h3 className="text-xl font-bold mb-4">Contact Us</h3>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <MapPinIcon className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
+                <span>{RESTAURANT_INFO.address}</span>
+              </li>
+              <li className="flex items-start">
+                <PhoneIcon className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
+                <span>{RESTAURANT_INFO.phone}</span>
+              </li>
+              <li className="flex items-start">
+                <MailIcon className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
+                <span>{RESTAURANT_INFO.email}</span>
+              </li>
+              <li className="flex items-start">
+                <Clock className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
                 <div>
-                  <p className="font-medium">Monday - Thursday</p>
-                  <p>{RESTAURANT_INFO.openingHours.monday}</p>
+                  <p>Mon-Fri: {RESTAURANT_INFO.hours.weekdays}</p>
+                  <p>Sat-Sun: {RESTAURANT_INFO.hours.weekends}</p>
                 </div>
-              </div>
-              <div className="flex items-start">
-                <Clock className="h-5 w-5 mr-2 mt-0.5 text-primary opacity-0" />
-                <div>
-                  <p className="font-medium">Friday - Saturday</p>
-                  <p>{RESTAURANT_INFO.openingHours.friday}</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <Clock className="h-5 w-5 mr-2 mt-0.5 text-primary opacity-0" />
-                <div>
-                  <p className="font-medium">Sunday</p>
-                  <p>{RESTAURANT_INFO.openingHours.sunday}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-xl font-bold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/">
-                  <a className="hover:text-primary">Home</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/menu">
-                  <a className="hover:text-primary">Our Menu</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/booking">
-                  <a className="hover:text-primary">Book a Table</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/order">
-                  <a className="hover:text-primary">Order Online</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact">
-                  <a className="hover:text-primary">Contact Us</a>
-                </Link>
               </li>
             </ul>
           </div>
+          
+          {/* Navigation Columns */}
+          {sections.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-xl font-bold mb-4">{section.title}</h3>
+              <ul className="space-y-2">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href}>
+                      <a className="text-gray-400 hover:text-white transition-colors">
+                        {link.label}
+                      </a>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
         
         {/* Copyright */}
-        <div className="border-t border-gray-800 mt-8 pt-6 text-center">
-          <p>&copy; {currentYear} {RESTAURANT_INFO.name}. All rights reserved.</p>
+        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+          <p>
+            &copy; {currentYear} {RESTAURANT_INFO.name}. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

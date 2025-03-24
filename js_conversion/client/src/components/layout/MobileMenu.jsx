@@ -1,108 +1,83 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Link } from "wouter";
+import { X, ChevronRight, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetClose,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CURRENCY_OPTIONS } from "@/lib/constants";
-import { ShoppingCart } from "lucide-react";
-import { useCart } from "@/hooks/useCart";
 
 export const MobileMenu = ({
   isOpen,
   onClose,
   navLinks,
   currentCurrency,
-  onCurrencyChange
+  onCurrencyChange,
 }) => {
-  const { getItemCount } = useCart();
-  const cartItemCount = getItemCount();
-  
-  // Close menu when clicking outside or pressing escape
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      // Prevent scrolling on the background when menu is open
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, onClose]);
-  
-  if (!isOpen) return null;
-  
   return (
-    <div className="fixed inset-0 z-50 flex md:hidden">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50" 
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      
-      {/* Menu content */}
-      <div className="relative ml-auto flex h-full w-4/5 max-w-xs flex-col overflow-y-auto bg-background px-6 py-6 shadow-lg">
-        {/* Navigation Links */}
-        <nav className="flex flex-col space-y-4">
-          {navLinks.map((link) => (
-            <Link 
-              key={link.href} 
-              href={link.href}
-              onClick={onClose}
-            >
-              <a className="text-base font-medium">
-                {link.label}
-              </a>
-            </Link>
-          ))}
-        </nav>
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="right" className="px-0">
+        <SheetHeader className="px-6 border-b pb-3">
+          <SheetTitle className="text-left">Menu</SheetTitle>
+          <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-secondary">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </SheetClose>
+        </SheetHeader>
         
-        <div className="mt-6 border-t pt-4">
-          {/* Cart Link */}
-          <Link href="/order" onClick={onClose}>
-            <a className="flex items-center justify-between mb-4">
-              <span className="font-medium">Your Cart</span>
-              <div className="flex items-center">
-                <ShoppingCart className="h-5 w-5 mr-1" />
-                {cartItemCount > 0 && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                    {cartItemCount}
-                  </span>
-                )}
-              </div>
-            </a>
-          </Link>
-          
+        <div className="px-6 py-4">
           {/* Currency Selector */}
-          <div>
-            <label 
-              htmlFor="mobile-currency" 
-              className="block text-sm font-medium mb-1"
-            >
-              Select Currency
-            </label>
-            <select
-              id="mobile-currency"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+          <div className="mb-4">
+            <p className="text-sm font-medium mb-2">Currency</p>
+            <Select
               value={currentCurrency}
-              onChange={(e) => onCurrencyChange(e.target.value)}
+              onValueChange={onCurrencyChange}
             >
-              {CURRENCY_OPTIONS.map((currency) => (
-                <option key={currency.id} value={currency.id}>
-                  {currency.code} ({currency.symbol})
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <div className="flex items-center">
+                  <Globe className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder={currentCurrency} />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {CURRENCY_OPTIONS.map((currency) => (
+                  <SelectItem key={currency.id} value={currency.id.toString()}>
+                    {currency.symbol} {currency.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          
+          {/* Navigation Links */}
+          <nav className="flex flex-col space-y-1">
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href}>
+                <SheetClose asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between px-2 py-5 h-auto font-normal"
+                  >
+                    <span>{link.label}</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </SheetClose>
+              </Link>
+            ))}
+          </nav>
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 };

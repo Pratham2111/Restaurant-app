@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 
+// Cart context definition
 export const CartContext = createContext({
   items: [],
   addToCart: () => {},
@@ -10,100 +11,107 @@ export const CartContext = createContext({
   getDeliveryFee: () => 0,
   getTax: () => 0,
   getTotal: () => 0,
-  getItemCount: () => 0
+  getItemCount: () => 0,
 });
 
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState([]);
   
-  // Load cart from localStorage on component mount
+  // Load cart from localStorage on initial load
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
+    const savedCart = localStorage.getItem("cart");
     if (savedCart) {
       try {
         setItems(JSON.parse(savedCart));
-      } catch (e) {
-        console.error("Failed to parse cart from localStorage", e);
-        localStorage.removeItem('cart');
+      } catch (error) {
+        console.error("Failed to parse cart from localStorage:", error);
+        localStorage.removeItem("cart");
       }
     }
   }, []);
   
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
+    localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
-
+  
+  // Add item to cart
   const addToCart = (menuItem, quantity = 1) => {
-    setItems(prevItems => {
-      const existingItemIndex = prevItems.findIndex(item => item.menuItemId === menuItem.id);
+    setItems((prevItems) => {
+      // Check if item already exists in cart
+      const existingItemIndex = prevItems.findIndex(
+        (item) => item.menuItemId === menuItem.id
+      );
       
-      if (existingItemIndex >= 0) {
-        // Item already exists in cart, update quantity
+      if (existingItemIndex !== -1) {
+        // Update quantity if item exists
         const updatedItems = [...prevItems];
         updatedItems[existingItemIndex].quantity += quantity;
         return updatedItems;
       } else {
-        // Item doesn't exist in cart, add it
+        // Add new item to cart
         const newItem = {
           menuItemId: menuItem.id,
           name: menuItem.name,
           price: menuItem.price,
           quantity: quantity,
-          image: menuItem.image
+          image: menuItem.image,
         };
         return [...prevItems, newItem];
       }
     });
   };
-
+  
+  // Remove item from cart
   const removeFromCart = (menuItemId) => {
-    setItems(prevItems => prevItems.filter(item => item.menuItemId !== menuItemId));
+    setItems((prevItems) => 
+      prevItems.filter((item) => item.menuItemId !== menuItemId)
+    );
   };
-
+  
+  // Update item quantity
   const updateQuantity = (menuItemId, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(menuItemId);
-      return;
-    }
-    
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.menuItemId === menuItemId 
-          ? { ...item, quantity }
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.menuItemId === menuItemId
+          ? { ...item, quantity: quantity }
           : item
       )
     );
   };
-
+  
+  // Clear cart
   const clearCart = () => {
     setItems([]);
   };
-
+  
+  // Calculate subtotal
   const getSubtotal = () => {
-    return items.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0);
+    return items.reduce((total, item) => total + item.price * item.quantity, 0);
   };
-
+  
+  // Calculate delivery fee (fixed for now)
   const getDeliveryFee = () => {
-    const subtotal = getSubtotal();
-    return subtotal > 0 ? 5.00 : 0; // $5 delivery fee if cart is not empty
+    return items.length > 0 ? 5.99 : 0;
   };
-
+  
+  // Calculate tax (10% for now)
   const getTax = () => {
-    const subtotal = getSubtotal();
-    return subtotal * 0.07; // 7% tax
+    return getSubtotal() * 0.1;
   };
-
+  
+  // Calculate total
   const getTotal = () => {
     return getSubtotal() + getDeliveryFee() + getTax();
   };
-
+  
+  // Get total item count
   const getItemCount = () => {
     return items.reduce((count, item) => count + item.quantity, 0);
   };
-
+  
   return (
-    <CartContext.Provider 
+    <CartContext.Provider
       value={{
         items,
         addToCart,
@@ -114,7 +122,7 @@ export const CartProvider = ({ children }) => {
         getDeliveryFee,
         getTax,
         getTotal,
-        getItemCount
+        getItemCount,
       }}
     >
       {children}

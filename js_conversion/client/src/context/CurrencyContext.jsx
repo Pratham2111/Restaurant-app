@@ -1,66 +1,92 @@
 import React, { createContext, useState, useEffect } from "react";
-import { apiRequest } from "../lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
+// Default currency fallback if API fails
 const defaultCurrency = {
   id: 1,
-  symbol: "$",
   code: "USD",
+  symbol: "$",
+  name: "US Dollar",
   rate: 1,
-  isDefault: true
+  isDefault: true,
 };
 
+// Context definition
 export const CurrencyContext = createContext({
   currencySettings: [],
   currentCurrency: defaultCurrency,
-  loading: false,
+  loading: true,
   error: null,
-  setCurrency: async () => {}
+  setCurrency: async () => {},
 });
 
 export const CurrencyProvider = ({ children }) => {
-  const [currencySettings, setCurrencySettings] = useState([]);
+  // State to track current currency
   const [currentCurrency, setCurrentCurrency] = useState(defaultCurrency);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch all available currencies and set the default one
+  // Fetch all available currencies
+  const {
+    data: currencySettings = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["/api/currency-settings"],
+  });
+
+  // Fetch default currency
+  const { data: defaultCurrencyData } = useQuery({
+    queryKey: ["/api/currency-settings/default"],
+  });
+
+  // Update default currency mutation
+  const mutation = useMutation({
+    mutationFn: (currencyId) => {
+      return fetch(`/api/currency-settings/${currencyId}/default`, {
+        method: "PATCH",
+      }).then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to update currency");
+        }
+        return res.json();
+      });
+    },
+    onSuccess: () => {
+      // Invalidate currency queries to refetch the updated data
+      queryClient.invalidateQueries({ queryKey: ["/api/currency-settings"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/currency-settings/default"] 
+      });
+    },
+  });
+
+  // Set the current currency when default is loaded or changed
   useEffect(() => {
-    const fetchCurrencies = async () => {
-      try {
-        setLoading(true);
-        const currencies = await apiRequest("/api/currency-settings");
-        setCurrencySettings(currencies);
-        
-        // Get and set default currency
-        const defaultCurrency = await apiRequest("/api/currency-settings/default");
-        setCurrentCurrency(defaultCurrency);
-        
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to fetch currency settings:", err);
-        setError("Failed to load currency settings");
-        setLoading(false);
-      }
-    };
-    
-    fetchCurrencies();
-  }, []);
+    if (defaultCurrencyData) {
+      setCurrentCurrency(defaultCurrencyData);
+    }
+  }, [defaultCurrencyData]);
 
   // Function to change the current currency
   const setCurrency = async (currencyId) => {
-    try {
-      const selected = currencySettings.find(c => c.id === currencyId);
-      if (selected) {
-        setCurrentCurrency(selected);
-        
-        // Store preference in localStorage
-        localStorage.setItem('preferredCurrency', selected.id.toString());
+    // Find the currency in our settings
+    const newCurrency = currencySettings.find(
+      (currency) => currency.id === currencyId
+    );
+
+    if (newCurrency) {
+      try {
+        // Update the default currency on the server
+        await mutation.mutateAsync(currencyId);
+        // Update the local state
+        setCurrentCurrency(newCurrency);
+        return true;
+      } catch (error) {
+        console.error("Failed to set currency:", error);
+        return false;
       }
-    } catch (err) {
-      console.error("Failed to set currency:", err);
-      setError("Failed to change currency");
-      throw err;
     }
+    return false;
   };
 
   return (
@@ -68,9 +94,9 @@ export const CurrencyProvider = ({ children }) => {
       value={{
         currencySettings,
         currentCurrency,
-        loading,
-        error,
-        setCurrency
+        loading: isLoading,
+        error: error ? error.message : null,
+        setCurrency,
       }}
     >
       {children}

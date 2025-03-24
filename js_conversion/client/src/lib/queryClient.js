@@ -1,70 +1,86 @@
 import { QueryClient } from "@tanstack/react-query";
 
+/**
+ * Checks if a Response is okay, throws an error if not
+ * @param {Response} res - The Response object
+ * @throws {Error} If the response is not okay
+ */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    const errorText = await res.text();
-    let error;
+    let errorText;
     try {
-      error = JSON.parse(errorText);
+      const errorData = await res.json();
+      errorText = errorData.message || "An unknown error occurred";
     } catch (e) {
-      error = { message: errorText || "Network response was not ok" };
+      errorText = "Failed to parse error response";
     }
-    throw new Error(error.message || "Network response was not ok");
+    throw new Error(`API Error (${res.status}): ${errorText}`);
   }
-  return res;
 }
 
+/**
+ * Makes an API request with proper error handling
+ * @param {string} path - API path to request
+ * @param {Object} options - Fetch options
+ * @returns {Promise<any>} Response data
+ */
 export async function apiRequest(path, options = {}) {
-  const defaultOptions = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-  
-  const mergedOptions = {
-    ...defaultOptions,
-    ...options,
-    headers: {
-      ...defaultOptions.headers,
-      ...options.headers,
-    },
-  };
-  
-  if (mergedOptions.body && typeof mergedOptions.body !== "string") {
-    mergedOptions.body = JSON.stringify(mergedOptions.body);
+  try {
+    const res = await fetch(path, {
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+      ...options,
+    });
+
+    await throwIfResNotOk(res);
+
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return await res.json();
+    }
+
+    return await res.text();
+  } catch (error) {
+    console.error(`API request failed for ${path}:`, error);
+    throw error;
   }
-  
-  const res = await fetch(path, mergedOptions);
-  await throwIfResNotOk(res);
-  
-  // Check if the response is empty or not
-  const text = await res.text();
-  if (!text) return null;
-  
-  return JSON.parse(text);
 }
 
+/**
+ * Creates a query function with unauthorized behavior options
+ * @param {Object} options - Options for handling 401 responses
+ * @returns {Function} Query function for TanStack Query
+ */
 export const getQueryFn = (options = { on401: "throw" }) => {
   return async ({ queryKey }) => {
-    const [path] = queryKey;
     try {
+      const [path] = queryKey;
       return await apiRequest(path);
-    } catch (e) {
-      // Handle 401 errors
-      if (e.message === "401" && options.on401 === "returnNull") {
+    } catch (error) {
+      if (
+        error.message &&
+        error.message.includes("API Error (401)") &&
+        options.on401 === "returnNull"
+      ) {
         return null;
       }
-      throw e;
+      throw error;
     }
   };
 };
 
+/**
+ * Configure QueryClient with sensible defaults
+ */
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn(),
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
-      retry: false,
+      queryFn: getQueryFn(),
     },
   },
 });
