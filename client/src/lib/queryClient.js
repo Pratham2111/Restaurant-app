@@ -55,17 +55,41 @@ export async function apiRequest(path, options = {}) {
     withHeaders: Object.keys(fetchOptions.headers)
   });
 
+  // Log cookies if they exist (this only works for non-httpOnly cookies)
+  const cookieString = document.cookie;
+  if (cookieString) {
+    console.log('Current document cookies:', cookieString);
+    const cookies = cookieString.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
+    console.log('Parsed cookies:', cookies);
+  } else {
+    console.log('No cookies found in document');
+  }
+
   try {
     const res = await fetch(path, fetchOptions);
     
     console.log(`Response from ${path}:`, { 
       status: res.status, 
       ok: res.ok,
+      url: res.url,
+      type: res.type,
       headers: [...res.headers.entries()].reduce((obj, [key, value]) => {
         obj[key] = value;
         return obj;
       }, {})
     });
+    
+    // Check if the response has a Set-Cookie header
+    const setCookie = res.headers.get('set-cookie');
+    if (setCookie) {
+      console.log('Set-Cookie header found:', setCookie);
+    } else {
+      console.log('No Set-Cookie header in response');
+    }
     
     await throwIfResNotOk(res);
     
@@ -75,6 +99,7 @@ export async function apiRequest(path, options = {}) {
     }
     
     const data = await res.json();
+    console.log(`Response data from ${path}:`, data);
     return data;
   } catch (error) {
     console.error(`API request error for ${path}:`, error);

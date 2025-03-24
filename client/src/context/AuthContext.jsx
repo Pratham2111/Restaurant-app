@@ -7,22 +7,53 @@ import { useToast } from "../hooks/use-toast.jsx";
  */
 const AuthContext = createContext();
 
+// Key for storing the token in localStorage
+const TOKEN_STORAGE_KEY = 'la_mason_auth_token';
+
 /**
  * Provider component for the AuthContext
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY) || null);
   const { toast } = useToast();
 
-  // Check for an existing session on initial load
+  // Function to save token to localStorage
+  const saveToken = (newToken) => {
+    if (newToken) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+      setToken(newToken);
+      console.log('Auth token saved to localStorage');
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      setToken(null);
+      console.log('Auth token removed from localStorage');
+    }
+  };
+
+  // Check for an existing session on initial load or when token changes
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const userData = await apiRequest("/api/auth/me");
+        console.log('Checking auth status with token:', token ? 'exists' : 'none');
+        
+        // If we have a token, add it to the Authorization header
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const userData = await apiRequest("/api/auth/me", { headers });
+        console.log('Auth status check successful, user data:', userData);
         setUser(userData.user);
       } catch (error) {
-        // User is not logged in, or token expired
+        console.log('Auth status check failed:', error.message);
+        // Clear token if it's invalid or expired
+        if (token && (error.message.includes('401') || error.message.includes('Invalid token'))) {
+          console.log('Clearing invalid token');
+          saveToken(null);
+        }
         setUser(null);
       } finally {
         setLoading(false);
@@ -30,7 +61,7 @@ export function AuthProvider({ children }) {
     };
 
     checkAuthStatus();
-  }, []);
+  }, [token]);
 
   /**
    * Login a user with email and password
@@ -41,11 +72,23 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       setLoading(true);
+      console.log('Attempting to login with email:', email);
+      
       const response = await apiRequest("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
+      console.log('Login response received:', response);
+      
+      // Save token if it exists in the response
+      if (response.token) {
+        console.log('Token received with login response');
+        saveToken(response.token);
+      } else {
+        console.log('No token received with login response - relying on cookie-based auth');
+      }
 
       setUser(response.user);
       toast({
@@ -54,6 +97,7 @@ export function AuthProvider({ children }) {
       });
       return true;
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Login Failed",
         description: error.message || "Invalid email or password",
@@ -76,11 +120,23 @@ export function AuthProvider({ children }) {
   const register = async (userData) => {
     try {
       setLoading(true);
+      console.log('Attempting to register user with email:', userData.email);
+      
       const response = await apiRequest("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData), // The server will automatically set role to "customer"
       });
+
+      console.log('Registration response received:', response);
+      
+      // Save token if it exists in the response
+      if (response.token) {
+        console.log('Token received with registration response');
+        saveToken(response.token);
+      } else {
+        console.log('No token received with registration response - relying on cookie-based auth');
+      }
 
       // Auto-login after successful registration
       setUser(response.user);
@@ -91,6 +147,7 @@ export function AuthProvider({ children }) {
       });
       return true;
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Registration Failed",
         description: error.message || "Could not create account. Please try again.",
@@ -108,18 +165,33 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       setLoading(true);
+      console.log('Attempting to logout user');
+      
+      // Clear token from localStorage
+      saveToken(null);
+      
+      // Also call the server to clear the cookie
       await apiRequest("/api/auth/logout", {
         method: "POST",
       });
+      
+      console.log('Logout successful, user data cleared');
       setUser(null);
+      
       toast({
         title: "Logged Out",
         description: "You have been successfully logged out",
       });
     } catch (error) {
+      console.error('Logout error:', error);
+      
+      // Even if the server request fails, still clear the local user state
+      saveToken(null);
+      setUser(null);
+      
       toast({
-        title: "Logout Failed",
-        description: error.message || "Something went wrong",
+        title: "Logout Warning",
+        description: "You've been logged out locally, but there was an issue with the server.",
         variant: "destructive",
       });
     } finally {
