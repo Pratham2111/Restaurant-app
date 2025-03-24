@@ -207,7 +207,7 @@ function Account() {
                       <div key={booking.id || booking._id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">Reservation #{booking.id || booking._id}</h4>
-                          <Badge className={getStatusColor(booking.status)}>{booking.status}</Badge>
+                          <Badge variant={getStatusVariant(booking.status)}>{booking.status}</Badge>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div>
