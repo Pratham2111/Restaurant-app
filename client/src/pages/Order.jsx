@@ -768,7 +768,7 @@ function Order() {
                       Processing...
                     </>
                   ) : (
-                    `Place Order ${cartCount > 0 ? `(${formattedTotal})` : ""}`
+                    `Place Order ${cartCount > 0 ? `(${formattedTotal()})` : ""}`
                   )}
                 </button>
               </form>
