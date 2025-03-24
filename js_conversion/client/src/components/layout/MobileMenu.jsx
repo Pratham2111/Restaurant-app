@@ -1,93 +1,95 @@
 import { useEffect } from "react";
-import { Link, useLocation } from "wouter";
-import { Button } from "../ui/button";
+import { Link } from "wouter";
+import { ChevronRight } from "lucide-react";
+import { cn } from "../../lib/utils";
+import { CURRENCY_OPTIONS } from "../../lib/constants";
 import { useCurrency } from "../../hooks/useCurrency";
 
 /**
- * Mobile menu component displayed when menu button is clicked on small screens
+ * Mobile menu component
  * @param {Object} props - Component props
- * @param {boolean} props.isOpen - Flag indicating if the menu is open
- * @param {Function} props.onClose - Function to call when closing the menu
- * @param {Array} props.navLinks - Array of navigation links objects
- * @param {string} props.currentCurrency - Current currency ID
- * @param {Function} props.onCurrencyChange - Function to call when currency changes
+ * @param {boolean} props.isOpen - Whether the menu is open
+ * @param {Function} props.onClose - Function to close the menu
+ * @param {Array} props.navLinks - Navigation links array
+ * @param {string} props.currentCurrency - Current currency code
+ * @param {Function} props.onCurrencyChange - Function to change currency
  */
 export const MobileMenu = ({
   isOpen,
   onClose,
   navLinks,
   currentCurrency,
-  onCurrencyChange,
+  onCurrencyChange
 }) => {
-  const [location] = useLocation();
   const { currencySettings } = useCurrency();
   
-  // Prevent scrolling when menu is open
+  // Prevent body scroll when menu is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "auto";
+      document.body.style.overflow = "";
     }
     
     return () => {
-      document.body.style.overflow = "auto";
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
   
-  // Close menu when location changes
-  useEffect(() => {
+  // Handle link click - close menu
+  const handleLinkClick = () => {
     onClose();
-  }, [location, onClose]);
-  
-  if (!isOpen) return null;
+  };
   
   return (
-    <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
-      <div className="px-4 py-8 space-y-6">
-        {/* Navigation links */}
-        <nav className="flex flex-col space-y-4">
-          {navLinks.map(({ href, label }) => (
-            <Link key={href} href={href}>
-              <a
-                className={`text-lg font-medium py-2 transition-colors hover:text-primary ${
-                  location === href ? "text-primary" : "text-foreground"
-                }`}
-                onClick={onClose}
-              >
-                {label}
-              </a>
-            </Link>
-          ))}
-        </nav>
-        
-        {/* Currency selector */}
-        <div className="py-2">
-          <label htmlFor="mobile-currency" className="block text-sm font-medium mb-2">
-            Select Currency
-          </label>
-          <select
-            id="mobile-currency"
-            className="w-full bg-background border border-input rounded-md text-sm px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-            value={currentCurrency}
-            onChange={(e) => onCurrencyChange(e.target.value)}
-          >
-            {currencySettings.map((currency) => (
-              <option key={currency.id} value={currency.id}>
-                {currency.symbol} {currency.code}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        {/* Primary actions */}
-        <div className="flex flex-col space-y-3 pt-4">
-          <Button asChild size="lg" variant="outline" className="w-full">
-            <Link href="/booking">Book a Table</Link>
-          </Button>
-          <Button asChild size="lg" className="w-full">
-            <Link href="/order">Order Now</Link>
-          </Button>
+    <div
+      className={cn(
+        "fixed inset-0 z-40 transform transition-transform duration-300 ease-in-out",
+        isOpen ? "translate-x-0" : "translate-x-full"
+      )}
+    >
+      <div className="absolute inset-0 bg-background shadow-xl">
+        <div className="flex flex-col h-full">
+          {/* Navigation links */}
+          <nav className="flex-1 overflow-y-auto pt-8 pb-4 px-4">
+            <ul className="space-y-2">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    onClick={handleLinkClick}
+                    className="flex items-center justify-between py-3 px-4 hover:bg-muted rounded-lg text-lg font-medium"
+                  >
+                    <span>{link.label}</span>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          
+          {/* Currency selector */}
+          <div className="border-t p-4">
+            <div className="text-sm font-medium text-muted-foreground mb-2">
+              Select Currency
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {currencySettings.map((currency) => (
+                <button
+                  key={currency.id}
+                  className={cn(
+                    "py-2 px-3 text-sm rounded-lg font-medium",
+                    currency.code === currentCurrency
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted hover:bg-muted/80"
+                  )}
+                  onClick={() => onCurrencyChange(currency.id)}
+                >
+                  {currency.symbol} {currency.code}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,26 +1,25 @@
 import { Link } from "wouter";
+import { Layout } from "../components/layout/Layout";
 import { Button } from "../components/ui/button";
 
-const NotFound = () => {
+/**
+ * Not Found page component
+ * Displayed when a user navigates to a non-existent route
+ */
+export default function NotFound() {
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] p-4">
-      <div className="text-center">
-        <h1 className="text-7xl font-bold text-primary mb-4">404</h1>
-        <h2 className="text-3xl font-semibold mb-2">Page Not Found</h2>
-        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-          The page you are looking for doesn't exist or has been moved.
+    <Layout>
+      <div className="container flex flex-col items-center justify-center min-h-[70vh] py-16 text-center">
+        <h1 className="text-6xl font-bold mb-4">404</h1>
+        <h2 className="text-2xl font-semibold mb-6">Page Not Found</h2>
+        <p className="text-muted-foreground max-w-md mb-8">
+          We're sorry, the page you requested could not be found.
+          Please check the URL or return to the homepage.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild size="lg">
-            <Link href="/">Return to Home</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/menu">View Menu</Link>
-          </Button>
-        </div>
+        <Button asChild size="lg">
+          <Link href="/">Return to Home</Link>
+        </Button>
       </div>
-    </div>
+    </Layout>
   );
-};
-
-export default NotFound;
+}

@@ -7,13 +7,16 @@ import { QueryClient } from "@tanstack/react-query";
  */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    // Try to parse error message from response body
-    const errorData = await res.json().catch(() => ({}));
-    const errorMessage = errorData.message || res.statusText || "An error occurred";
+    let errorMessage;
+    try {
+      const data = await res.json();
+      errorMessage = data.message || data.error || res.statusText;
+    } catch (e) {
+      errorMessage = res.statusText;
+    }
+    
     const error = new Error(errorMessage);
     error.status = res.status;
-    error.statusText = res.statusText;
-    error.data = errorData;
     throw error;
   }
 }
@@ -25,20 +28,15 @@ async function throwIfResNotOk(res) {
  * @returns {Promise<any>} Response data
  */
 export async function apiRequest(path, options = {}) {
-  const url = path.startsWith("/") ? path : `/${path}`;
-  const res = await fetch(url, {
+  const res = await fetch(path, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
-      ...options.headers,
-    },
-    ...options,
+      ...(options.headers || {})
+    }
   });
-
-  await throwIfResNotOk(res);
   
-  if (res.status === 204) {
-    return null;
-  }
+  await throwIfResNotOk(res);
   
   return res.json();
 }
@@ -53,11 +51,11 @@ export const getQueryFn = (options = { on401: "throw" }) => {
     const [path] = queryKey;
     try {
       return await apiRequest(path);
-    } catch (err) {
-      if (err.status === 401 && options.on401 === "returnNull") {
+    } catch (error) {
+      if (error.status === 401 && options.on401 === "returnNull") {
         return null;
       }
-      throw err;
+      throw error;
     }
   };
 };
@@ -71,7 +69,7 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn(),
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
+      refetchOnWindowFocus: false
+    }
+  }
 });

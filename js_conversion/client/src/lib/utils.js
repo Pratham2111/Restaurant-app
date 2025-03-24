@@ -17,21 +17,7 @@ export function cn(...inputs) {
  * @returns {string} Formatted currency string
  */
 export function formatCurrency(amount, currencySymbol = "$") {
-  const formatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD", // Using USD format but replacing symbol
-    minimumFractionDigits: 2,
-  });
-  
-  // Format the amount and replace the currency symbol
-  const formatted = formatter.format(amount);
-  const usdSymbol = "$";
-  
-  if (formatted.startsWith(usdSymbol)) {
-    return formatted.replace(usdSymbol, currencySymbol);
-  }
-  
-  return formatted;
+  return `${currencySymbol}${amount.toFixed(2)}`;
 }
 
 /**
@@ -48,10 +34,15 @@ export function convertCurrency(amount, rate) {
  * Available time slots for booking
  */
 export const timeSlots = [
-  "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", 
-  "2:00 PM", "2:30 PM", "3:00 PM", "5:00 PM", "5:30 PM", 
-  "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", 
-  "8:30 PM", "9:00 PM"
+  "11:00 AM", "11:30 AM",
+  "12:00 PM", "12:30 PM",
+  "1:00 PM", "1:30 PM",
+  "2:00 PM", "2:30 PM",
+  "5:00 PM", "5:30 PM",
+  "6:00 PM", "6:30 PM",
+  "7:00 PM", "7:30 PM",
+  "8:00 PM", "8:30 PM",
+  "9:00 PM", "9:30 PM"
 ];
 
 /**
@@ -69,7 +60,7 @@ export function formatDate(date) {
     weekday: "long",
     year: "numeric",
     month: "long",
-    day: "numeric",
+    day: "numeric"
   }).format(date);
 }
 
@@ -83,4 +74,38 @@ export function getMinDate() {
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const day = String(today.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Truncates text to a specified length
+ * @param {string} text - The text to truncate
+ * @param {number} maxLength - Maximum length before truncation
+ * @returns {string} Truncated text
+ */
+export function truncateText(text, maxLength) {
+  if (!text || text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + "...";
+}
+
+/**
+ * Generates a random ID
+ * @returns {string} Random ID
+ */
+export function generateId() {
+  return Math.random().toString(36).substring(2, 15);
+}
+
+/**
+ * Debounces a function call
+ * @param {Function} func - The function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
+ */
+export function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
 }
