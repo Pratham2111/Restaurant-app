@@ -339,11 +339,32 @@ async function registerRoutes(app) {
 
   app.post("/api/orders", async (req, res) => {
     try {
-      const orderData = insertOrderSchema.parse(req.body);
-      const order = await storage.createOrder(orderData);
-      res.status(201).json(order);
+      // Try to authenticate but proceed even if it fails
+      optionalAuth(req, res, async () => {
+        try {
+          const orderData = insertOrderSchema.parse(req.body);
+          
+          // If user is authenticated, associate the order with their userId
+          if (req.user) {
+            const userId = req.user.id || req.user._id;
+            console.log(`Associating order with authenticated user ID: ${userId}`);
+            orderData.userId = userId;
+            
+            // Also ensure email matches the logged-in user if possible
+            if (!orderData.customerEmail && req.user.email) {
+              orderData.customerEmail = req.user.email;
+            }
+          }
+          
+          const order = await storage.createOrder(orderData);
+          res.status(201).json(order);
+        } catch (error) {
+          handleZodError(error, res);
+        }
+      });
     } catch (error) {
-      handleZodError(error, res);
+      console.error("Error creating order:", error);
+      res.status(500).json({ message: "Failed to create order" });
     }
   });
 

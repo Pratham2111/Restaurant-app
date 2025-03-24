@@ -6,8 +6,15 @@ export const CartContext = createContext(null);
 const TAX_RATE = 0.08; // 8% tax
 const DELIVERY_FEE = 5; // $5 delivery fee
 
+// Key for storing cart data in localStorage
+const CART_STORAGE_KEY = 'la_mason_cart';
+
 const CartProvider = ({ children }) => {
-  const [items, setItems] = useState([]);
+  // Initialize items from localStorage if available
+  const [items, setItems] = useState(() => {
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [subtotal, setSubtotal] = useState(0);
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
@@ -22,6 +29,10 @@ const CartProvider = ({ children }) => {
     setSubtotal(newSubtotal);
     setTax(newTax);
     setTotal(newTotal);
+    
+    // Save cart to localStorage whenever it changes
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    console.log('Cart saved to localStorage:', items.length, 'items');
   }, [items]);
 
   // Calculate subtotal (sum of item prices * quantities)
@@ -108,6 +119,10 @@ const CartProvider = ({ children }) => {
   // Clear the cart
   const clearCart = () => {
     setItems([]);
+    // Also clear from localStorage
+    localStorage.removeItem(CART_STORAGE_KEY);
+    console.log('Cart cleared from localStorage');
+    
     toast({
       title: "Cart cleared",
       description: "All items have been removed from your cart",
