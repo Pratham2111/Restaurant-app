@@ -208,6 +208,40 @@ class MongoStorage {
       throw error;
     }
   }
+  
+  /**
+   * Updates a category
+   * @param {string} id - The category ID
+   * @param {Object} categoryData - The category data to update
+   * @returns {Promise<Object|undefined>} The updated category or undefined
+   */
+  async updateCategory(id, categoryData) {
+    try {
+      return await Category.findByIdAndUpdate(
+        id,
+        categoryData,
+        { new: true }
+      );
+    } catch (error) {
+      console.error('Error updating category:', error);
+      return undefined;
+    }
+  }
+  
+  /**
+   * Deletes a category
+   * @param {string} id - The category ID
+   * @returns {Promise<boolean>} Whether the category was deleted
+   */
+  async deleteCategory(id) {
+    try {
+      const result = await Category.findByIdAndDelete(id);
+      return !!result;
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      return false;
+    }
+  }
 
   /**
    * Retrieves all menu items
