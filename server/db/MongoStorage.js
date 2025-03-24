@@ -696,19 +696,19 @@ class MongoStorage {
    */
   async getUserByEmail(email) {
     try {
+      console.log(`Getting user by email: ${email}`);
       const user = await User.findOne({ email });
-      if (!user) return undefined;
       
-      // Keep original Mongoose document because we need the password for validation
-      // Add id field for consistency if needed later
-      const userDoc = user;
-      
-      // Add id property if it doesn't exist
-      if (!userDoc.id && userDoc._id) {
-        userDoc.id = userDoc._id.toString();
+      if (!user) {
+        console.log(`User not found with email: ${email}`);
+        return undefined;
       }
       
-      return userDoc;
+      console.log(`User found with email: ${email}, has password: ${!!user.password}`);
+      
+      // Keep the original Mongoose document as we need the password for validation
+      // and the MongoDB document methods
+      return user;
     } catch (error) {
       console.error('Error getting user by email:', error);
       return undefined;
