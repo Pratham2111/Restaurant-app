@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { BookText, Utensils, Calendar, MessageCircle, Star, ShoppingBag, DollarSign, Users } from "lucide-react";
+import UserManagement from "./UserManagement";
 
 /**
  * Admin Dashboard page
@@ -208,9 +209,7 @@ function AdminDashboard() {
             
             <TabsContent value="users" className="mt-6">
               <h2 className="text-2xl font-bold mb-4">User Management</h2>
-              <p className="text-center py-10 text-muted-foreground">
-                User management functionality will be implemented here.
-              </p>
+              <UserManagement />
             </TabsContent>
           </Tabs>
         </CardContent>

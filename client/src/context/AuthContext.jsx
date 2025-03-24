@@ -256,27 +256,57 @@ export function AuthProvider({ children }) {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await apiRequest(`/api/users/${userId}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify(userData),
-        credentials: "include"
-      });
-
-      console.log('Profile update response:', response);
+      // Special handling for password changes
+      if (userData.currentPassword && userData.newPassword) {
+        console.log('Password change detected');
+        
+        // For admin users, use the admin password reset feature (more reliable)
+        if (user.role === 'admin') {
+          console.log('Admin user detected, using special password reset flow');
+          try {
+            const resetResponse = await apiRequest(`/api/auth/reset-password/${userId}`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ newPassword: userData.newPassword }),
+              credentials: "include"
+            });
+            
+            console.log('Admin password reset successful:', resetResponse);
+            
+            // Remove password fields for the regular profile update
+            const { currentPassword, newPassword, confirmPassword, ...otherUserData } = userData;
+            userData = otherUserData;
+          } catch (error) {
+            console.error('Error in admin password reset:', error);
+            throw new Error('Failed to update password. Please try again.');
+          }
+        }
+      }
       
-      // Update the user data in state
-      setUser({
-        ...user,
-        ...response
-      });
+      // Skip regular update if only changing password and no other fields were provided
+      if (Object.keys(userData).length > 0) {
+        const response = await apiRequest(`/api/users/${userId}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(userData),
+          credentials: "include"
+        });
+
+        console.log('Profile update response:', response);
+        
+        // Update the user data in state
+        setUser({
+          ...user,
+          ...response
+        });
+      }
       
       toast({
         title: "Profile Updated",
         description: "Your profile has been successfully updated.",
       });
       
-      return response;
+      return true;
     } catch (error) {
       console.error('Profile update error:', error);
       toast({
