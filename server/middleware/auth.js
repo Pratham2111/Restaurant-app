@@ -11,6 +11,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'la-mason-jwt-secret';
  * @returns {string} JWT token
  */
 export const generateToken = (user) => {
+  console.log('Generating token for user:', {
+    id: user.id || user._id,
+    email: user.email,
+    role: user.role,
+    isMongooseDoc: !!user.toObject
+  });
+  
   // Convert Mongoose document to plain object if needed
   const userObject = user.toObject ? user.toObject() : user;
   
@@ -19,8 +26,11 @@ export const generateToken = (user) => {
   
   // Ensure id is consistent (use _id from MongoDB but alias as id)
   if (userForToken._id && !userForToken.id) {
-    userForToken.id = userForToken._id.toString();
+    userForToken.id = typeof userForToken._id === 'string' ? 
+      userForToken._id : userForToken._id.toString();
   }
+  
+  console.log('JWT payload:', userForToken);
   
   return jwt.sign(userForToken, JWT_SECRET, {
     expiresIn: '24h'
@@ -36,6 +46,8 @@ export const generateToken = (user) => {
  */
 export const authenticate = async (req, res, next) => {
   try {
+    console.log('Authenticating request to:', req.originalUrl);
+    
     // Get token from cookie or header
     let token = req.cookies?.token;
     
@@ -48,24 +60,42 @@ export const authenticate = async (req, res, next) => {
     }
     
     if (!token) {
+      console.log('No token found in request');
       return res.status(401).json({ message: "Authorization required" });
     }
     
+    console.log('Token found, verifying...');
+    
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('Token decoded:', {
+      id: decoded.id || decoded._id,
+      email: decoded.email,
+      role: decoded.role
+    });
     
     // Get user from database to ensure they still exist and have correct permissions
     // Use id or _id from decoded token - both should now be available
     const userId = decoded.id || decoded._id;
     
     if (!userId) {
+      console.log('No user ID found in token');
       return res.status(401).json({ message: "Invalid token: Missing user ID" });
     }
     
+    console.log('Looking up user with ID:', userId);
     const user = await req.app.locals.storage.getUserById(userId);
+    
     if (!user) {
+      console.log('User not found with ID:', userId);
       return res.status(401).json({ message: "User not found" });
     }
+    
+    console.log('User authenticated:', {
+      id: user.id || user._id,
+      email: user.email,
+      role: user.role
+    });
     
     // Attach user to request
     req.user = user;

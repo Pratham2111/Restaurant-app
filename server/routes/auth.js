@@ -113,27 +113,53 @@ router.post('/admin/register', authenticate, authorizeAdmin, async (req, res) =>
  */
 router.post('/login', async (req, res) => {
   try {
+    console.log('Login attempt with email:', req.body.email);
     const { email, password } = req.body;
     
     // Data validation
     if (!email || !password) {
+      console.log('Login failed: Missing email or password');
       return res.status(400).json({ message: "Please provide email and password" });
     }
     
     // Find user by email
     const user = await req.app.locals.storage.getUserByEmail(email);
+    
     if (!user) {
+      console.log('Login failed: User not found with email:', email);
       return res.status(401).json({ message: "Invalid email or password" });
     }
+    
+    console.log('User found:', {
+      id: user._id || user.id,
+      email: user.email,
+      role: user.role,
+      passwordExists: !!user.password,
+      passwordLength: user.password ? user.password.length : 0
+    });
     
     // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password comparison result:', isMatch);
+    
     if (!isMatch) {
+      console.log('Login failed: Password mismatch for user:', email);
       return res.status(401).json({ message: "Invalid email or password" });
     }
     
+    // Convert user document to plain object if it's a Mongoose document
+    let userObj = user;
+    if (user.toObject) {
+      userObj = user.toObject();
+      console.log('Converted Mongoose document to object');
+    }
+    
+    // Ensure ID is consistent
+    userObj.id = userObj._id?.toString() || userObj.id;
+    
     // Create token
-    const token = generateToken(user);
+    const token = generateToken(userObj);
+    console.log('Generated token with user ID:', userObj.id);
     
     // Set cookie
     res.cookie('token', token, {
@@ -143,7 +169,9 @@ router.post('/login', async (req, res) => {
     });
     
     // Return user data without password
-    const { password: pwd, ...userWithoutPassword } = user;
+    const { password: pwd, ...userWithoutPassword } = userObj;
+    console.log('Login successful for user:', email);
+    
     res.json({ 
       user: userWithoutPassword,
       token 
