@@ -577,21 +577,21 @@ function Order() {
                   <div className="border-t pt-4 mt-4">
                     <div className="flex justify-between mb-2">
                       <span>Subtotal</span>
-                      <span>{formattedSubtotal}</span>
+                      <span>{formattedSubtotal()}</span>
                     </div>
                     {orderType === "delivery" && (
                       <div className="flex justify-between mb-2">
                         <span>Delivery Fee</span>
-                        <span>{formattedDeliveryFee}</span>
+                        <span>{formattedDeliveryFee()}</span>
                       </div>
                     )}
                     <div className="flex justify-between mb-2">
                       <span>Tax</span>
-                      <span>{formattedTax}</span>
+                      <span>{formattedTax()}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg mt-2">
                       <span>Total</span>
-                      <span>{formattedTotal}</span>
+                      <span>{formattedTotal()}</span>
                     </div>
                   </div>
                 </div>

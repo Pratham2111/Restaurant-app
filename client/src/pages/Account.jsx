@@ -191,13 +191,13 @@ function Account() {
                             {order.items?.map((item, index) => (
                               <li key={index} className="flex justify-between">
                                 <span>{item.quantity}x {item.name}</span>
-                                <span>{format(item.price * item.quantity)}</span>
+                                <span>{formatAmount(item.price * item.quantity)}</span>
                               </li>
                             ))}
                           </ul>
                           <div className="flex justify-between font-medium mt-2 pt-2 border-t">
                             <span>Total</span>
-                            <span>{format(order.total)}</span>
+                            <span>{formatAmount(order.total)}</span>
                           </div>
                         </div>
                       </div>
