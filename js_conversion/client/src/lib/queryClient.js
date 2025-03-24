@@ -8,16 +8,15 @@ import { QueryClient } from "@tanstack/react-query";
  */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    let errorMessage;
-
+    let errorText;
     try {
       const data = await res.json();
-      errorMessage = data.message || data.error || `Error: ${res.status} ${res.statusText}`;
+      errorText = data.message || data.error || res.statusText;
     } catch (e) {
-      errorMessage = `Error: ${res.status} ${res.statusText}`;
+      errorText = res.statusText;
     }
-
-    const error = new Error(errorMessage);
+    
+    const error = new Error(errorText);
     error.status = res.status;
     throw error;
   }
@@ -30,16 +29,30 @@ async function throwIfResNotOk(res) {
  * @returns {Promise<any>} Response data
  */
 export async function apiRequest(path, options = {}) {
-  const res = await fetch(path, options);
+  const defaultOptions = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
   
-  await throwIfResNotOk(res);
+  const mergedOptions = { ...defaultOptions, ...options };
   
-  // Return null for 204 No Content
-  if (res.status === 204) {
-    return null;
+  if (mergedOptions.body && typeof mergedOptions.body !== "string") {
+    mergedOptions.body = JSON.stringify(mergedOptions.body);
   }
   
-  return res.json();
+  const res = await fetch(path, mergedOptions);
+  await throwIfResNotOk(res);
+  
+  // Check if there's content to parse
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    const contentLength = res.headers.get("content-length");
+    if (contentLength === "0") return null;
+    return res.json();
+  }
+  
+  return null;
 }
 
 /**
@@ -49,31 +62,10 @@ export async function apiRequest(path, options = {}) {
  */
 export const getQueryFn = (options = { on401: "throw" }) => {
   return async ({ queryKey }) => {
+    const [path] = queryKey;
+    
     try {
-      const [path, ...params] = Array.isArray(queryKey) ? queryKey : [queryKey];
-      
-      // Build URL with params if needed
-      let url = path;
-      if (params.length > 0 && typeof params[params.length - 1] === "object") {
-        const queryParams = params[params.length - 1];
-        const searchParams = new URLSearchParams();
-        
-        for (const [key, value] of Object.entries(queryParams)) {
-          if (value !== undefined && value !== null) {
-            searchParams.append(key, value.toString());
-          }
-        }
-        
-        const queryString = searchParams.toString();
-        if (queryString) {
-          url = `${url}?${queryString}`;
-        }
-      } else if (params.length > 0) {
-        // Handle path parameters like /api/endpoint/:id/subresource
-        url = [path, ...params].join("/");
-      }
-      
-      return apiRequest(url);
+      return await apiRequest(path);
     } catch (error) {
       if (error.status === 401 && options.on401 === "returnNull") {
         return null;
@@ -89,10 +81,10 @@ export const getQueryFn = (options = { on401: "throw" }) => {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
+      queryFn: getQueryFn(),
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
-      queryFn: getQueryFn(),
+      refetchOnWindowFocus: false,
     },
   },
 });

@@ -8,27 +8,27 @@ import { useState, useEffect } from "react";
  */
 export function useMediaQuery(query) {
   const [matches, setMatches] = useState(false);
-
+  
   useEffect(() => {
-    const media = window.matchMedia(query);
+    const mediaQuery = window.matchMedia(query);
     
-    // Update the state initially
-    setMatches(media.matches);
+    // Set initial value
+    setMatches(mediaQuery.matches);
     
-    // Define a callback to handle media query changes
+    // Handle changes
     const handleChange = (event) => {
       setMatches(event.matches);
     };
     
-    // Add the listener
-    media.addEventListener("change", handleChange);
+    // Add listener
+    mediaQuery.addEventListener("change", handleChange);
     
     // Clean up
     return () => {
-      media.removeEventListener("change", handleChange);
+      mediaQuery.removeEventListener("change", handleChange);
     };
   }, [query]);
-
+  
   return matches;
 }
 
@@ -37,7 +37,7 @@ export function useMediaQuery(query) {
  * @returns {boolean} Whether screen is mobile size
  */
 export function useMobile() {
-  return useMediaQuery("(max-width: 767px)");
+  return useMediaQuery("(max-width: 639px)");
 }
 
 /**
@@ -45,7 +45,7 @@ export function useMobile() {
  * @returns {boolean} Whether screen is tablet size
  */
 export function useTablet() {
-  return useMediaQuery("(min-width: 768px) and (max-width: 1023px)");
+  return useMediaQuery("(min-width: 640px) and (max-width: 1023px)");
 }
 
 /**

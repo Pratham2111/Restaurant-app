@@ -3,103 +3,111 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../lib/queryClient";
 
 /**
- * Currency context for the application
- * Manages currency settings and provides conversion functionality
+ * Context for currency settings and conversion throughout the application
  */
-
-// Default currency in case API fails
 const defaultCurrency = {
   id: 1,
   code: "USD",
   symbol: "$",
+  name: "US Dollar",
   rate: 1,
   isDefault: true
 };
 
-// Create context with default values
-const CurrencyContext = createContext({
+/**
+ * Currency context
+ * Provides access to currency data and conversion operations
+ */
+export const CurrencyContext = createContext({
   currencySettings: [],
   currentCurrency: defaultCurrency,
   loading: true,
   error: null,
-  setCurrency: async () => {},
+  setCurrency: () => Promise.resolve()
 });
 
 /**
- * Currency context provider component
+ * Currency provider component
+ * Manages currency state and provides currency functionality to children
  * @param {Object} props - Component props
- * @param {React.ReactNode} props.children - Child components
+ * @param {ReactNode} props.children - Child components
  */
-const CurrencyProvider = ({ children }) => {
+export const CurrencyProvider = ({ children }) => {
   const queryClient = useQueryClient();
   const [currentCurrency, setCurrentCurrency] = useState(defaultCurrency);
   
-  // Fetch all currency settings
-  const {
+  // Fetch all available currencies
+  const { 
     data: currencySettings = [],
-    isLoading: loadingSettings,
-    error: settingsError
+    isLoading: loadingCurrencies,
+    error: currenciesError
   } = useQuery({
     queryKey: ["/api/currency-settings"],
-    onSuccess: (data) => {
-      // Check if we already have the current currency
-      if (data && data.length > 0 && !currentCurrency.id) {
-        const defaultCurrency = data.find(c => c.isDefault) || data[0];
-        setCurrentCurrency(defaultCurrency);
-      }
-    }
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  // Fetch default currency on initial load
+  // Fetch default currency
   const {
     data: defaultCurrencyData,
     isLoading: loadingDefault,
     error: defaultError
   } = useQuery({
     queryKey: ["/api/currency-settings/default"],
-    onSuccess: (data) => {
-      if (data) {
-        setCurrentCurrency(data);
-      }
-    }
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  // Mutation to set default currency
-  const mutation = useMutation({
-    mutationFn: (currencyId) => {
-      return apiRequest(`/api/currency-settings/${currencyId}/set-default`, {
+  // Set default currency when data is loaded
+  useEffect(() => {
+    if (defaultCurrencyData) {
+      setCurrentCurrency(defaultCurrencyData);
+    }
+  }, [defaultCurrencyData]);
+  
+  // Mutation to update default currency
+  const updateDefaultMutation = useMutation({
+    mutationFn: async (id) => {
+      return apiRequest(`/api/currency-settings/${id}/set-default`, {
         method: "POST"
       });
     },
-    onSuccess: (data) => {
-      setCurrentCurrency(data);
+    onSuccess: () => {
+      // Invalidate currency queries to refetch the data
       queryClient.invalidateQueries({ queryKey: ["/api/currency-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/currency-settings/default"] });
     }
   });
   
-  // Change current currency
-  const setCurrency = async (currencyId) => {
-    // If we already have the settings, find the currency in our local state
-    const newCurrency = currencySettings.find(c => c.id === currencyId);
-    if (newCurrency) {
-      mutation.mutate(currencyId);
+  // Set currency function
+  const setCurrency = async (id) => {
+    try {
+      const selectedCurrency = currencySettings.find(c => c.id === id);
+      if (selectedCurrency) {
+        // First update UI for immediate feedback
+        setCurrentCurrency(selectedCurrency);
+        // Then update server
+        await updateDefaultMutation.mutateAsync(id);
+      }
+    } catch (err) {
+      console.error("Failed to set currency:", err);
     }
   };
   
-  // Context value
-  const value = {
+  // Calculate loading and error states
+  const loading = loadingCurrencies || loadingDefault;
+  const error = currenciesError || defaultError || null;
+  
+  // Context value to provide
+  const contextValue = {
     currencySettings,
     currentCurrency,
-    loading: loadingSettings || loadingDefault,
-    error: settingsError || defaultError || null,
-    setCurrency,
+    loading,
+    error,
+    setCurrency
   };
   
   return (
-    <CurrencyContext.Provider value={value}>
+    <CurrencyContext.Provider value={contextValue}>
       {children}
     </CurrencyContext.Provider>
   );
 };
-
-export { CurrencyContext, CurrencyProvider };

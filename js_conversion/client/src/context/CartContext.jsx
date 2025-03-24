@@ -1,12 +1,11 @@
 import { createContext, useState, useEffect } from "react";
+import { useToast } from "../hooks/use-toast";
 
 /**
- * Cart context for the application
- * Manages shopping cart state and operations
+ * Cart context
+ * Provides shopping cart functionality throughout the application
  */
-
-// Default values for cart context
-const CartContext = createContext({
+export const CartContext = createContext({
   items: [],
   addToCart: () => {},
   removeFromCart: () => {},
@@ -16,78 +15,96 @@ const CartContext = createContext({
   getDeliveryFee: () => 0,
   getTax: () => 0,
   getTotal: () => 0,
-  getItemCount: () => 0,
+  getItemCount: () => 0
 });
 
 /**
- * CartProvider component
- * Provides cart state and functions to the application
+ * Cart provider component
+ * Manages cart state and provides cart functionality to children
  * @param {Object} props - Component props
- * @param {React.ReactNode} props.children - Child components
+ * @param {ReactNode} props.children - Child components
  */
-const CartProvider = ({ children }) => {
-  // Initialize cart items from local storage if available
-  const [items, setItems] = useState(() => {
-    const savedItems = localStorage.getItem("cart");
-    return savedItems ? JSON.parse(savedItems) : [];
-  });
+export const CartProvider = ({ children }) => {
+  const { toast } = useToast();
+  const [items, setItems] = useState([]);
   
-  // Save cart items to local storage when they change
+  // Load cart from localStorage on initial render
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      try {
+        setItems(JSON.parse(savedCart));
+      } catch (error) {
+        console.error("Failed to parse cart from localStorage:", error);
+      }
+    }
+  }, []);
+  
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
   
   /**
    * Add an item to the cart
-   * @param {Object} menuItem - Menu item to add
-   * @param {number} quantity - Quantity to add (default: 1)
+   * @param {Object} menuItem - The menu item to add
+   * @param {number} quantity - The quantity to add (default: 1)
    */
   const addToCart = (menuItem, quantity = 1) => {
     setItems((prevItems) => {
-      // Check if item already exists in cart
-      const existingItemIndex = prevItems.findIndex(
-        (item) => item.menuItemId === menuItem.id
-      );
+      const existingItem = prevItems.find(item => item.menuItemId === menuItem.id);
       
-      if (existingItemIndex >= 0) {
-        // Update quantity if item exists
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex].quantity += quantity;
-        return updatedItems;
+      if (existingItem) {
+        // If item already exists, update quantity
+        return prevItems.map(item => 
+          item.menuItemId === menuItem.id 
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
       } else {
-        // Add new item if it doesn't exist
+        // Otherwise add new item
         const newItem = {
           menuItemId: menuItem.id,
           name: menuItem.name,
           price: menuItem.price,
-          quantity: quantity,
-          image: menuItem.image
+          image: menuItem.image,
+          quantity
         };
         return [...prevItems, newItem];
       }
+    });
+    
+    // Show toast notification
+    toast({
+      title: "Added to Cart",
+      description: `${quantity} × ${menuItem.name} added to your cart.`,
+      duration: 3000
     });
   };
   
   /**
    * Remove an item from the cart
-   * @param {number} menuItemId - ID of menu item to remove
+   * @param {number} menuItemId - The ID of the menu item to remove
    */
   const removeFromCart = (menuItemId) => {
-    setItems((prevItems) => 
-      prevItems.filter((item) => item.menuItemId !== menuItemId)
-    );
+    setItems((prevItems) => prevItems.filter(item => item.menuItemId !== menuItemId));
   };
   
   /**
-   * Update quantity of an item in the cart
-   * @param {number} menuItemId - ID of menu item to update
-   * @param {number} quantity - New quantity
+   * Update the quantity of an item in the cart
+   * @param {number} menuItemId - The ID of the menu item to update
+   * @param {number} quantity - The new quantity
    */
   const updateQuantity = (menuItemId, quantity) => {
+    if (quantity <= 0) {
+      removeFromCart(menuItemId);
+      return;
+    }
+    
     setItems((prevItems) => 
-      prevItems.map((item) => 
-        item.menuItemId === menuItemId
-          ? { ...item, quantity: quantity }
+      prevItems.map(item => 
+        item.menuItemId === menuItemId 
+          ? { ...item, quantity }
           : item
       )
     );
@@ -101,53 +118,51 @@ const CartProvider = ({ children }) => {
   };
   
   /**
-   * Calculate subtotal of all items in cart
-   * @returns {number} Subtotal
+   * Calculate the subtotal of all items in the cart
+   * @returns {number} The subtotal
    */
   const getSubtotal = () => {
-    return items.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
+    return items.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
   
   /**
-   * Get delivery fee
-   * @returns {number} Delivery fee
+   * Get the delivery fee
+   * @returns {number} The delivery fee
    */
   const getDeliveryFee = () => {
     const subtotal = getSubtotal();
     // Free delivery for orders over $50
-    return subtotal > 50 ? 0 : 4.99;
+    return subtotal > 50 ? 0 : 5.99;
   };
   
   /**
-   * Calculate tax
-   * @returns {number} Tax amount
+   * Calculate the tax amount
+   * @returns {number} The tax amount
    */
   const getTax = () => {
     const subtotal = getSubtotal();
-    // Tax rate 8.5%
-    return subtotal * 0.085;
+    // 8% tax
+    return subtotal * 0.08;
   };
   
   /**
-   * Calculate total
-   * @returns {number} Total amount
+   * Calculate the total amount
+   * @returns {number} The total amount
    */
   const getTotal = () => {
     return getSubtotal() + getDeliveryFee() + getTax();
   };
   
   /**
-   * Get total number of items in cart
-   * @returns {number} Item count
+   * Get the total number of items in the cart
+   * @returns {number} The total number of items
    */
   const getItemCount = () => {
     return items.reduce((count, item) => count + item.quantity, 0);
   };
   
-  const value = {
+  // Context value to provide
+  const contextValue = {
     items,
     addToCart,
     removeFromCart,
@@ -157,14 +172,12 @@ const CartProvider = ({ children }) => {
     getDeliveryFee,
     getTax,
     getTotal,
-    getItemCount,
+    getItemCount
   };
   
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );
 };
-
-export { CartContext, CartProvider };

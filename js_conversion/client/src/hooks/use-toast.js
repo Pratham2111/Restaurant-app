@@ -1,6 +1,5 @@
-// Adapted from shadcn/ui toast component
+// Adapted from shadcn-ui toast component
 // https://ui.shadcn.com/docs/components/toast
-import { useState, useEffect } from "react";
 
 /**
  * Toast hook for showing notifications
@@ -17,7 +16,7 @@ let count = 0;
  * @returns {string} Unique ID
  */
 function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER;
+  count = (count + 1) % Number.MAX_VALUE;
   return count.toString();
 }
 
@@ -28,9 +27,8 @@ const actionTypes = {
   REMOVE_TOAST: "REMOVE_TOAST",
 };
 
+let listeners = [];
 let memoryState = { toasts: [] };
-
-const listeners = [];
 
 /**
  * Dispatch a toast action
@@ -49,14 +47,14 @@ function dispatch(action) {
  * @param {Object} action - Action to perform
  * @returns {Object} New state
  */
-const reducer = (state, action) => {
+function reducer(state, action) {
   switch (action.type) {
     case actionTypes.ADD_TOAST:
       return {
         ...state,
         toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
       };
-
+      
     case actionTypes.UPDATE_TOAST:
       return {
         ...state,
@@ -64,33 +62,52 @@ const reducer = (state, action) => {
           t.id === action.toast.id ? { ...t, ...action.toast } : t
         ),
       };
-
-    case actionTypes.DISMISS_TOAST:
+      
+    case actionTypes.DISMISS_TOAST: {
+      const { toastId } = action;
+      
+      // If no toast ID provided, dismiss all
+      if (toastId === undefined) {
+        return {
+          ...state,
+          toasts: state.toasts.map((t) => ({
+            ...t,
+            open: false,
+          })),
+        };
+      }
+      
+      // Otherwise dismiss toast with ID
       return {
         ...state,
         toasts: state.toasts.map((t) =>
-          t.id === action.toastId || action.toastId === undefined
-            ? {
-                ...t,
-                open: false,
-              }
-            : t
+          t.id === toastId ? { ...t, open: false } : t
         ),
       };
-
-    case actionTypes.REMOVE_TOAST:
-      if (action.toastId === undefined) {
+    }
+    
+    case actionTypes.REMOVE_TOAST: {
+      const { toastId } = action;
+      
+      // If no toast ID provided, remove all closed toasts
+      if (toastId === undefined) {
         return {
           ...state,
-          toasts: [],
+          toasts: state.toasts.filter((t) => t.open),
         };
       }
+      
+      // Otherwise remove toast with ID
       return {
         ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+        toasts: state.toasts.filter((t) => t.id !== toastId),
       };
+    }
+    
+    default:
+      return state;
   }
-};
+}
 
 /**
  * Creates a toast
@@ -99,16 +116,23 @@ const reducer = (state, action) => {
  */
 function toast(props) {
   const id = genId();
-
-  const update = (props) =>
+  
+  const update = (newProps) => {
     dispatch({
       type: actionTypes.UPDATE_TOAST,
-      toast: { ...props, id },
+      toast: { ...newProps, id },
     });
-
-  const dismiss = () =>
-    dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
-
+    
+    return { id, dismiss, update };
+  };
+  
+  const dismiss = () => {
+    dispatch({
+      type: actionTypes.DISMISS_TOAST,
+      toastId: id,
+    });
+  };
+  
   dispatch({
     type: actionTypes.ADD_TOAST,
     toast: {
@@ -116,16 +140,14 @@ function toast(props) {
       id,
       open: true,
       onOpenChange: (open) => {
-        if (!open) dismiss();
+        if (!open) {
+          dismiss();
+        }
       },
     },
   });
-
-  return {
-    id,
-    dismiss,
-    update,
-  };
+  
+  return { id, dismiss, update };
 }
 
 /**
@@ -134,7 +156,7 @@ function toast(props) {
  */
 function useToast() {
   const [state, setState] = useState(memoryState);
-
+  
   useEffect(() => {
     listeners.push(setState);
     return () => {
@@ -144,13 +166,15 @@ function useToast() {
       }
     };
   }, [state]);
-
+  
   return {
     ...state,
     toast,
     dismiss: (toastId) => dispatch({ type: actionTypes.DISMISS_TOAST, toastId }),
-    remove: (toastId) => dispatch({ type: actionTypes.REMOVE_TOAST, toastId }),
   };
 }
 
 export { useToast, toast };
+
+// Add missing import at the top
+import { useState, useEffect } from "react";

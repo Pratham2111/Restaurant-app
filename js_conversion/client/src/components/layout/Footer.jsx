@@ -1,164 +1,159 @@
 import { Link } from "wouter";
-import { 
-  Facebook, 
-  Instagram, 
-  Twitter, 
-  Mail,
-  Phone,
-  MapPin,
-  Clock
-} from "lucide-react";
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
 import { RESTAURANT_INFO } from "../../lib/constants";
 
 /**
  * Footer component
- * Displays restaurant information, navigation, and social links
+ * Displays restaurant information, contact details, and social links
  */
 export const Footer = () => {
-  // Current year for copyright
   const currentYear = new Date().getFullYear();
   
-  // Footer navigation links
-  const footerLinks = [
-    { section: "Navigation", links: [
-      { href: "/", label: "Home" },
-      { href: "/menu", label: "Our Menu" },
-      { href: "/booking", label: "Book a Table" },
-      { href: "/order", label: "Order Online" },
-      { href: "/contact", label: "Contact Us" }
-    ]},
-    { section: "Legal", links: [
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/terms", label: "Terms & Conditions" },
-      { href: "/accessibility", label: "Accessibility" }
-    ]},
-    { section: "Company", links: [
-      { href: "/about", label: "About Us" },
-      { href: "/careers", label: "Careers" },
-      { href: "/press", label: "Press" }
-    ]}
-  ];
-  
   return (
-    <footer className="bg-muted/40 border-t pt-12 pb-6">
+    <footer className="bg-muted/40 pt-16 pb-8">
       <div className="container">
-        {/* Main footer content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Restaurant info */}
-          <div className="space-y-4">
-            <h3 className="font-serif text-xl font-bold">
-              {RESTAURANT_INFO.name}
-            </h3>
-            <p className="text-muted-foreground text-sm max-w-xs">
-              {RESTAURANT_INFO.description}
-            </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          {/* Restaurant information */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">{RESTAURANT_INFO.name}</h3>
+            <p className="text-muted-foreground mb-4">{RESTAURANT_INFO.tagline}</p>
             
-            {/* Social media icons */}
-            <div className="flex space-x-4 text-muted-foreground">
-              <a 
-                href={RESTAURANT_INFO.social.facebook} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-primary transition-colors"
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                asChild
+                className="rounded-full hover:bg-primary hover:text-primary-foreground"
               >
-                <Facebook className="h-5 w-5" />
-                <span className="sr-only">Facebook</span>
-              </a>
+                <a
+                  href={RESTAURANT_INFO.social.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="h-4 w-4" />
+                </a>
+              </Button>
               
-              <a 
-                href={RESTAURANT_INFO.social.instagram} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-primary transition-colors"
+              <Button
+                variant="outline"
+                size="icon"
+                asChild
+                className="rounded-full hover:bg-primary hover:text-primary-foreground"
               >
-                <Instagram className="h-5 w-5" />
-                <span className="sr-only">Instagram</span>
-              </a>
+                <a
+                  href={RESTAURANT_INFO.social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="h-4 w-4" />
+                </a>
+              </Button>
               
-              <a 
-                href={RESTAURANT_INFO.social.twitter} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-primary transition-colors"
+              <Button
+                variant="outline"
+                size="icon"
+                asChild
+                className="rounded-full hover:bg-primary hover:text-primary-foreground"
               >
-                <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
-              </a>
+                <a
+                  href={RESTAURANT_INFO.social.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Twitter"
+                >
+                  <Twitter className="h-4 w-4" />
+                </a>
+              </Button>
             </div>
           </div>
           
-          {/* Contact info */}
+          {/* Contact information */}
           <div>
-            <h3 className="font-medium text-base mb-4">Contact Info</h3>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 mt-0.5 text-primary" />
-                <span>{RESTAURANT_INFO.address}</span>
-              </li>
+            <h3 className="font-bold text-lg mb-4">Contact Us</h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                <p className="text-muted-foreground">
+                  {RESTAURANT_INFO.address.street}<br />
+                  {RESTAURANT_INFO.address.city}, {RESTAURANT_INFO.address.state}<br />
+                  {RESTAURANT_INFO.address.zip}, {RESTAURANT_INFO.address.country}
+                </p>
+              </div>
               
-              <li className="flex items-start gap-2">
-                <Phone className="h-4 w-4 mt-0.5 text-primary" />
-                <span>{RESTAURANT_INFO.phone}</span>
-              </li>
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5 text-primary" />
+                <a 
+                  href={`tel:${RESTAURANT_INFO.phone}`} 
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {RESTAURANT_INFO.phone}
+                </a>
+              </div>
               
-              <li className="flex items-start gap-2">
-                <Mail className="h-4 w-4 mt-0.5 text-primary" />
-                <span>{RESTAURANT_INFO.email}</span>
-              </li>
-              
-              <li className="flex items-start gap-2">
-                <Clock className="h-4 w-4 mt-0.5 text-primary" />
-                <div>
-                  <p>Mon-Fri: {RESTAURANT_INFO.hours.weekday}</p>
-                  <p>Sat-Sun: {RESTAURANT_INFO.hours.weekend}</p>
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-primary" />
+                <a 
+                  href={`mailto:${RESTAURANT_INFO.email}`} 
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {RESTAURANT_INFO.email}
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          {/* Opening hours */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">Opening Hours</h3>
+            <div className="space-y-2">
+              {Object.entries(RESTAURANT_INFO.hours).map(([day, hours]) => (
+                <div key={day} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground capitalize">{day}</span>
+                  <span>{hours}</span>
                 </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Quick links */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/" className="text-muted-foreground hover:text-primary transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link href="/menu" className="text-muted-foreground hover:text-primary transition-colors">
+                  Our Menu
+                </Link>
+              </li>
+              <li>
+                <Link href="/booking" className="text-muted-foreground hover:text-primary transition-colors">
+                  Book a Table
+                </Link>
+              </li>
+              <li>
+                <Link href="/order" className="text-muted-foreground hover:text-primary transition-colors">
+                  Order Online
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">
+                  Contact Us
+                </Link>
               </li>
             </ul>
-          </div>
-          
-          {/* Navigation links */}
-          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-6">
-            {footerLinks.map((section) => (
-              <div key={section.section}>
-                <h3 className="font-medium text-base mb-4">{section.section}</h3>
-                <ul className="space-y-2 text-sm">
-                  {section.links.map((link) => (
-                    <li key={link.href}>
-                      <Link href={link.href}>
-                        <a className="text-muted-foreground hover:text-primary transition-colors">
-                          {link.label}
-                        </a>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Newsletter signup - could be implemented later */}
-        <div className="mt-10 mb-6 py-6 border-t border-b">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="font-medium text-base">Subscribe to our newsletter</h3>
-              <p className="text-sm text-muted-foreground">
-                Get updates on special events, new menus, and promotions.
-              </p>
-            </div>
-            <div className="flex-shrink-0">
-              <Button disabled>Coming Soon</Button>
-            </div>
           </div>
         </div>
         
         {/* Copyright */}
-        <div className="text-center text-xs text-muted-foreground">
-          <p>
-            © {currentYear} {RESTAURANT_INFO.name}. All rights reserved.
-          </p>
+        <div className="border-t border-border pt-8 text-center text-muted-foreground text-sm">
+          <p>&copy; {currentYear} {RESTAURANT_INFO.name}. All rights reserved.</p>
         </div>
       </div>
     </footer>

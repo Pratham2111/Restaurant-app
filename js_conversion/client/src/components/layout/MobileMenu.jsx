@@ -1,7 +1,7 @@
-import { Link } from "wouter";
 import { X } from "lucide-react";
-import { 
-  Sheet, 
+import { Link, useLocation } from "wouter";
+import {
+  Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -20,11 +20,11 @@ import { RESTAURANT_INFO } from "../../lib/constants";
 
 /**
  * Mobile menu component
- * Displays navigation links and options on small screens
+ * Displays responsive navigation for mobile devices
  * @param {Object} props - Component props
  * @param {boolean} props.isOpen - Whether the menu is open
  * @param {Function} props.onClose - Function to close the menu
- * @param {Array} props.navLinks - Navigation links to display
+ * @param {Array} props.navLinks - Navigation links
  * @param {string} props.currentCurrency - Current currency code
  * @param {Function} props.onCurrencyChange - Function to change currency
  */
@@ -35,74 +35,66 @@ export const MobileMenu = ({
   currentCurrency,
   onCurrencyChange
 }) => {
+  const [location] = useLocation();
   const { currencySettings } = useCurrency();
   
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[280px] sm:w-[350px]">
+      <SheetContent side="right" className="w-[85vw] sm:max-w-md">
         <SheetHeader className="border-b pb-4 mb-5">
-          <SheetTitle className="flex items-center justify-between">
-            <span className="font-serif">{RESTAURANT_INFO.name}</span>
-            <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="font-bold text-xl">
+              {RESTAURANT_INFO.name}
+            </SheetTitle>
+            <SheetClose asChild>
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="h-5 w-5" />
+              </Button>
             </SheetClose>
-          </SheetTitle>
+          </div>
         </SheetHeader>
         
         {/* Navigation links */}
-        <nav className="flex flex-col space-y-1 mb-8">
+        <nav className="flex flex-col space-y-5 mb-8">
           {navLinks.map((link) => (
-            <SheetClose asChild key={link.href}>
-              <Link href={link.href}>
-                <a className="py-2 px-4 rounded-md text-foreground hover:bg-muted">
-                  {link.label}
-                </a>
-              </Link>
-            </SheetClose>
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-lg transition-colors hover:text-primary ${
+                location === link.href ? "text-primary font-medium" : ""
+              }`}
+              onClick={onClose}
+            >
+              {link.label}
+            </Link>
           ))}
         </nav>
         
         {/* Currency selector */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Select Currency
-          </h3>
-          <Select 
-            value={currentCurrency} 
-            onValueChange={(value) => {
-              const currencyId = parseInt(value);
-              onCurrencyChange(currencyId);
-            }}
+        <div className="mt-auto">
+          <p className="text-sm text-muted-foreground mb-2">Select Currency</p>
+          <Select
+            value={currentCurrency}
+            onValueChange={onCurrencyChange}
           >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Currency" />
+            <SelectTrigger className="w-full mb-6">
+              <SelectValue placeholder="USD" />
             </SelectTrigger>
             <SelectContent>
               {currencySettings.map((currency) => (
-                <SelectItem 
-                  key={currency.id} 
-                  value={currency.id.toString()}
-                >
-                  {currency.symbol} {currency.code}
+                <SelectItem key={currency.id} value={currency.code}>
+                  {currency.code} ({currency.symbol})
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         
-        {/* Bottom actions */}
-        <div className="absolute bottom-6 left-6 right-6 space-y-2">
-          <Button asChild variant="default" className="w-full">
-            <Link href="/booking">
-              <a>Book a Table</a>
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/order">
-              <a>Order Online</a>
-            </Link>
-          </Button>
+        {/* Contact info */}
+        <div className="border-t pt-6">
+          <p className="text-sm text-muted-foreground mb-2">Contact Us</p>
+          <p className="font-medium">{RESTAURANT_INFO.phone}</p>
+          <p className="text-sm text-muted-foreground">{RESTAURANT_INFO.email}</p>
         </div>
       </SheetContent>
     </Sheet>
