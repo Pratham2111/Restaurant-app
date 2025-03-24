@@ -1,8 +1,12 @@
 /**
- * In-memory storage implementation for the restaurant application.
+ * Storage implementation for the restaurant application.
  * This module provides storage for categories, menu items, reservations,
  * contact messages, orders, testimonials, and currency settings.
+ * 
+ * It automatically uses MongoDB if connection is available, otherwise falls back to in-memory storage.
  */
+
+import MongoStorage from './db/MongoStorage.js';
 
 /**
  * Interface for storage operations

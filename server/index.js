@@ -5,6 +5,7 @@ import passport from "passport";
 import http from "http";
 import { registerRoutes } from "./routes.js";
 import { log, setupVite, serveStatic } from "./vite.js";
+import { connectDB } from "./db/mongoose.js";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -13,6 +14,22 @@ const MemoryStore = createMemoryStore(session);
  */
 async function main() {
   try {
+    // Connect to MongoDB if URI is provided
+    let mongoConnection = null;
+    const mongoURI = process.env.MONGODB_URI;
+    
+    if (mongoURI) {
+      try {
+        mongoConnection = await connectDB(mongoURI);
+        log('MongoDB connected successfully', 'mongodb');
+      } catch (error) {
+        console.error('Failed to connect to MongoDB:', error.message);
+        log('Failed to connect to MongoDB, falling back to in-memory storage', 'mongodb');
+      }
+    } else {
+      log('No MongoDB URI provided, using in-memory storage', 'mongodb');
+    }
+    
     // Create Express app
     const app = express();
 
