@@ -27,14 +27,27 @@ function Account() {
       if (!user) return;
       
       try {
+        // Log user info to help with debugging
+        console.log('Current user in Account page:', user);
+        
         // Fetch orders
         const ordersResponse = await fetch('/api/orders');
         if (ordersResponse.ok) {
           const allOrders = await ordersResponse.json();
-          // Filter orders that belong to this user
-          const userOrders = allOrders.filter(order => 
-            order.customerEmail === user.email || order.userId === user._id
-          );
+          console.log('All orders:', allOrders);
+          
+          // Filter orders that belong to this user (checking both email and _id/id)
+          const userOrders = allOrders.filter(order => {
+            const customerEmail = order.customerEmail || order.email;
+            const orderUserId = order.userId || order._id;
+            const userEmail = user.email;
+            const userId = user._id || user.id;
+            
+            return (customerEmail && customerEmail.toLowerCase() === userEmail.toLowerCase()) || 
+                   (orderUserId && userId && orderUserId.toString() === userId.toString());
+          });
+          
+          console.log('Filtered user orders:', userOrders);
           setOrders(userOrders);
         } else {
           console.error('Failed to fetch orders');
@@ -44,10 +57,20 @@ function Account() {
         const bookingsResponse = await fetch('/api/reservations');
         if (bookingsResponse.ok) {
           const allBookings = await bookingsResponse.json();
-          // Filter bookings that belong to this user
-          const userBookings = allBookings.filter(booking => 
-            booking.email === user.email || booking.userId === user._id
-          );
+          console.log('All bookings:', allBookings);
+          
+          // Filter bookings that belong to this user (checking both email and _id/id)
+          const userBookings = allBookings.filter(booking => {
+            const bookingEmail = booking.email;
+            const bookingUserId = booking.userId || booking._id;
+            const userEmail = user.email;
+            const userId = user._id || user.id;
+            
+            return (bookingEmail && bookingEmail.toLowerCase() === userEmail.toLowerCase()) || 
+                   (bookingUserId && userId && bookingUserId.toString() === userId.toString());
+          });
+          
+          console.log('Filtered user bookings:', userBookings);
           setBookings(userBookings);
         } else {
           console.error('Failed to fetch bookings');

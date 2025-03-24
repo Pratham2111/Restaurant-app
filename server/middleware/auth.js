@@ -11,7 +11,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'la-mason-jwt-secret';
  * @returns {string} JWT token
  */
 export const generateToken = (user) => {
-  const { password, ...userForToken } = user;
+  // Convert Mongoose document to plain object if needed
+  const userObject = user.toObject ? user.toObject() : user;
+  
+  // Extract user data without password
+  const { password, ...userForToken } = userObject;
+  
+  // Ensure id is consistent (use _id from MongoDB but alias as id)
+  if (userForToken._id && !userForToken.id) {
+    userForToken.id = userForToken._id.toString();
+  }
   
   return jwt.sign(userForToken, JWT_SECRET, {
     expiresIn: '24h'
@@ -46,7 +55,14 @@ export const authenticate = async (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     
     // Get user from database to ensure they still exist and have correct permissions
-    const user = await req.app.locals.storage.getUserById(decoded.id);
+    // Use id or _id from decoded token - both should now be available
+    const userId = decoded.id || decoded._id;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Invalid token: Missing user ID" });
+    }
+    
+    const user = await req.app.locals.storage.getUserById(userId);
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }

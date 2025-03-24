@@ -650,7 +650,14 @@ class MongoStorage {
    */
   async getUserById(id) {
     try {
-      return await User.findById(id).select('-password');
+      const user = await User.findById(id).select('-password');
+      if (!user) return undefined;
+      
+      // Convert Mongoose document to plain object and ensure consistent id field
+      const userObject = user.toObject();
+      userObject.id = userObject._id.toString();
+      
+      return userObject;
     } catch (error) {
       console.error('Error getting user by ID:', error);
       return undefined;
@@ -664,7 +671,12 @@ class MongoStorage {
    */
   async getUserByEmail(email) {
     try {
-      return await User.findOne({ email });
+      const user = await User.findOne({ email });
+      if (!user) return undefined;
+      
+      // Keep password for login validation
+      // Password is removed in auth routes when returning to client
+      return user;
     } catch (error) {
       console.error('Error getting user by email:', error);
       return undefined;
