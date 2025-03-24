@@ -26,6 +26,8 @@ import { authenticate } from './middleware/auth.js';
  */
 const handleZodError = (error, res) => {
   if (error instanceof z.ZodError) {
+    console.log("Validation errors:", JSON.stringify(error.errors, null, 2));
+    
     const errorMessages = error.errors.map((err) => ({
       path: err.path.join("."),
       message: err.message,

@@ -40,7 +40,8 @@ const insertOrderSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(5, "Phone number is required"),
-  address: z.string().min(5, "Address is required"),
+  address: z.string().min(1, "Address is required"), // Reduced length requirement to handle pickup orders
+  orderType: z.enum(["pickup", "delivery"]).optional(), // Added order type field
   items: z.array(
     z.object({
       menuItemId: z.union([z.string(), z.number()]), // Accept both string IDs (MongoDB) and number IDs

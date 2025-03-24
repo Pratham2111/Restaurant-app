@@ -261,7 +261,7 @@ function Order() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        address: orderType === "delivery" ? formData.address : "Pickup Order - No Address",
+        address: orderType === "delivery" ? formData.address : "Pickup at restaurant",
         orderType: orderType, // Add orderType to help server validate properly
         items: items.map(item => ({
           menuItemId: item.menuItemId,
