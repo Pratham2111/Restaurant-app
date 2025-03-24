@@ -7,17 +7,9 @@ import { QueryClient } from "@tanstack/react-query";
  */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    let errorMessage;
-    try {
-      const data = await res.json();
-      errorMessage = data.message || data.error || res.statusText;
-    } catch (e) {
-      errorMessage = res.statusText;
-    }
-    
-    const error = new Error(errorMessage);
-    error.status = res.status;
-    throw error;
+    const errorData = await res.json().catch(() => null);
+    const errorMessage = errorData?.message || res.statusText || `HTTP error ${res.status}`;
+    throw new Error(errorMessage);
   }
 }
 
@@ -28,17 +20,31 @@ async function throwIfResNotOk(res) {
  * @returns {Promise<any>} Response data
  */
 export async function apiRequest(path, options = {}) {
-  const res = await fetch(path, {
-    ...options,
+  const defaultOptions = {
     headers: {
       "Content-Type": "application/json",
-      ...(options.headers || {})
-    }
-  });
+    },
+  };
+
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    headers: {
+      ...defaultOptions.headers,
+      ...options.headers,
+    },
+  };
+
+  const response = await fetch(path, mergedOptions);
+  await throwIfResNotOk(response);
   
-  await throwIfResNotOk(res);
+  // Handle empty responses
+  const contentType = response.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    return null;
+  }
   
-  return res.json();
+  return await response.json();
 }
 
 /**
@@ -49,10 +55,11 @@ export async function apiRequest(path, options = {}) {
 export const getQueryFn = (options = { on401: "throw" }) => {
   return async ({ queryKey }) => {
     const [path] = queryKey;
+    
     try {
       return await apiRequest(path);
     } catch (error) {
-      if (error.status === 401 && options.on401 === "returnNull") {
+      if (options.on401 === "returnNull" && error.message.includes("401")) {
         return null;
       }
       throw error;
@@ -68,8 +75,14 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn(),
       staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false
-    }
-  }
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error.message.includes("4")) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    },
+  },
 });

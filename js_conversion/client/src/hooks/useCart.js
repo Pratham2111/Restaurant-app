@@ -7,23 +7,35 @@ import { useCurrency } from "./useCurrency";
  * @returns {Object} Cart methods and state
  */
 export const useCart = () => {
-  const cart = useContext(CartContext);
+  const cartContext = useContext(CartContext);
   const { formatConvertedPrice, convertPrice } = useCurrency();
+  
+  if (!cartContext) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
   
   /**
    * Format the subtotal in the current currency
    * @returns {string} Formatted subtotal
    */
   const formatSubtotal = () => {
-    return formatConvertedPrice(cart.getSubtotal());
+    return formatConvertedPrice(cartContext.getSubtotal());
   };
   
   /**
    * Get the delivery fee in the current currency
    * @returns {number} Converted delivery fee
    */
-  const getConvertedDeliveryFee = () => {
-    return convertPrice(cart.getDeliveryFee());
+  const getDeliveryFee = () => {
+    // Base delivery fee is $5.00
+    const baseFee = 5.00;
+    
+    // Free delivery for orders over $50
+    if (cartContext.getSubtotal() > 50) {
+      return 0;
+    }
+    
+    return convertPrice(baseFee);
   };
   
   /**
@@ -31,15 +43,17 @@ export const useCart = () => {
    * @returns {string} Formatted delivery fee
    */
   const formatDeliveryFee = () => {
-    return formatConvertedPrice(cart.getDeliveryFee());
+    return formatConvertedPrice(getDeliveryFee());
   };
   
   /**
    * Get the tax in the current currency
    * @returns {number} Converted tax
    */
-  const getConvertedTax = () => {
-    return convertPrice(cart.getTax());
+  const getTax = () => {
+    // Tax rate is 8.875% (NYC tax rate)
+    const taxRate = 0.08875;
+    return convertPrice(cartContext.getSubtotal() * taxRate);
   };
   
   /**
@@ -47,15 +61,15 @@ export const useCart = () => {
    * @returns {string} Formatted tax
    */
   const formatTax = () => {
-    return formatConvertedPrice(cart.getTax());
+    return formatConvertedPrice(getTax());
   };
   
   /**
    * Get the total in the current currency
    * @returns {number} Converted total
    */
-  const getConvertedTotal = () => {
-    return convertPrice(cart.getTotal());
+  const getTotal = () => {
+    return cartContext.getSubtotal() + getDeliveryFee() + getTax();
   };
   
   /**
@@ -63,7 +77,7 @@ export const useCart = () => {
    * @returns {string} Formatted total
    */
   const formatTotal = () => {
-    return formatConvertedPrice(cart.getTotal());
+    return formatConvertedPrice(getTotal());
   };
   
   /**
@@ -76,14 +90,14 @@ export const useCart = () => {
   };
   
   return {
-    ...cart,
+    ...cartContext,
     formatSubtotal,
-    getConvertedDeliveryFee,
+    getDeliveryFee,
     formatDeliveryFee,
-    getConvertedTax,
+    getTax,
     formatTax,
-    getConvertedTotal,
+    getTotal,
     formatTotal,
-    formatItemPrice
+    formatItemPrice,
   };
 };

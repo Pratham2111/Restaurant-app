@@ -27,22 +27,17 @@ export function formatCurrency(amount, currencySymbol = "$") {
  * @returns {number} Converted amount
  */
 export function convertCurrency(amount, rate) {
-  return amount * rate;
+  return parseFloat((amount * rate).toFixed(2));
 }
 
 /**
  * Available time slots for booking
  */
 export const timeSlots = [
-  "11:00 AM", "11:30 AM",
-  "12:00 PM", "12:30 PM",
-  "1:00 PM", "1:30 PM",
-  "2:00 PM", "2:30 PM",
-  "5:00 PM", "5:30 PM",
-  "6:00 PM", "6:30 PM",
-  "7:00 PM", "7:30 PM",
-  "8:00 PM", "8:30 PM",
-  "9:00 PM", "9:30 PM"
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", 
+  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", 
+  "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", 
+  "20:00", "20:30", "21:00", "21:30"
 ];
 
 /**
@@ -56,12 +51,7 @@ export const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  * @returns {string} Formatted date string
  */
 export function formatDate(date) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  }).format(date);
+  return date.toISOString().split('T')[0];
 }
 
 /**
@@ -69,11 +59,7 @@ export function formatDate(date) {
  * @returns {string} Minimum date in YYYY-MM-DD format
  */
 export function getMinDate() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return formatDate(new Date());
 }
 
 /**
@@ -83,8 +69,9 @@ export function getMinDate() {
  * @returns {string} Truncated text
  */
 export function truncateText(text, maxLength) {
-  if (!text || text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + "...";
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return `${text.substring(0, maxLength)}...`;
 }
 
 /**
@@ -103,9 +90,59 @@ export function generateId() {
  */
 export function debounce(func, wait) {
   let timeout;
-  return function(...args) {
-    const context = this;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
     clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(context, args), wait);
+    timeout = setTimeout(later, wait);
   };
+}
+
+/**
+ * Validates an email address
+ * @param {string} email - Email to validate
+ * @returns {boolean} Whether email is valid
+ */
+export function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+/**
+ * Validates a phone number
+ * @param {string} phone - Phone number to validate
+ * @returns {boolean} Whether phone number is valid
+ */
+export function isValidPhone(phone) {
+  const phoneRegex = /^[\d\s\-+()]{7,15}$/;
+  return phoneRegex.test(phone);
+}
+
+/**
+ * Gets current browser viewport width
+ * @returns {number} Viewport width
+ */
+export function getViewportWidth() {
+  return Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+}
+
+/**
+ * Formats a number with comma separators
+ * @param {number} number - Number to format
+ * @returns {string} Formatted number
+ */
+export function formatNumber(number) {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+/**
+ * Capitalizes the first letter of each word in a string
+ * @param {string} str - String to capitalize
+ * @returns {string} Capitalized string
+ */
+export function capitalizeWords(str) {
+  if (!str) return "";
+  return str.replace(/\b\w/g, char => char.toUpperCase());
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 /**
  * Hook to check if a media query matches
@@ -7,29 +7,29 @@ import { useEffect, useState } from "react";
  */
 export function useMediaQuery(query) {
   const [matches, setMatches] = useState(false);
-  
+
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    
     const media = window.matchMedia(query);
-    
-    // Initial check
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
-    
-    // Update state when media query changes
+    setMatches(media.matches);
+
     const handleChange = (event) => {
       setMatches(event.matches);
     };
-    
-    // Add event listener
-    media.addEventListener("change", handleChange);
-    
-    // Clean up
-    return () => {
-      media.removeEventListener("change", handleChange);
-    };
-  }, [matches, query]);
-  
+
+    // Modern browsers
+    if (media.addEventListener) {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    } 
+    // Legacy browsers
+    else {
+      media.addListener(handleChange);
+      return () => media.removeListener(handleChange);
+    }
+  }, [query]);
+
   return matches;
 }
 
@@ -38,7 +38,7 @@ export function useMediaQuery(query) {
  * @returns {boolean} Whether screen is mobile size
  */
 export function useMobile() {
-  return useMediaQuery("(max-width: 768px)");
+  return useMediaQuery("(max-width: 639px)");
 }
 
 /**
@@ -46,7 +46,7 @@ export function useMobile() {
  * @returns {boolean} Whether screen is tablet size
  */
 export function useTablet() {
-  return useMediaQuery("(min-width: 769px) and (max-width: 1024px)");
+  return useMediaQuery("(min-width: 640px) and (max-width: 1023px)");
 }
 
 /**
@@ -54,5 +54,5 @@ export function useTablet() {
  * @returns {boolean} Whether screen is desktop size
  */
 export function useDesktop() {
-  return useMediaQuery("(min-width: 1025px)");
+  return useMediaQuery("(min-width: 1024px)");
 }

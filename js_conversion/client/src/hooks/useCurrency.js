@@ -7,13 +7,13 @@ import { formatCurrency, convertCurrency } from "../lib/utils";
  * @returns {Object} Currency methods and state
  */
 export const useCurrency = () => {
-  const { 
-    currencySettings, 
-    currentCurrency, 
-    loading, 
-    error, 
-    setCurrency 
-  } = useContext(CurrencyContext);
+  const currencyContext = useContext(CurrencyContext);
+  
+  if (!currencyContext) {
+    throw new Error("useCurrency must be used within a CurrencyProvider");
+  }
+  
+  const { currentCurrency } = currencyContext;
   
   /**
    * Convert a price from USD to current currency
@@ -21,7 +21,7 @@ export const useCurrency = () => {
    * @returns {number} Converted price
    */
   const convertPrice = (amount) => {
-    if (!currentCurrency) return amount;
+    if (!amount) return 0;
     return convertCurrency(amount, currentCurrency.rate);
   };
   
@@ -31,17 +31,13 @@ export const useCurrency = () => {
    * @returns {string} Formatted converted price string
    */
   const formatConvertedPrice = (amount) => {
-    if (!currentCurrency) return formatCurrency(amount, "$");
-    const convertedAmount = convertCurrency(amount, currentCurrency.rate);
+    if (!amount) return formatCurrency(0, currentCurrency.symbol);
+    const convertedAmount = convertPrice(amount);
     return formatCurrency(convertedAmount, currentCurrency.symbol);
   };
   
   return {
-    currencySettings,
-    currentCurrency,
-    loading,
-    error,
-    setCurrency,
+    ...currencyContext,
     convertPrice,
     formatConvertedPrice
   };

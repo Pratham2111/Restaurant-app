@@ -1,31 +1,34 @@
-import { createContext, useEffect, useState } from "react";
-import { formatCurrency, convertCurrency } from "../lib/utils";
-import { useToast } from "../hooks/use-toast";
+import { createContext, useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "../lib/queryClient";
 
-// Default currency if API fails
+/**
+ * Context for managing currency state across the application
+ */
+
+// Default currency when API fails
 const defaultCurrency = {
   id: 1,
   code: "USD",
   symbol: "$",
   rate: 1,
-  name: "US Dollar",
   isDefault: true
 };
 
-/**
- * Context for currency functionality
- * @type {React.Context}
- */
-export const CurrencyContext = createContext({
+// Initial context value
+const initialCurrencyContext = {
   currencySettings: [],
   currentCurrency: defaultCurrency,
   loading: true,
   error: null,
   setCurrency: async () => {}
-});
+};
+
+// Create context
+export const CurrencyContext = createContext(initialCurrencyContext);
 
 /**
- * Provider component for the currency context
+ * Provider component for the CurrencyContext
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components
  */
@@ -34,89 +37,96 @@ export const CurrencyProvider = ({ children }) => {
   const [currentCurrency, setCurrentCurrency] = useState(defaultCurrency);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { toast } = useToast();
   
-  // Load available currencies and default currency on mount
-  useEffect(() => {
-    const fetchCurrencies = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch all available currencies
-        const currenciesResponse = await fetch("/api/currency-settings");
-        const currencies = await currenciesResponse.json();
-        
-        if (currencies && currencies.length > 0) {
-          setCurrencySettings(currencies);
-          
-          // Check if we have a saved currency preference
-          const savedCurrencyId = localStorage.getItem("preferredCurrency");
-          
-          if (savedCurrencyId) {
-            // Find the saved currency in the fetched currencies
-            const savedCurrency = currencies.find(c => c.id === parseInt(savedCurrencyId));
-            if (savedCurrency) {
-              setCurrentCurrency(savedCurrency);
-              setLoading(false);
-              return;
-            }
-          }
-          
-          // If no saved preference or it's invalid, get the default currency
-          const defaultResponse = await fetch("/api/currency-settings/default");
-          const defaultCurrencyData = await defaultResponse.json();
-          
-          if (defaultCurrencyData) {
-            setCurrentCurrency(defaultCurrencyData);
-          }
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to fetch currency settings:", err);
-        setError("Failed to load currency settings");
-        setLoading(false);
-        
-        // Use default fallback if API fails
-        toast({
-          title: "Currency settings unavailable",
-          description: "Using default currency (USD)",
-          variant: "destructive"
-        });
+  // Fetch all currency settings
+  const { 
+    data: currencies,
+    isLoading: currenciesLoading,
+    error: currenciesError
+  } = useQuery({
+    queryKey: ["/api/currency-settings"],
+    onSuccess: (data) => {
+      if (data && data.length > 0) {
+        setCurrencySettings(data);
       }
-    };
+    },
+    onError: (err) => {
+      console.error("Error fetching currency settings:", err);
+      setError("Unable to load currency settings");
+    }
+  });
+  
+  // Fetch default currency
+  const {
+    data: defaultCurrencyData,
+    isLoading: defaultCurrencyLoading,
+    error: defaultCurrencyError
+  } = useQuery({
+    queryKey: ["/api/currency-settings/default"],
+    onSuccess: (data) => {
+      if (data) {
+        setCurrentCurrency(data);
+      }
+    },
+    onError: (err) => {
+      console.error("Error fetching default currency:", err);
+      // Fall back to USD if default currency can't be fetched
+      setCurrentCurrency(defaultCurrency);
+    }
+  });
+  
+  // Update loading and error states
+  useEffect(() => {
+    setLoading(currenciesLoading || defaultCurrencyLoading);
     
-    fetchCurrencies();
-  }, [toast]);
+    if (currenciesError || defaultCurrencyError) {
+      setError(
+        (currenciesError?.message || defaultCurrencyError?.message) ||
+        "Error loading currency data"
+      );
+    } else {
+      setError(null);
+    }
+  }, [
+    currenciesLoading,
+    defaultCurrencyLoading,
+    currenciesError,
+    defaultCurrencyError
+  ]);
   
   /**
-   * Change the current currency
+   * Set the current currency by ID
    * @param {number} currencyId - ID of the currency to set
    * @returns {Promise<void>}
    */
   const setCurrency = async (currencyId) => {
     try {
-      const newCurrency = currencySettings.find(c => c.id === currencyId);
+      // First check if the currency exists in our local state
+      const currencyToSet = currencySettings.find(
+        currency => currency.id === currencyId
+      );
       
-      if (newCurrency) {
-        setCurrentCurrency(newCurrency);
-        localStorage.setItem("preferredCurrency", currencyId.toString());
-        
-        toast({
-          title: "Currency updated",
-          description: `Currency changed to ${newCurrency.name} (${newCurrency.code})`
-        });
+      if (currencyToSet) {
+        setCurrentCurrency(currencyToSet);
+        return;
+      }
+      
+      // If not found locally, try to update it on the server
+      const updatedCurrency = await apiRequest(
+        `/api/currency-settings/${currencyId}/default`,
+        { method: "PATCH" }
+      );
+      
+      if (updatedCurrency) {
+        setCurrentCurrency(updatedCurrency);
       }
     } catch (err) {
-      console.error("Failed to set currency:", err);
-      toast({
-        title: "Currency update failed",
-        description: "Could not change the currency",
-        variant: "destructive"
-      });
+      console.error("Error setting currency:", err);
+      setError("Failed to update currency");
     }
   };
   
+  // Context value
   const value = {
     currencySettings,
     currentCurrency,
