@@ -308,4 +308,54 @@ router.delete('/users/:id', authenticate, authorizeAdmin, async (req, res) => {
   }
 });
 
+/**
+ * Reset user password (admin only)
+ * @route POST /api/auth/reset-password/:id
+ * @access Admin only
+ */
+router.post('/reset-password/:id', authenticate, authorizeAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+    
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required" });
+    }
+    
+    // Check if user exists
+    const user = await req.app.locals.storage.getUserById(id);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    console.log(`Admin ${req.user.email} is resetting password for user ${user.email || user.name} (ID: ${id})`);
+    
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update user with new password
+    const updatedUser = await req.app.locals.storage.updateUser(id, {
+      password: hashedPassword
+    });
+    
+    if (!updatedUser) {
+      return res.status(500).json({ message: "Failed to update user password" });
+    }
+    
+    res.json({ 
+      message: "Password reset successful",
+      user: {
+        id: updatedUser.id || updatedUser._id,
+        email: updatedUser.email,
+        name: updatedUser.name
+      }
+    });
+  } catch (error) {
+    console.error('Error resetting user password:', error);
+    res.status(500).json({ message: "Failed to reset user password" });
+  }
+});
+
 export default router;
