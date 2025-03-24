@@ -43,10 +43,16 @@ const insertOrderSchema = z.object({
   address: z.string().min(5, "Address is required"),
   items: z.array(
     z.object({
-      menuItemId: z.union([z.string(), z.number()]), // Accept both string IDs (MongoDB) and number IDs
+      menuItemId: z.union([z.string(), z.number()]).optional(), // For client-side usage
+      menuItem: z.union([z.string(), z.number()]).optional(), // For server-side usage
       name: z.string(),
       price: z.number().positive(),
       quantity: z.number().int().positive(),
+    })
+    // Make one of menuItemId or menuItem required
+    .refine(data => data.menuItemId || data.menuItem, {
+      message: "Either menuItemId or menuItem must be provided",
+      path: ["menuItem"]
     })
   ).min(1, "Order must have at least one item"),
   total: z.number().positive("Total must be positive"),

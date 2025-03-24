@@ -263,7 +263,7 @@ function Order() {
         phone: formData.phone,
         address: orderType === "delivery" ? formData.address : "Pickup Order - No Address",
         items: items.map(item => ({
-          menuItemId: item.menuItemId,
+          menuItem: item.menuItemId, // Changed from menuItemId to menuItem to match server expectation
           name: item.name,
           quantity: item.quantity,
           price: item.price
