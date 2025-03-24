@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import { useToast } from "../hooks/use-toast";
+import { useToast } from "../hooks/use-toast.jsx";
 
 export const CartContext = createContext(null);
 

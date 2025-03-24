@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import "./index.css";
 import CartProvider from "./context/CartContext";
 import CurrencyProvider from "./context/CurrencyContext";
-import { ToastProvider } from "./hooks/use-toast";
+import { ToastProvider } from "./hooks/use-toast.jsx";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 

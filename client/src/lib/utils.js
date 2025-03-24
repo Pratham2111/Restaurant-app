@@ -27,16 +27,16 @@ export function formatCurrency(amount, currencySymbol = "$") {
  * @returns {number} Converted amount
  */
 export function convertCurrency(amount, rate) {
-  return parseFloat((amount * rate).toFixed(2));
+  return amount * rate;
 }
 
 /**
  * Available time slots for booking
  */
 export const timeSlots = [
-  "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", 
-  "2:00 PM", "2:30 PM", "5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", 
-  "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM", "9:00 PM"
+  "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", 
+  "2:00 PM", "2:30 PM", "5:00 PM", "5:30 PM", "6:00 PM", 
+  "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM", "9:00 PM"
 ];
 
 /**
@@ -50,11 +50,11 @@ export const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  * @returns {string} Formatted date string
  */
 export function formatDate(date) {
-  return new Date(date).toLocaleDateString("en-US", {
+  return date.toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
-    day: "numeric",
+    day: "numeric"
   });
 }
 
@@ -64,10 +64,7 @@ export function formatDate(date) {
  */
 export function getMinDate() {
   const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return today.toISOString().split("T")[0];
 }
 
 /**
@@ -79,7 +76,7 @@ export function getMinDate() {
 export function truncateText(text, maxLength) {
   if (!text) return "";
   if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + "...";
+  return `${text.slice(0, maxLength)}...`;
 }
 
 /**
@@ -87,7 +84,7 @@ export function truncateText(text, maxLength) {
  * @returns {string} Random ID
  */
 export function generateId() {
-  return Math.random().toString(36).substring(2, 9);
+  return Math.random().toString(36).substring(2, 15);
 }
 
 /**
@@ -98,13 +95,10 @@ export function generateId() {
  */
 export function debounce(func, wait) {
   let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
+  return function(...args) {
+    const context = this;
     clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
+    timeout = setTimeout(() => func.apply(context, args), wait);
   };
 }
 
@@ -114,7 +108,7 @@ export function debounce(func, wait) {
  * @returns {boolean} Whether email is valid
  */
 export function isValidEmail(email) {
-  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
 }
 
@@ -124,7 +118,7 @@ export function isValidEmail(email) {
  * @returns {boolean} Whether phone number is valid
  */
 export function isValidPhone(phone) {
-  const re = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
+  const re = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
   return re.test(phone);
 }
 
@@ -154,6 +148,6 @@ export function capitalizeWords(str) {
   if (!str) return "";
   return str
     .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 }

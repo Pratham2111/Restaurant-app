@@ -8,17 +8,14 @@ import { QueryClient } from "@tanstack/react-query";
  */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    let errorText;
+    let errorMessage;
     try {
       const errorData = await res.json();
-      errorText = errorData.message || errorData.error || res.statusText;
+      errorMessage = errorData.message || `HTTP error ${res.status}`;
     } catch (e) {
-      errorText = res.statusText;
+      errorMessage = `HTTP error ${res.status}`;
     }
-    
-    const error = new Error(errorText);
-    error.status = res.status;
-    throw error;
+    throw new Error(errorMessage);
   }
 }
 
@@ -29,22 +26,38 @@ async function throwIfResNotOk(res) {
  * @returns {Promise<any>} Response data
  */
 export async function apiRequest(path, options = {}) {
-  const res = await fetch(path, {
-    ...options,
+  // Default options
+  const defaultOptions = {
     headers: {
-      ...options.headers,
       "Content-Type": "application/json",
     },
-  });
-  
-  await throwIfResNotOk(res);
-  
-  // Return null for 204 No Content
-  if (res.status === 204) {
-    return null;
+    credentials: "same-origin",
+  };
+
+  // Combine default options with provided options
+  const fetchOptions = {
+    ...defaultOptions,
+    ...options,
+    headers: {
+      ...defaultOptions.headers,
+      ...options.headers,
+    },
+  };
+
+  try {
+    const res = await fetch(path, fetchOptions);
+    await throwIfResNotOk(res);
+    
+    // For no content responses
+    if (res.status === 204) {
+      return null;
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.error(`API request error for ${path}:`, error);
+    throw error;
   }
-  
-  return await res.json();
 }
 
 /**
@@ -58,8 +71,9 @@ export const getQueryFn = (options = { on401: "throw" }) => {
     try {
       return await apiRequest(path);
     } catch (error) {
-      if (error.status === 401 && options.on401 === "returnNull") {
-        return null;
+      // Handle unauthorized differently if needed
+      if (options.on401 === "redirect" && error.message.includes("401")) {
+        window.location.href = "/login";
       }
       throw error;
     }
@@ -72,11 +86,11 @@ export const getQueryFn = (options = { on401: "throw" }) => {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 1, // 1 minute
-      gcTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
       queryFn: getQueryFn(),
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnWindowFocus: false,
     },
   },
 });
