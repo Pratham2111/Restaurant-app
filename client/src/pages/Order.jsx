@@ -445,7 +445,7 @@ function Order() {
                         <div className="flex justify-between">
                           <h3 className="font-bold">{item.name}</h3>
                           <span className="font-bold text-primary">
-                            {formatAmount(item.price)}
+                            {formatAmount(item.price) || `$${(item.price).toFixed(2)}`}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground mb-2">
@@ -537,7 +537,7 @@ function Order() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold">
-                          {formatAmount(item.price * item.quantity)}
+                          {formatAmount(item.price * item.quantity) || `$${(item.price * item.quantity).toFixed(2)}`}
                         </span>
                         <button
                           onClick={() => removeItem(item.menuItemId)}
