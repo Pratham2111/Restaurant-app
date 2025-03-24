@@ -3,6 +3,8 @@ import { twMerge } from "tailwind-merge";
 
 /**
  * Combines multiple class names into a single string and merges Tailwind classes
+ * @param  {...any} inputs - Class name inputs
+ * @returns {string} Merged class names
  */
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -15,7 +17,21 @@ export function cn(...inputs) {
  * @returns {string} Formatted currency string
  */
 export function formatCurrency(amount, currencySymbol = "$") {
-  return `${currencySymbol}${amount.toFixed(2)}`;
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD", // Using USD format but replacing symbol
+    minimumFractionDigits: 2,
+  });
+  
+  // Format the amount and replace the currency symbol
+  const formatted = formatter.format(amount);
+  const usdSymbol = "$";
+  
+  if (formatted.startsWith(usdSymbol)) {
+    return formatted.replace(usdSymbol, currencySymbol);
+  }
+  
+  return formatted;
 }
 
 /**
@@ -25,22 +41,17 @@ export function formatCurrency(amount, currencySymbol = "$") {
  * @returns {number} Converted amount
  */
 export function convertCurrency(amount, rate) {
-  return +(amount * rate).toFixed(2);
+  return amount * rate;
 }
 
 /**
  * Available time slots for booking
  */
 export const timeSlots = [
-  "11:00 AM",
-  "12:00 PM",
-  "1:00 PM",
-  "2:00 PM",
-  "5:00 PM",
-  "6:00 PM",
-  "7:00 PM",
-  "8:00 PM",
-  "9:00 PM",
+  "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", 
+  "2:00 PM", "2:30 PM", "3:00 PM", "5:00 PM", "5:30 PM", 
+  "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", 
+  "8:30 PM", "9:00 PM"
 ];
 
 /**
@@ -54,7 +65,12 @@ export const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  * @returns {string} Formatted date string
  */
 export function formatDate(date) {
-  return date.toISOString().split("T")[0];
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
 }
 
 /**
@@ -63,5 +79,8 @@ export function formatDate(date) {
  */
 export function getMinDate() {
   const today = new Date();
-  return formatDate(today);
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

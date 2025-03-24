@@ -1,23 +1,17 @@
-import React from "react";
-import { Link } from "wouter";
-import { X, ChevronRight, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CURRENCY_OPTIONS } from "@/lib/constants";
+import { useEffect } from "react";
+import { Link, useLocation } from "wouter";
+import { Button } from "../ui/button";
+import { useCurrency } from "../../hooks/useCurrency";
 
+/**
+ * Mobile menu component displayed when menu button is clicked on small screens
+ * @param {Object} props - Component props
+ * @param {boolean} props.isOpen - Flag indicating if the menu is open
+ * @param {Function} props.onClose - Function to call when closing the menu
+ * @param {Array} props.navLinks - Array of navigation links objects
+ * @param {string} props.currentCurrency - Current currency ID
+ * @param {Function} props.onCurrencyChange - Function to call when currency changes
+ */
 export const MobileMenu = ({
   isOpen,
   onClose,
@@ -25,59 +19,77 @@ export const MobileMenu = ({
   currentCurrency,
   onCurrencyChange,
 }) => {
+  const [location] = useLocation();
+  const { currencySettings } = useCurrency();
+  
+  // Prevent scrolling when menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen]);
+  
+  // Close menu when location changes
+  useEffect(() => {
+    onClose();
+  }, [location, onClose]);
+  
+  if (!isOpen) return null;
+  
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="px-0">
-        <SheetHeader className="px-6 border-b pb-3">
-          <SheetTitle className="text-left">Menu</SheetTitle>
-          <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-secondary">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </SheetClose>
-        </SheetHeader>
+    <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
+      <div className="px-4 py-8 space-y-6">
+        {/* Navigation links */}
+        <nav className="flex flex-col space-y-4">
+          {navLinks.map(({ href, label }) => (
+            <Link key={href} href={href}>
+              <a
+                className={`text-lg font-medium py-2 transition-colors hover:text-primary ${
+                  location === href ? "text-primary" : "text-foreground"
+                }`}
+                onClick={onClose}
+              >
+                {label}
+              </a>
+            </Link>
+          ))}
+        </nav>
         
-        <div className="px-6 py-4">
-          {/* Currency Selector */}
-          <div className="mb-4">
-            <p className="text-sm font-medium mb-2">Currency</p>
-            <Select
-              value={currentCurrency}
-              onValueChange={onCurrencyChange}
-            >
-              <SelectTrigger className="w-full">
-                <div className="flex items-center">
-                  <Globe className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder={currentCurrency} />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCY_OPTIONS.map((currency) => (
-                  <SelectItem key={currency.id} value={currency.id.toString()}>
-                    {currency.symbol} {currency.code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Navigation Links */}
-          <nav className="flex flex-col space-y-1">
-            {navLinks.map((link) => (
-              <Link key={link.href} href={link.href}>
-                <SheetClose asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between px-2 py-5 h-auto font-normal"
-                  >
-                    <span>{link.label}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </SheetClose>
-              </Link>
+        {/* Currency selector */}
+        <div className="py-2">
+          <label htmlFor="mobile-currency" className="block text-sm font-medium mb-2">
+            Select Currency
+          </label>
+          <select
+            id="mobile-currency"
+            className="w-full bg-background border border-input rounded-md text-sm px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+            value={currentCurrency}
+            onChange={(e) => onCurrencyChange(e.target.value)}
+          >
+            {currencySettings.map((currency) => (
+              <option key={currency.id} value={currency.id}>
+                {currency.symbol} {currency.code}
+              </option>
             ))}
-          </nav>
+          </select>
         </div>
-      </SheetContent>
-    </Sheet>
+        
+        {/* Primary actions */}
+        <div className="flex flex-col space-y-3 pt-4">
+          <Button asChild size="lg" variant="outline" className="w-full">
+            <Link href="/booking">Book a Table</Link>
+          </Button>
+          <Button asChild size="lg" className="w-full">
+            <Link href="/order">Order Now</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };

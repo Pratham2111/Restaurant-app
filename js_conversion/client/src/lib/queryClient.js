@@ -7,14 +7,14 @@ import { QueryClient } from "@tanstack/react-query";
  */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    let errorText;
-    try {
-      const errorData = await res.json();
-      errorText = errorData.message || "An unknown error occurred";
-    } catch (e) {
-      errorText = "Failed to parse error response";
-    }
-    throw new Error(`API Error (${res.status}): ${errorText}`);
+    // Try to parse error message from response body
+    const errorData = await res.json().catch(() => ({}));
+    const errorMessage = errorData.message || res.statusText || "An error occurred";
+    const error = new Error(errorMessage);
+    error.status = res.status;
+    error.statusText = res.statusText;
+    error.data = errorData;
+    throw error;
   }
 }
 
@@ -25,27 +25,22 @@ async function throwIfResNotOk(res) {
  * @returns {Promise<any>} Response data
  */
 export async function apiRequest(path, options = {}) {
-  try {
-    const res = await fetch(path, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-      ...options,
-    });
+  const url = path.startsWith("/") ? path : `/${path}`;
+  const res = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+    ...options,
+  });
 
-    await throwIfResNotOk(res);
-
-    const contentType = res.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      return await res.json();
-    }
-
-    return await res.text();
-  } catch (error) {
-    console.error(`API request failed for ${path}:`, error);
-    throw error;
+  await throwIfResNotOk(res);
+  
+  if (res.status === 204) {
+    return null;
   }
+  
+  return res.json();
 }
 
 /**
@@ -55,18 +50,14 @@ export async function apiRequest(path, options = {}) {
  */
 export const getQueryFn = (options = { on401: "throw" }) => {
   return async ({ queryKey }) => {
+    const [path] = queryKey;
     try {
-      const [path] = queryKey;
       return await apiRequest(path);
-    } catch (error) {
-      if (
-        error.message &&
-        error.message.includes("API Error (401)") &&
-        options.on401 === "returnNull"
-      ) {
+    } catch (err) {
+      if (err.status === 401 && options.on401 === "returnNull") {
         return null;
       }
-      throw error;
+      throw err;
     }
   };
 };
@@ -77,10 +68,10 @@ export const getQueryFn = (options = { on401: "throw" }) => {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
       queryFn: getQueryFn(),
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });

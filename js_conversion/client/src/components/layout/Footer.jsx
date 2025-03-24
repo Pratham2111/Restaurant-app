@@ -1,131 +1,96 @@
-import React from "react";
 import { Link } from "wouter";
-import { PhoneIcon, MapPinIcon, MailIcon, Clock } from "lucide-react";
-import { 
-  FaFacebook, 
-  FaInstagram, 
-  FaTwitter 
-} from "react-icons/fa";
-import { RESTAURANT_INFO } from "@/lib/constants";
+import { Facebook, Instagram, Twitter } from "lucide-react";
+import { RESTAURANT_INFO } from "../../lib/constants";
 
+/**
+ * Footer component with restaurant information and navigation links
+ */
 export const Footer = () => {
+  // Get current year for copyright
   const currentYear = new Date().getFullYear();
   
-  // Navigation Sections
-  const sections = [
-    {
-      title: "Navigation",
-      links: [
-        { href: "/", label: "Home" },
-        { href: "/menu", label: "Our Menu" },
-        { href: "/booking", label: "Book a Table" },
-        { href: "/order", label: "Order Online" },
-        { href: "/contact", label: "Contact Us" },
-      ],
-    },
-    {
-      title: "Legal",
-      links: [
-        { href: "#", label: "Privacy Policy" },
-        { href: "#", label: "Terms & Conditions" },
-        { href: "#", label: "Cookie Policy" },
-      ],
-    },
-  ];
-  
   return (
-    <footer className="bg-gray-900 text-white pt-16 pb-8">
-      <div className="container mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Restaurant Info */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold">{RESTAURANT_INFO.name}</h3>
-            <p className="text-gray-400 max-w-xs">
-              {RESTAURANT_INFO.description}
-            </p>
-            
-            {/* Social Links */}
-            <div className="flex space-x-4 pt-2">
-              <a
-                href={RESTAURANT_INFO.social.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="Facebook"
-              >
-                <FaFacebook className="h-5 w-5" />
+    <footer className="bg-card mt-12 pt-12 pb-6">
+      <div className="max-w-screen-xl mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          {/* Restaurant info */}
+          <div>
+            <h3 className="font-bold text-xl text-primary mb-4">{RESTAURANT_INFO.name}</h3>
+            <p className="text-muted-foreground mb-4">{RESTAURANT_INFO.tagline}</p>
+            <address className="text-muted-foreground not-italic">
+              {RESTAURANT_INFO.address}<br />
+              Phone: <a href={`tel:${RESTAURANT_INFO.phone}`} className="hover:text-primary transition-colors">
+                {RESTAURANT_INFO.phone}
+              </a><br />
+              Email: <a href={`mailto:${RESTAURANT_INFO.email}`} className="hover:text-primary transition-colors">
+                {RESTAURANT_INFO.email}
               </a>
-              <a
-                href={RESTAURANT_INFO.social.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="Instagram"
-              >
-                <FaInstagram className="h-5 w-5" />
-              </a>
-              <a
-                href={RESTAURANT_INFO.social.twitter}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="Twitter"
-              >
-                <FaTwitter className="h-5 w-5" />
-              </a>
-            </div>
+            </address>
           </div>
           
-          {/* Contact Info */}
+          {/* Opening hours */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Contact Us</h3>
-            <ul className="space-y-3">
-              <li className="flex items-start">
-                <MapPinIcon className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
-                <span>{RESTAURANT_INFO.address}</span>
-              </li>
-              <li className="flex items-start">
-                <PhoneIcon className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
-                <span>{RESTAURANT_INFO.phone}</span>
-              </li>
-              <li className="flex items-start">
-                <MailIcon className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
-                <span>{RESTAURANT_INFO.email}</span>
-              </li>
-              <li className="flex items-start">
-                <Clock className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
-                <div>
-                  <p>Mon-Fri: {RESTAURANT_INFO.hours.weekdays}</p>
-                  <p>Sat-Sun: {RESTAURANT_INFO.hours.weekends}</p>
-                </div>
-              </li>
+            <h3 className="font-bold text-lg mb-4">Opening Hours</h3>
+            <ul className="space-y-2">
+              {Object.entries(RESTAURANT_INFO.openingHours).map(([day, hours]) => (
+                <li key={day} className="flex justify-between text-muted-foreground">
+                  <span className="capitalize">{day}:</span> 
+                  <span>{hours}</span>
+                </li>
+              ))}
             </ul>
           </div>
           
-          {/* Navigation Columns */}
-          {sections.map((section) => (
-            <div key={section.title}>
-              <h3 className="text-xl font-bold mb-4">{section.title}</h3>
-              <ul className="space-y-2">
-                {section.links.map((link) => (
-                  <li key={link.label}>
-                    <Link href={link.href}>
-                      <a className="text-gray-400 hover:text-white transition-colors">
-                        {link.label}
-                      </a>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Quick links */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/">
+                  <a className="text-muted-foreground hover:text-primary transition-colors">Home</a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/menu">
+                  <a className="text-muted-foreground hover:text-primary transition-colors">Our Menu</a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/booking">
+                  <a className="text-muted-foreground hover:text-primary transition-colors">Book a Table</a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/order">
+                  <a className="text-muted-foreground hover:text-primary transition-colors">Order Online</a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact">
+                  <a className="text-muted-foreground hover:text-primary transition-colors">Contact Us</a>
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
         
-        {/* Copyright */}
-        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-          <p>
+        {/* Bottom section with copyright and social */}
+        <div className="border-t border-border pt-6 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-sm text-muted-foreground mb-4 md:mb-0">
             &copy; {currentYear} {RESTAURANT_INFO.name}. All rights reserved.
           </p>
+          
+          <div className="flex items-center space-x-4">
+            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <Facebook className="h-5 w-5" />
+            </a>
+            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <Instagram className="h-5 w-5" />
+            </a>
+            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <Twitter className="h-5 w-5" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>

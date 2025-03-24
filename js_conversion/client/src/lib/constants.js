@@ -3,48 +3,43 @@
  */
 export const RESTAURANT_INFO = {
   name: "La Mason",
-  tagline: "Fine Dining & Culinary Excellence",
-  address: "123 Gourmet Avenue, New York, NY 10001",
+  tagline: "Fine Dining & Exceptional Cuisine",
+  address: "123 Gourmet Avenue, Culinary District, New York, NY 10001",
   phone: "+1 (555) 123-4567",
   email: "info@lamason.com",
-  socialMedia: {
-    facebook: "https://facebook.com/lamason",
-    instagram: "https://instagram.com/lamason",
-    twitter: "https://twitter.com/lamason",
-  },
   openingHours: {
-    monday: "Closed",
-    tuesday: "11:00 AM - 10:00 PM",
-    wednesday: "11:00 AM - 10:00 PM",
-    thursday: "11:00 AM - 10:00 PM",
-    friday: "11:00 AM - 11:00 PM",
-    saturday: "11:00 AM - 11:00 PM",
-    sunday: "11:00 AM - 9:00 PM",
+    monday: "11:30 AM - 10:00 PM",
+    tuesday: "11:30 AM - 10:00 PM",
+    wednesday: "11:30 AM - 10:00 PM",
+    thursday: "11:30 AM - 10:00 PM",
+    friday: "11:30 AM - 11:00 PM",
+    saturday: "11:30 AM - 11:00 PM",
+    sunday: "11:30 AM - 9:00 PM",
   },
-  deliveryFee: 5.99,
-  taxRate: 0.0825, // 8.25%
 };
 
 /**
  * Currency options for the currency selector
  */
 export const CURRENCY_OPTIONS = [
-  { value: "USD", label: "$ USD" },
-  { value: "EUR", label: "€ EUR" },
-  { value: "GBP", label: "£ GBP" },
+  { id: "usd", name: "USD - US Dollar", symbol: "$" },
+  { id: "eur", name: "EUR - Euro", symbol: "€" },
+  { id: "gbp", name: "GBP - British Pound", symbol: "£" },
 ];
 
 /**
  * Content for the hero section
  */
 export const HERO_SECTION = {
-  title: "Welcome to La Mason",
-  subtitle: "Experience the Art of Fine Dining",
+  title: "Experience Culinary Excellence",
+  subtitle: "Indulge in a journey of flavors crafted with passion and precision",
   description:
-    "Indulge in an unforgettable culinary journey with our award-winning menu crafted by world-class chefs using the finest ingredients.",
-  callToAction: "Order Now",
-  secondaryAction: "Book a Table",
-  image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=1000&h=750",
+    "La Mason offers a refined dining experience with a menu that celebrates seasonal ingredients and culinary artistry. Join us for an unforgettable gastronomic adventure.",
+  cta: "Reserve a Table",
+  ctaLink: "/booking",
+  secondaryCta: "Explore Our Menu",
+  secondaryCtaLink: "/menu",
+  image: "https://images.unsplash.com/photo-1592861956120-e524fc739696?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
 };
 
 /**
@@ -52,22 +47,22 @@ export const HERO_SECTION = {
  */
 export const ABOUT_SECTION = {
   title: "Our Story",
-  subtitle: "Passion for Culinary Excellence",
+  subtitle: "A Tradition of Excellence Since 2005",
   description:
-    "Founded in 2010, La Mason has been dedicated to providing an exceptional dining experience through our commitment to quality ingredients, innovative recipes, and impeccable service. Our team of experienced chefs bring creativity and precision to every dish, ensuring a memorable experience for all our guests.",
-  image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=500&h=350",
+    "Founded by award-winning chef Pierre Dubois, La Mason began as a small bistro with a vision to redefine fine dining. Today, we continue that legacy with a commitment to sourcing the finest ingredients, supporting local producers, and creating memorable experiences for our guests. Our culinary team blends traditional techniques with innovative approaches to deliver dishes that surprise and delight.",
+  image: "https://images.unsplash.com/photo-1581349485608-9469926a8e5e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=764&q=80",
   features: [
     {
-      title: "Locally Sourced",
-      description: "We partner with local farmers to bring you the freshest ingredients",
-    },
-    {
-      title: "Award Winning",
-      description: "Recognized for culinary excellence with multiple industry awards",
+      title: "Quality Ingredients",
+      description: "We source the finest sustainable ingredients from local farms and trusted suppliers.",
     },
     {
       title: "Expert Chefs",
-      description: "Our dishes are crafted by internationally trained master chefs",
+      description: "Our team of internationally trained chefs brings passion and creativity to every dish.",
+    },
+    {
+      title: "Elegant Ambiance",
+      description: "Enjoy your meal in our thoughtfully designed space with warm, attentive service.",
     },
   ],
 };
@@ -77,20 +72,20 @@ export const ABOUT_SECTION = {
  */
 export const MENU_SECTION = {
   title: "Our Menu",
-  subtitle: "Discover Culinary Excellence",
   description:
-    "Explore our diverse menu featuring exquisite dishes crafted with passion and the finest ingredients. From appetizers to desserts, each plate is a masterpiece of flavor and presentation.",
+    "Explore our carefully crafted selections featuring seasonal ingredients and inspired flavors. Each dish reflects our commitment to culinary excellence and innovation.",
+  cta: "View Full Menu",
+  ctaLink: "/menu",
 };
 
 /**
  * Content for the booking section
  */
 export const BOOKING_SECTION = {
-  title: "Book a Table",
-  subtitle: "Reserve Your Experience",
+  title: "Reserve Your Table",
   description:
-    "Make your dining experience special by reserving a table at La Mason. Whether it's a romantic dinner, family gathering, or business meeting, we're ready to serve you with excellence.",
-  image: "https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=500&h=350",
+    "Secure your dining experience at La Mason. Whether it's a romantic dinner, family gathering, or special celebration, we'll ensure your time with us is memorable.",
+  image: "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
 };
 
 /**
@@ -98,20 +93,17 @@ export const BOOKING_SECTION = {
  */
 export const ORDER_SECTION = {
   title: "Order Online",
-  subtitle: "Enjoy Our Menu at Home",
   description:
-    "Can't make it to our restaurant? Order your favorite dishes online and enjoy the La Mason experience in the comfort of your home.",
-  image: "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=500&h=350",
+    "Enjoy La Mason's exceptional cuisine in the comfort of your home. Browse our menu, customize your order, and experience fine dining delivered to your doorstep.",
 };
 
 /**
  * Content for the testimonials section
  */
 export const TESTIMONIALS_SECTION = {
-  title: "Customer Reviews",
-  subtitle: "What Our Guests Say",
-  description:
-    "Read what our valued guests have to say about their dining experiences at La Mason. We pride ourselves on providing exceptional food and service.",
+  title: "Guest Experiences",
+  subtitle: "What Our Patrons Say",
+  description: "Hear from our valued guests about their dining experiences at La Mason.",
 };
 
 /**
@@ -119,8 +111,7 @@ export const TESTIMONIALS_SECTION = {
  */
 export const CONTACT_SECTION = {
   title: "Contact Us",
-  subtitle: "Get in Touch",
   description:
-    "Have questions, feedback, or special requests? We'd love to hear from you. Reach out to our team using the form below or contact us directly.",
-  image: "https://images.unsplash.com/photo-1560254918-502e024acba8?auto=format&fit=crop&w=500&h=350",
+    "Have questions or special requests? We're here to help. Reach out to our team through the form below or contact us directly.",
+  image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
 };
