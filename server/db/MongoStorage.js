@@ -732,6 +732,16 @@ class MongoStorage {
    */
   async updateUser(id, userData) {
     try {
+      // Check if we're updating the password
+      if (userData.password) {
+        // We need to hash the password before updating
+        // since findByIdAndUpdate bypasses the pre-save middleware
+        const bcrypt = await import('bcryptjs');
+        const salt = await bcrypt.genSalt(10);
+        userData.password = await bcrypt.hash(userData.password, salt);
+        console.log('Password hashed before update');
+      }
+      
       // Find and update the user, returning the updated document
       const updatedUser = await User.findByIdAndUpdate(
         id,
