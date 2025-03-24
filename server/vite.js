@@ -22,9 +22,13 @@ async function setupVite(app, server) {
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
-        hmr: { clientPort: 443 },
+        hmr: { 
+          clientPort: 443,
+          // Explicitly disable HMR to prevent constant refreshing
+          server: false
+        },
         host: '0.0.0.0',
-        allowedHosts: ["4cad050f-76f9-4af7-9027-5625a4c913e3-00-2nerdeeq86zec.janeway.replit.dev", "all"],
+        allowedHosts: ["all"],
       },
       root: "./client",
       appType: "custom",

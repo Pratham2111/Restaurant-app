@@ -9,7 +9,8 @@ import shadcnPlugin from '@replit/vite-plugin-shadcn-theme-json';
 export default defineConfig({
   plugins: [
     react(),
-    cartographer(),
+    // Temporarily disabled due to "traverse is not a function" error
+    // cartographer(),
     errorModal(),
     shadcnPlugin({
       themeJsonPath: resolve(__dirname, '../theme.json')
