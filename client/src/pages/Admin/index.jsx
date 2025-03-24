@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { BookText, Utensils, Calendar, MessageCircle, Star, ShoppingBag, CurrencyDollar, Users } from "lucide-react";
+import { BookText, Utensils, Calendar, MessageCircle, Star, ShoppingBag, DollarSign, Users } from "lucide-react";
 
 /**
  * Admin Dashboard page
@@ -124,7 +124,7 @@ function AdminDashboard() {
               )}
               {isTabVisible("currency") && (
                 <TabsTrigger value="currency" className="flex items-center gap-2">
-                  <CurrencyDollar className="h-4 w-4" />
+                  <DollarSign className="h-4 w-4" />
                   <span className="hidden md:inline">Currency</span>
                 </TabsTrigger>
               )}

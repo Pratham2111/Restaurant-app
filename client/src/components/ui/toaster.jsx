@@ -1,3 +1,4 @@
+import React from "react"
 import {
   Toast,
   ToastClose,
@@ -6,10 +7,13 @@ import {
   ToastTitle,
   ToastViewport,
 } from "./toast"
-import { useToast } from "../../hooks/use-toast.jsx"
+import { useToast, ToastContext } from "../../hooks/use-toast.jsx"
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toast } = useToast()
+  // Use ToastContext to access the actual toast state
+  const toastContext = React.useContext(ToastContext)
+  const toasts = toastContext?.toasts || []
 
   return (
     <ToastProvider>
