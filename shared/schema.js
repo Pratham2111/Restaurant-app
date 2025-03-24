@@ -86,7 +86,7 @@ const loginUserSchema = z.object({
 
 // Cart Item type
 const CartItem = z.object({
-  menuItemId: z.number().int(),
+  menuItemId: z.union([z.string(), z.number()]), // Accept both string IDs (MongoDB) and number IDs
   name: z.string(),
   price: z.number(),
   quantity: z.number().int().positive(),
