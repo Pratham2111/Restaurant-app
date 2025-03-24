@@ -636,7 +636,14 @@ class MongoStorage {
    */
   async getUsers() {
     try {
-      return await User.find().select('-password');
+      const users = await User.find().select('-password');
+      
+      // Convert Mongoose documents to plain objects with consistent id property
+      return users.map(user => {
+        const userObj = user.toObject();
+        userObj.id = userObj._id.toString();
+        return userObj;
+      });
     } catch (error) {
       console.error('Error getting users:', error);
       return [];
@@ -674,9 +681,16 @@ class MongoStorage {
       const user = await User.findOne({ email });
       if (!user) return undefined;
       
-      // Keep password for login validation
-      // Password is removed in auth routes when returning to client
-      return user;
+      // Keep original Mongoose document because we need the password for validation
+      // Add id field for consistency if needed later
+      const userDoc = user;
+      
+      // Add id property if it doesn't exist
+      if (!userDoc.id && userDoc._id) {
+        userDoc.id = userDoc._id.toString();
+      }
+      
+      return userDoc;
     } catch (error) {
       console.error('Error getting user by email:', error);
       return undefined;
@@ -691,7 +705,16 @@ class MongoStorage {
   async createUser(userData) {
     try {
       const newUser = new User(userData);
-      return await newUser.save();
+      const savedUser = await newUser.save();
+      
+      // Ensure the returned user has a consistent id property
+      // For registration, we DO want to return the full user object (with password)
+      // Password is filtered out in the route handler when sending the response
+      if (savedUser && savedUser._id && !savedUser.id) {
+        savedUser.id = savedUser._id.toString();
+      }
+      
+      return savedUser;
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;
