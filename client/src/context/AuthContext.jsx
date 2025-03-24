@@ -167,33 +167,45 @@ export function AuthProvider({ children }) {
       setLoading(true);
       console.log('Attempting to logout user');
       
+      // First set user to null to immediately update UI
+      setUser(null);
+      
       // Clear token from localStorage
       saveToken(null);
       
-      // Also call the server to clear the cookie
+      // Then call the server to clear the cookie
       await apiRequest("/api/auth/logout", {
         method: "POST",
+        // Adding credentials include to ensure cookies are sent with the request
+        credentials: "include",
       });
       
       console.log('Logout successful, user data cleared');
-      setUser(null);
       
       toast({
         title: "Logged Out",
         description: "You have been successfully logged out",
       });
+      
+      // Force a page refresh to ensure all state is cleared
+      // Comment out this line if you want to handle navigation without refresh
+      // window.location.href = '/';
+      
+      return true;
     } catch (error) {
       console.error('Logout error:', error);
       
-      // Even if the server request fails, still clear the local user state
-      saveToken(null);
+      // Even if the server request fails, ensure user is logged out locally
       setUser(null);
+      saveToken(null);
       
       toast({
         title: "Logout Warning",
         description: "You've been logged out locally, but there was an issue with the server.",
         variant: "destructive",
       });
+      
+      return false;
     } finally {
       setLoading(false);
     }

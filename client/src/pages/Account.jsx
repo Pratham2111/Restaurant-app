@@ -97,8 +97,11 @@ function Account() {
   }
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/");
+    const success = await logout();
+    if (success) {
+      // Navigate to home page after successful logout
+      navigate("/");
+    }
   };
 
   if (loading) {
