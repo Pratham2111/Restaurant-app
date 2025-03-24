@@ -1,156 +1,130 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
+import { useToast } from "../../hooks/use-toast";
+import { apiRequest } from "../../lib/queryClient";
 
-// Form schema
-const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  subject: z.string().min(2, "Subject is required"),
-  message: z.string().min(10, "Message must be at least 10 characters"),
-});
-
+/**
+ * ContactForm component for the contact page
+ * Allows users to send messages to the restaurant
+ */
 export const ContactForm = () => {
   const { toast } = useToast();
-  
-  // Form definition
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    },
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
   });
   
-  // Mutation for form submission
-  const mutation = useMutation({
-    mutationFn: (data) => {
-      return apiRequest("/api/contact", {
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  
+  // Mutation for submitting the contact message
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (data) => {
+      return await apiRequest("/api/contact-messages", {
         method: "POST",
-        body: data,
+        body: JSON.stringify(data),
       });
     },
     onSuccess: () => {
       toast({
         title: "Message Sent",
-        description: "Thank you for your message. We'll respond as soon as possible.",
-        duration: 5000,
+        description: "Thank you for your message. We'll get back to you shortly!",
       });
-      form.reset();
+      
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to send message. Please try again.",
         variant: "destructive",
-        duration: 5000,
+        title: "Submission Failed",
+        description: error.message || "There was a problem sending your message. Please try again.",
       });
     },
   });
   
-  // Form submission handler
-  const onSubmit = (data) => {
-    mutation.mutate(data);
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    mutate(formData);
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-      <h2 className="text-2xl font-bold mb-6">Send Us a Message</h2>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Name Field */}
-          <FormField
-            control={form.control}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Name field */}
+        <div>
+          <Label htmlFor="name" className="block mb-2">Full Name</Label>
+          <Input
+            id="name"
             name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Smith" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="John Doe"
+            required
           />
-          
-          {/* Email Field */}
-          <FormField
-            control={form.control}
+        </div>
+        
+        {/* Email field */}
+        <div>
+          <Label htmlFor="email" className="block mb-2">Email Address</Label>
+          <Input
+            id="email"
             name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email Address</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="john@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="john@example.com"
+            required
           />
-          
-          {/* Subject Field */}
-          <FormField
-            control={form.control}
-            name="subject"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Subject</FormLabel>
-                <FormControl>
-                  <Input placeholder="Reservation Inquiry" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Message Field */}
-          <FormField
-            control={form.control}
-            name="message"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Message</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="How can we help you?"
-                    className="resize-none min-h-[120px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Submit Button */}
-          <Button 
-            type="submit"
-            className="w-full"
-            size="lg"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending ? "Sending..." : "Send Message"}
-          </Button>
-        </form>
-      </Form>
-    </div>
+        </div>
+      </div>
+      
+      {/* Subject field */}
+      <div>
+        <Label htmlFor="subject" className="block mb-2">Subject</Label>
+        <Input
+          id="subject"
+          name="subject"
+          value={formData.subject}
+          onChange={handleChange}
+          placeholder="Subject of your inquiry"
+          required
+        />
+      </div>
+      
+      {/* Message field */}
+      <div>
+        <Label htmlFor="message" className="block mb-2">Message</Label>
+        <Textarea
+          id="message"
+          name="message"
+          value={formData.message}
+          onChange={handleChange}
+          placeholder="How can we help you?"
+          rows={6}
+          required
+        />
+      </div>
+      
+      {/* Submit button */}
+      <Button type="submit" className="w-full md:w-auto" size="lg" disabled={isPending}>
+        {isPending ? "Sending..." : "Send Message"}
+      </Button>
+    </form>
   );
 };

@@ -1,282 +1,217 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { timeSlots, guestOptions, getMinDate } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { Calendar } from "../ui/calendar";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useToast } from "../../hooks/use-toast";
+import { apiRequest } from "../../lib/queryClient";
+import { timeSlots, guestOptions, formatDate, getMinDate } from "../../lib/utils";
 
-// Form schema
-const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(6, "Please enter a valid phone number"),
-  date: z.date({
-    required_error: "Please select a date",
-  }),
-  time: z.string({
-    required_error: "Please select a time",
-  }),
-  guests: z.string().or(z.number()).transform(value => Number(value)),
-  specialRequests: z.string().optional(),
-});
-
+/**
+ * BookingForm component for the booking page
+ * Allows users to make a table reservation
+ */
 export const BookingForm = () => {
   const { toast } = useToast();
-  
-  // Form definition
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      date: undefined,
-      time: "",
-      guests: 2,
-      specialRequests: "",
-    },
+  const today = new Date();
+  const [date, setDate] = useState(today);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    guests: "2",
+    time: "19:00",
+    specialRequests: "",
   });
   
-  // Mutation for form submission
-  const mutation = useMutation({
-    mutationFn: (data) => {
-      return apiRequest("/api/reservations", {
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  
+  // Handle select changes
+  const handleSelectChange = (name, value) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+  
+  // Mutation for submitting the reservation
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (data) => {
+      return await apiRequest("/api/reservations", {
         method: "POST",
-        body: data,
+        body: JSON.stringify(data),
       });
     },
     onSuccess: () => {
       toast({
-        title: "Reservation Submitted",
-        description: "Your table has been reserved. We'll contact you shortly to confirm.",
-        duration: 5000,
+        title: "Reservation Confirmed",
+        description: "Your table has been reserved. We look forward to serving you!",
       });
-      form.reset();
+      
+      // Reset form
+      setDate(today);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        guests: "2",
+        time: "19:00",
+        specialRequests: "",
+      });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit reservation. Please try again.",
         variant: "destructive",
-        duration: 5000,
+        title: "Reservation Failed",
+        description: error.message || "There was a problem with your reservation. Please try again.",
       });
     },
   });
   
-  // Form submission handler
-  const onSubmit = (data) => {
-    mutation.mutate(data);
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const reservation = {
+      ...formData,
+      date: formatDate(date),
+      guests: parseInt(formData.guests),
+    };
+    
+    mutate(reservation);
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-      <h2 className="text-2xl font-bold mb-6">Make a Reservation</h2>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Name Field */}
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Smith" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Calendar for date selection */}
+        <div className="md:col-span-2">
+          <Label htmlFor="date" className="block mb-2">Select Date</Label>
+          <div className="border rounded-md p-4">
+            <Calendar
+              id="date"
+              mode="single"
+              selected={date}
+              onSelect={(newDate) => newDate && setDate(newDate)}
+              fromDate={new Date(getMinDate())}
+              className="mx-auto"
+            />
+          </div>
+        </div>
+        
+        {/* Personal information */}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="name" className="block mb-2">Full Name</Label>
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="John Doe"
+              required
+            />
+          </div>
           
-          {/* Contact Fields (Email & Phone) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
+          <div>
+            <Label htmlFor="email" className="block mb-2">Email Address</Label>
+            <Input
+              id="email"
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="john@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="john@example.com"
+              required
             />
-            
-            <FormField
-              control={form.control}
+          </div>
+          
+          <div>
+            <Label htmlFor="phone" className="block mb-2">Phone Number</Label>
+            <Input
+              id="phone"
               name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="(555) 123-4567" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="(123) 456-7890"
+              required
             />
           </div>
-          
-          {/* Reservation Details (Date, Time, Guests) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={`w-full pl-3 text-left font-normal ${
-                            !field.value && "text-muted-foreground"
-                          }`}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date(getMinDate())}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Time</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select time" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {timeSlots.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="guests"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Guests</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Number of guests" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {guestOptions.map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          {num} {num === 1 ? "person" : "people"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        </div>
+        
+        {/* Reservation details */}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="guests" className="block mb-2">Number of Guests</Label>
+            <Select
+              value={formData.guests}
+              onValueChange={(value) => handleSelectChange("guests", value)}
+            >
+              <SelectTrigger id="guests">
+                <SelectValue placeholder="Select number of guests" />
+              </SelectTrigger>
+              <SelectContent>
+                {guestOptions.map((option) => (
+                  <SelectItem key={option} value={option.toString()}>
+                    {option} {option === 1 ? "Guest" : "Guests"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          {/* Special Requests */}
-          <FormField
-            control={form.control}
-            name="specialRequests"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Special Requests</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Any dietary requirements or special occasions?"
-                    className="resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  We'll do our best to accommodate your requests.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div>
+            <Label htmlFor="time" className="block mb-2">Reservation Time</Label>
+            <Select
+              value={formData.time}
+              onValueChange={(value) => handleSelectChange("time", value)}
+            >
+              <SelectTrigger id="time">
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeSlots.map((slot) => (
+                  <SelectItem key={slot} value={slot}>
+                    {slot}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          {/* Submit Button */}
-          <Button 
-            type="submit"
-            className="w-full"
-            size="lg"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending ? "Submitting..." : "Reserve Table"}
-          </Button>
-        </form>
-      </Form>
-    </div>
+          <div>
+            <Label htmlFor="specialRequests" className="block mb-2">
+              Special Requests <span className="text-muted-foreground text-sm">(Optional)</span>
+            </Label>
+            <Input
+              id="specialRequests"
+              name="specialRequests"
+              value={formData.specialRequests}
+              onChange={handleChange}
+              placeholder="Any dietary restrictions or special occasions?"
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Policies and terms */}
+      <div className="text-sm text-muted-foreground">
+        <p>
+          By making a reservation, you agree to our booking terms and cancellation policy.
+          Please arrive 15 minutes before your reservation time.
+        </p>
+      </div>
+      
+      {/* Submit button */}
+      <div>
+        <Button type="submit" className="w-full" size="lg" disabled={isPending}>
+          {isPending ? "Processing..." : "Confirm Reservation"}
+        </Button>
+      </div>
+    </form>
   );
 };

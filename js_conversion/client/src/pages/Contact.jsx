@@ -1,80 +1,107 @@
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { Layout } from "../components/layout/Layout";
 import { ContactForm } from "../components/contact/ContactForm";
 import { CONTACT_SECTION, RESTAURANT_INFO } from "../lib/constants";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
-const Contact = () => {
+/**
+ * Contact page component
+ * Provides contact information and a contact form
+ */
+function Contact() {
   return (
-    <div className="max-w-screen-xl mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold mb-3">{CONTACT_SECTION.title}</h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          {CONTACT_SECTION.description}
-        </p>
+    <Layout>
+      {/* Page header */}
+      <div className="bg-muted/50 py-10 lg:py-20">
+        <div className="container text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            We're here to answer any questions you might have about La Mason.
+            Feel free to reach out to us through any of the methods below.
+          </p>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Contact info section */}
-        <div>
-          {/* Contact image */}
-          <div className="relative rounded-lg overflow-hidden aspect-video mb-8">
-            <img
-              src={CONTACT_SECTION.image}
-              alt="Restaurant exterior"
-              className="object-cover w-full h-full"
-            />
+      {/* Contact information */}
+      <div className="container py-12">
+        <div className="grid md:grid-cols-2 gap-10">
+          {/* Contact info cards */}
+          <div>
+            <div className="grid sm:grid-cols-2 gap-6 mb-8">
+              {/* Address */}
+              <div className="bg-card rounded-xl p-6 shadow-sm flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <MapPin className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Our Location</h3>
+                <p className="text-muted-foreground">
+                  {RESTAURANT_INFO.address}
+                </p>
+              </div>
+              
+              {/* Phone */}
+              <div className="bg-card rounded-xl p-6 shadow-sm flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Phone className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Phone Number</h3>
+                <p className="text-muted-foreground">
+                  {RESTAURANT_INFO.phone}
+                </p>
+              </div>
+              
+              {/* Email */}
+              <div className="bg-card rounded-xl p-6 shadow-sm flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Mail className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Email Address</h3>
+                <p className="text-muted-foreground">
+                  {RESTAURANT_INFO.email}
+                </p>
+              </div>
+              
+              {/* Hours */}
+              <div className="bg-card rounded-xl p-6 shadow-sm flex flex-col items-center text-center">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Clock className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Opening Hours</h3>
+                <p className="text-muted-foreground">
+                  {CONTACT_SECTION.hours}
+                </p>
+              </div>
+            </div>
+            
+            {/* Map (placeholder) */}
+            <div className="rounded-xl overflow-hidden bg-muted h-[300px] flex items-center justify-center">
+              <p className="text-muted-foreground">
+                Map will be integrated here
+              </p>
+            </div>
           </div>
           
-          {/* Contact details */}
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <MapPin className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-lg mb-1">Location</h3>
-                <p className="text-muted-foreground">{RESTAURANT_INFO.address}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <Phone className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-lg mb-1">Phone</h3>
-                <p className="text-muted-foreground">{RESTAURANT_INFO.phone}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <Mail className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-lg mb-1">Email</h3>
-                <p className="text-muted-foreground">{RESTAURANT_INFO.email}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <Clock className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-lg mb-1">Opening Hours</h3>
-                <ul className="text-muted-foreground space-y-1">
-                  {Object.entries(RESTAURANT_INFO.openingHours).map(([day, hours]) => (
-                    <li key={day} className="flex justify-between gap-4">
-                      <span className="capitalize">{day}:</span>
-                      <span>{hours}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+          {/* Contact form */}
+          <div className="bg-card rounded-xl p-6 lg:p-8 shadow-sm">
+            <h2 className="text-2xl font-semibold mb-6">Send Us a Message</h2>
+            <ContactForm />
           </div>
         </div>
-        
-        {/* Contact form section */}
-        <div className="bg-card rounded-lg shadow-sm p-6 md:p-8">
-          <h2 className="text-2xl font-semibold mb-6">Send us a Message</h2>
-          <ContactForm />
+      </div>
+      
+      {/* FAQ Section */}
+      <div className="container py-8 mb-12">
+        <h2 className="text-2xl font-semibold text-center mb-8">Frequently Asked Questions</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {CONTACT_SECTION.faqs.map((faq, index) => (
+            <div key={index} className="bg-card rounded-xl p-6 shadow-sm">
+              <h3 className="font-semibold text-lg mb-2">{faq.question}</h3>
+              <p className="text-muted-foreground">{faq.answer}</p>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </Layout>
   );
-};
+}
 
 export default Contact;
