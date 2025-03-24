@@ -1,130 +1,169 @@
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Label } from "../ui/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Button } from "../ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { Button } from "../ui/button";
 import { useToast } from "../../hooks/use-toast";
 import { apiRequest } from "../../lib/queryClient";
 
+// Form validation schema
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters."
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address."
+  }),
+  subject: z.string().min(5, {
+    message: "Subject must be at least 5 characters."
+  }),
+  message: z.string().min(10, {
+    message: "Message must be at least 10 characters."
+  }),
+});
+
 /**
- * ContactForm component for the contact page
- * Allows users to send messages to the restaurant
+ * Contact form component
+ * Handles contact form submission and validation
  */
 export const ContactForm = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
+  
+  // Initialize form with default values
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    },
   });
   
-  // Handle form input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-  
-  // Mutation for submitting the contact message
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (data) => {
-      return await apiRequest("/api/contact-messages", {
+  // Handle form submission with mutation
+  const mutation = useMutation({
+    mutationFn: (data) => {
+      return apiRequest("/api/contact-messages", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
       });
     },
     onSuccess: () => {
       toast({
         title: "Message Sent",
-        description: "Thank you for your message. We'll get back to you shortly!",
+        description: "Thank you for your message. We'll get back to you shortly.",
       });
-      
-      // Reset form
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
+      form.reset();
     },
     onError: (error) => {
+      console.error("Contact form error:", error);
       toast({
+        title: "Something went wrong",
+        description: "There was an error sending your message. Please try again.",
         variant: "destructive",
-        title: "Submission Failed",
-        description: error.message || "There was a problem sending your message. Please try again.",
       });
     },
   });
   
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    mutate(formData);
+  // Form submission handler
+  const onSubmit = (data) => {
+    mutation.mutate(data);
   };
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Name field */}
-        <div>
-          <Label htmlFor="name" className="block mb-2">Full Name</Label>
-          <Input
-            id="name"
+    <div className="bg-card p-6 rounded-lg border border-border">
+      <h3 className="text-xl font-bold mb-6">Send Us a Message</h3>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Name field */}
+          <FormField
+            control={form.control}
             name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="John Doe"
-            required
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your full name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        
-        {/* Email field */}
-        <div>
-          <Label htmlFor="email" className="block mb-2">Email Address</Label>
-          <Input
-            id="email"
+          
+          {/* Email field */}
+          <FormField
+            control={form.control}
             name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="john@example.com"
-            required
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="your.email@example.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-      </div>
-      
-      {/* Subject field */}
-      <div>
-        <Label htmlFor="subject" className="block mb-2">Subject</Label>
-        <Input
-          id="subject"
-          name="subject"
-          value={formData.subject}
-          onChange={handleChange}
-          placeholder="Subject of your inquiry"
-          required
-        />
-      </div>
-      
-      {/* Message field */}
-      <div>
-        <Label htmlFor="message" className="block mb-2">Message</Label>
-        <Textarea
-          id="message"
-          name="message"
-          value={formData.message}
-          onChange={handleChange}
-          placeholder="How can we help you?"
-          rows={6}
-          required
-        />
-      </div>
-      
-      {/* Submit button */}
-      <Button type="submit" className="w-full md:w-auto" size="lg" disabled={isPending}>
-        {isPending ? "Sending..." : "Send Message"}
-      </Button>
-    </form>
+          
+          {/* Subject field */}
+          <FormField
+            control={form.control}
+            name="subject"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Subject</FormLabel>
+                <FormControl>
+                  <Input placeholder="Subject of your message" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Message field */}
+          <FormField
+            control={form.control}
+            name="message"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Message</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Your message here..."
+                    className="resize-none min-h-[150px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Submit button */}
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? "Sending..." : "Send Message"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 };

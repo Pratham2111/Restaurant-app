@@ -1,57 +1,108 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Layout } from "../components/layout/Layout";
 import { MenuTabs } from "../components/menu/MenuTabs";
+import { MenuItem } from "../components/menu/MenuItem";
+import { Skeleton } from "../components/ui/skeleton";
+import { MENU_SECTION } from "../lib/constants";
 
 /**
  * Menu page component
- * Displays the restaurant's menu items organized by categories
+ * Displays restaurant menu with categories and items
  */
 function Menu() {
+  const [activeCategory, setActiveCategory] = useState(1);
+  
+  // Fetch all menu categories
+  const {
+    data: categories,
+    isLoading: loadingCategories,
+    error: categoriesError
+  } = useQuery({
+    queryKey: ["/api/categories"]
+  });
+  
+  // Fetch menu items for the active category
+  const {
+    data: menuItems,
+    isLoading: loadingMenuItems,
+    error: menuItemsError
+  } = useQuery({
+    queryKey: ["/api/categories", activeCategory, "menu-items"],
+    enabled: !!activeCategory
+  });
+  
+  // Handle category change
+  const handleCategoryChange = (categoryId) => {
+    setActiveCategory(categoryId);
+  };
+  
   return (
     <Layout>
-      {/* Page header */}
-      <div className="bg-muted/50 py-10 lg:py-20">
+      {/* Menu page header */}
+      <div className="bg-muted/30 py-12">
         <div className="container text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Menu</h1>
+          <h3 className="text-primary font-medium mb-2">
+            {MENU_SECTION.subtitle}
+          </h3>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+            {MENU_SECTION.title}
+          </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Discover our exquisite selection of dishes crafted with fresh, locally
-            sourced ingredients. Each item represents our chef's passion for
-            culinary excellence.
+            {MENU_SECTION.description}
           </p>
         </div>
       </div>
       
-      {/* Menu items by category */}
-      <MenuTabs />
-      
-      {/* Additional info */}
-      <div className="container py-8 mb-10">
-        <div className="bg-muted/30 rounded-xl p-6 lg:p-8">
-          <div className="grid md:grid-cols-3 gap-6 text-center">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Dietary Requirements</h3>
-              <p className="text-muted-foreground text-sm">
-                Please inform your server of any dietary restrictions or allergies.
-                Many dishes can be modified to accommodate your needs.
-              </p>
+      <div className="container py-12">
+        {/* Menu category tabs */}
+        <div className="mb-10">
+          {loadingCategories ? (
+            <div className="flex justify-center">
+              <Skeleton className="h-10 w-full max-w-2xl" />
             </div>
-            
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Locally Sourced</h3>
-              <p className="text-muted-foreground text-sm">
-                We partner with local farmers and suppliers to ensure the freshest,
-                highest quality ingredients in all our dishes.
-              </p>
+          ) : categoriesError ? (
+            <div className="text-center text-red-500">
+              Failed to load menu categories
             </div>
-            
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Chef's Recommendations</h3>
-              <p className="text-muted-foreground text-sm">
-                Items marked as "Featured" are our chef's special recommendations and
-                seasonal specialties you won't want to miss.
-              </p>
-            </div>
-          </div>
+          ) : (
+            <MenuTabs 
+              categories={categories || []} 
+              activeCategory={activeCategory}
+              onCategoryChange={handleCategoryChange}
+            />
+          )}
         </div>
+        
+        {/* Menu items */}
+        {loadingMenuItems ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex gap-4">
+                <Skeleton className="h-24 w-24 rounded-md" />
+                <div className="flex-1">
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/4 mb-4" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : menuItemsError ? (
+          <div className="text-center text-red-500 py-10">
+            Failed to load menu items
+          </div>
+        ) : menuItems && menuItems.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-10">
+            {menuItems.map((item) => (
+              <MenuItem key={item.id} menuItem={item} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-muted-foreground py-10">
+            No menu items found in this category.
+          </div>
+        )}
       </div>
     </Layout>
   );

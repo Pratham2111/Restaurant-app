@@ -1,225 +1,310 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "wouter";
-import { Label } from "../ui/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { ShoppingBag, Trash2 } from "lucide-react";
+
+import { Button } from "../ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { Button } from "../ui/button";
 import { OrderItem } from "./OrderItem";
-import { Separator } from "../ui/separator";
-import { useToast } from "../../hooks/use-toast";
 import { useCart } from "../../hooks/useCart";
+import { useToast } from "../../hooks/use-toast";
 import { apiRequest } from "../../lib/queryClient";
+
+// Form validation schema
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters."
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address."
+  }),
+  phone: z.string().min(10, {
+    message: "Please enter a valid phone number."
+  }),
+  address: z.string().min(5, {
+    message: "Please enter your full address."
+  }),
+  notes: z.string().optional(),
+});
 
 /**
  * Cart component for the order page
- * Shows cart items and checkout form
+ * Displays cart items, totals, and checkout form
  */
 export const Cart = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const {
-    items,
-    clearCart,
+  const [isCheckout, setIsCheckout] = useState(false);
+  
+  const { 
+    items, 
+    removeFromCart, 
+    clearCart, 
+    updateQuantity, 
+    getItemCount,
     getSubtotal,
     getDeliveryFee,
     getTax,
     getTotal,
-    getItemCount,
     formatSubtotal,
     formatDeliveryFee,
     formatTax,
-    formatTotal
+    formatTotal,
   } = useCart();
   
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    instructions: "",
+  // Initialize form with default values
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      notes: "",
+    },
   });
   
-  // Handle form input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-  
-  // Mutation for placing order
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (data) => {
-      return await apiRequest("/api/orders", {
+  // Handle form submission with mutation
+  const mutation = useMutation({
+    mutationFn: (data) => {
+      return apiRequest("/api/orders", {
         method: "POST",
-        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          items: items.map(item => ({
+            menuItemId: item.menuItemId,
+            quantity: item.quantity
+          })),
+          subtotal: getSubtotal(),
+          tax: getTax(),
+          deliveryFee: getDeliveryFee(),
+          total: getTotal(),
+        }),
       });
     },
     onSuccess: () => {
       toast({
-        title: "Order Placed Successfully",
-        description: "Your order has been placed. You will receive a confirmation shortly.",
+        title: "Order Confirmed",
+        description: "Your order has been placed successfully. You'll receive a confirmation via email.",
       });
-      
       clearCart();
-      navigate("/");
+      setIsCheckout(false);
+      form.reset();
     },
     onError: (error) => {
+      console.error("Order error:", error);
       toast({
+        title: "Something went wrong",
+        description: "There was an error placing your order. Please try again.",
         variant: "destructive",
-        title: "Order Failed",
-        description: error.message || "There was a problem with your order. Please try again.",
       });
     },
   });
   
-  // Handle submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (items.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Empty Cart",
-        description: "Please add items to your cart before placing an order.",
-      });
-      return;
-    }
-    
-    const order = {
-      ...formData,
-      items: items.map((item) => ({
-        menuItemId: item.menuItemId,
-        quantity: item.quantity,
-        price: item.price
-      })),
-      subtotal: getSubtotal(),
-      tax: getTax(),
-      deliveryFee: getDeliveryFee(),
-      total: getTotal(),
-    };
-    
-    mutate(order);
+  // Form submission handler
+  const onSubmit = (data) => {
+    mutation.mutate(data);
   };
   
-  return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-6">Your Order</h2>
-      
-      {items.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground mb-4">Your cart is empty</p>
-          <Button onClick={() => navigate("/menu")}>Browse Menu</Button>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          {/* Cart items */}
-          <div className="mb-8 space-y-4">
-            {items.map((item) => (
-              <OrderItem key={item.menuItemId} item={item} />
-            ))}
-          </div>
-          
-          {/* Order summary */}
-          <div className="bg-muted/30 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold mb-4">Order Summary</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Subtotal ({getItemCount()} items)</span>
-                <span>{formatSubtotal()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>{formatDeliveryFee()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax</span>
-                <span>{formatTax()}</span>
-              </div>
-              <Separator className="my-2" />
-              <div className="flex justify-between font-bold text-base">
-                <span>Total</span>
-                <span>{formatTotal()}</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Delivery information */}
-          <div className="space-y-6 mb-6">
-            <h3 className="font-semibold">Delivery Information</h3>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name" className="block mb-2">Full Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="email" className="block mb-2">Email Address</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="john@example.com"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="phone" className="block mb-2">Phone Number</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="(123) 456-7890"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="address" className="block mb-2">Delivery Address</Label>
-              <Textarea
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Street Address, City, State, Zip Code"
-                rows={2}
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="instructions" className="block mb-2">
-                Delivery Instructions <span className="text-muted-foreground text-sm">(Optional)</span>
-              </Label>
-              <Textarea
-                id="instructions"
-                name="instructions"
-                value={formData.instructions}
-                onChange={handleChange}
-                placeholder="Add any special instructions for delivery"
-                rows={2}
-              />
-            </div>
-          </div>
-          
-          {/* Place order button */}
-          <Button type="submit" className="w-full" size="lg" disabled={isPending}>
-            {isPending ? "Processing..." : "Place Order"}
+  // Toggle checkout form visibility
+  const toggleCheckout = () => {
+    setIsCheckout(!isCheckout);
+  };
+  
+  // Show empty cart message if cart is empty
+  if (items.length === 0) {
+    return (
+      <div className="bg-card p-6 rounded-lg border border-border text-center">
+        <div className="py-8">
+          <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">Your cart is empty</h3>
+          <p className="text-muted-foreground mb-6">
+            Add some delicious items to your cart and they will appear here.
+          </p>
+          <Button 
+            variant="outline" 
+            className="w-full text-primary hover:text-primary-foreground hover:bg-primary"
+          >
+            Start Ordering
           </Button>
-        </form>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="bg-card p-6 rounded-lg border border-border">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold">Your Order</h3>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="text-muted-foreground hover:text-destructive"
+          onClick={clearCart}
+        >
+          <Trash2 className="h-4 w-4 mr-1" />
+          Clear
+        </Button>
+      </div>
+      
+      {/* Cart items */}
+      <div className="space-y-4 mb-6">
+        {items.map((item) => (
+          <OrderItem 
+            key={item.menuItemId} 
+            item={item} 
+            onRemove={() => removeFromCart(item.menuItemId)}
+            onUpdateQuantity={(quantity) => updateQuantity(item.menuItemId, quantity)}
+          />
+        ))}
+      </div>
+      
+      {/* Cart totals */}
+      <div className="border-t border-border pt-4 space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Subtotal</span>
+          <span>{formatSubtotal()}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Delivery Fee</span>
+          <span>{formatDeliveryFee()}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Tax</span>
+          <span>{formatTax()}</span>
+        </div>
+        <div className="flex justify-between font-bold pt-2 border-t border-border mt-2">
+          <span>Total</span>
+          <span className="text-primary">{formatTotal()}</span>
+        </div>
+      </div>
+      
+      {/* Checkout button or form */}
+      {!isCheckout ? (
+        <Button 
+          className="w-full mt-6" 
+          onClick={toggleCheckout}
+        >
+          Proceed to Checkout
+        </Button>
+      ) : (
+        <div className="mt-6 border-t border-border pt-6">
+          <h4 className="font-medium mb-4">Delivery Information</h4>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Name field */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* Email field */}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="your.email@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* Phone field */}
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your phone number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* Address field */}
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Delivery Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your full address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* Notes field */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Order Notes (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Any special requests or delivery instructions"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* Submit and cancel buttons */}
+              <div className="flex gap-2">
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  disabled={mutation.isPending}
+                >
+                  {mutation.isPending ? "Processing..." : "Place Order"}
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={toggleCheckout}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       )}
     </div>
   );

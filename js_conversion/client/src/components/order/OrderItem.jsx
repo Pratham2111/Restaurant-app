@@ -1,99 +1,92 @@
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { useCart } from "../../hooks/useCart";
 
 /**
- * OrderItem component for displaying an item in the cart
+ * OrderItem component for cart
+ * Displays a single menu item in the cart with quantity controls
  * @param {Object} props - Component props
  * @param {Object} props.item - Cart item data
+ * @param {Function} props.onRemove - Remove item handler
+ * @param {Function} props.onUpdateQuantity - Update quantity handler
  */
-export const OrderItem = ({ item }) => {
-  const { updateQuantity, removeFromCart, formatItemPrice } = useCart();
+export const OrderItem = ({ item, onRemove, onUpdateQuantity }) => {
+  const { formatItemPrice, formatItemPriceWithQuantity } = useCart();
   
-  // Handle quantity update
-  const handleUpdateQuantity = (newQuantity) => {
-    if (newQuantity < 1) {
-      removeFromCart(item.menuItemId);
+  // Handle quantity increase
+  const handleIncrease = () => {
+    onUpdateQuantity(item.quantity + 1);
+  };
+  
+  // Handle quantity decrease
+  const handleDecrease = () => {
+    if (item.quantity > 1) {
+      onUpdateQuantity(item.quantity - 1);
     } else {
-      updateQuantity(item.menuItemId, newQuantity);
+      onRemove();
     }
   };
   
-  // Handle remove item
-  const handleRemoveItem = () => {
-    removeFromCart(item.menuItemId);
-  };
-  
   return (
-    <div className="flex items-start gap-4 bg-card/50 p-4 rounded-lg">
+    <div className="flex items-start gap-2">
       {/* Item image */}
       {item.image && (
-        <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
+        <div className="h-14 w-14 flex-shrink-0 rounded-md overflow-hidden">
           <img
             src={item.image}
             alt={item.name}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
         </div>
       )}
       
       {/* Item details */}
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-start">
-          <div>
-            <h4 className="font-medium text-base truncate">{item.name}</h4>
-            <p className="text-sm text-muted-foreground">
-              {formatItemPrice(item.price)}
-            </p>
-          </div>
-          
-          {/* Remove button (mobile) */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-destructive md:hidden"
-            onClick={handleRemoveItem}
+      <div className="flex-1">
+        <div className="flex justify-between items-start mb-1">
+          <h4 className="font-medium text-sm">{item.name}</h4>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 -mr-2 -mt-1 text-muted-foreground hover:text-destructive"
+            onClick={onRemove}
           >
-            <Trash2 className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
         
-        {/* Quantity controls */}
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handleUpdateQuantity(item.quantity - 1)}
+        <div className="flex justify-between items-center">
+          {/* Quantity controls */}
+          <div className="flex items-center border rounded-md">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 p-0 rounded-none" 
+              onClick={handleDecrease}
             >
               <Minus className="h-3 w-3" />
             </Button>
-            <span className="mx-2 w-8 text-center">{item.quantity}</span>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handleUpdateQuantity(item.quantity + 1)}
+            <span className="w-7 text-center text-sm font-medium">
+              {item.quantity}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 p-0 rounded-none" 
+              onClick={handleIncrease}
             >
               <Plus className="h-3 w-3" />
             </Button>
           </div>
           
-          {/* Item total price */}
-          <div className="font-medium">
-            {formatItemPrice(item.price * item.quantity)}
+          {/* Item price */}
+          <div className="text-sm">
+            <span className="font-medium">
+              {formatItemPriceWithQuantity(item.price, item.quantity)}
+            </span>
+            <span className="text-xs text-muted-foreground ml-1">
+              ({formatItemPrice(item.price)} each)
+            </span>
           </div>
-          
-          {/* Remove button (desktop) */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-destructive hidden md:flex"
-            onClick={handleRemoveItem}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     </div>
