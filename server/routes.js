@@ -55,6 +55,69 @@ async function registerRoutes(app) {
   // Register auth and admin routes
   app.use('/api/auth', authRoutes);
   app.use('/api/admin', adminRoutes);
+  
+  // User profile update (accessible by the user themselves)
+  app.put("/api/users/:id", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if user is updating their own profile
+      const userId = req.user.id || (req.user._id && req.user._id.toString());
+      if (userId !== id) {
+        return res.status(403).json({ message: "You can only update your own profile" });
+      }
+      
+      const { name, email, phone, currentPassword, newPassword } = req.body;
+      
+      // Verify current password if changing password
+      if (newPassword) {
+        if (!currentPassword) {
+          return res.status(400).json({ message: "Current password is required to set a new password" });
+        }
+        
+        // Get the user with password for verification
+        const fullUser = await storage.getUserById(id);
+        
+        // Verify current password using bcrypt
+        const bcrypt = await import('bcryptjs');
+        const isPasswordValid = await bcrypt.compare(currentPassword, fullUser.password);
+        
+        if (!isPasswordValid) {
+          return res.status(400).json({ message: "Current password is incorrect" });
+        }
+        
+        // Hash the new password
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+        
+        // Update with new password
+        const updatedUser = await storage.updateUser(id, {
+          name,
+          email,
+          phone,
+          password: hashedPassword
+        });
+        
+        // Remove password from response
+        const { password, ...userWithoutPassword } = updatedUser;
+        return res.json(userWithoutPassword);
+      }
+      
+      // Update without changing password
+      const updatedUser = await storage.updateUser(id, {
+        name,
+        email,
+        phone
+      });
+      
+      // Remove password from response if it exists
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {

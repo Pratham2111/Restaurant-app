@@ -236,6 +236,58 @@ export function AuthProvider({ children }) {
     return isAdmin() || isSubAdmin();
   };
 
+  /**
+   * Update the current user's profile
+   * @param {Object} userData - User profile data to update
+   * @returns {Promise<Object>} - Updated user data
+   */
+  const updateProfile = async (userData) => {
+    try {
+      if (!user) {
+        throw new Error("No user is logged in");
+      }
+
+      const userId = user.id || user._id;
+      console.log('Attempting to update profile for user:', userId);
+      
+      // Headers for authentication
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await apiRequest(`/api/users/${userId}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(userData),
+        credentials: "include"
+      });
+
+      console.log('Profile update response:', response);
+      
+      // Update the user data in state
+      setUser({
+        ...user,
+        ...response
+      });
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast({
+        title: "Update Failed",
+        description: error.message || "Could not update your profile. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -245,7 +297,9 @@ export function AuthProvider({ children }) {
       logout,
       isAdmin,
       isSubAdmin,
-      isStaff
+      isStaff,
+      setUser,
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>

@@ -8,13 +8,12 @@ import { Badge } from "../components/ui/badge";
 import { formatCurrency } from "../lib/utils";
 import { useToast } from "../hooks/use-toast.jsx";
 import { useCurrency } from "../hooks/useCurrency";
-import { apiRequest } from "../lib/queryClient";
 
 /**
  * Account page for logged-in users
  */
 function Account() {
-  const { user, logout, isAdmin, isSubAdmin, loading, setUser } = useAuth();
+  const { user, logout, isAdmin, isSubAdmin, loading, setUser, updateProfile } = useAuth();
   const [, navigate] = useLocation();
   const [orders, setOrders] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -178,25 +177,8 @@ function Account() {
         updateData.newPassword = profileData.newPassword;
       }
       
-      // Send update request
-      const result = await apiRequest(`/api/users/${user.id || user._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updateData),
-        credentials: 'include'
-      });
-      
-      // Update user in context
-      if (result && setUser) {
-        setUser({
-          ...user,
-          name: result.name,
-          email: result.email,
-          phone: result.phone,
-        });
-      }
+      // Use the updateProfile function from AuthContext
+      await updateProfile(updateData);
       
       // Reset password fields
       setProfileData(prev => ({
@@ -206,23 +188,11 @@ function Account() {
         confirmPassword: "",
       }));
       
-      // Show success message
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been successfully updated.",
-      });
-      
       // Exit edit mode
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
-      
-      // Show error message
-      toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update your profile. Please try again.",
-        variant: "destructive",
-      });
+      // Toast message is already handled by updateProfile
     } finally {
       setIsSubmittingProfile(false);
     }
