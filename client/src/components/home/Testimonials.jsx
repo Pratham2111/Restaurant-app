@@ -14,23 +14,34 @@ function Testimonials() {
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
+        // API integration will be implemented later
+        // For now use the placeholder data without making API calls
+        // Uncomment the below code when API is ready
+        /*
         const data = await apiRequest('/api/testimonials');
         setTestimonials(data || []);
+        */
+        
+        // Use placeholder data
+        setTestimonials(TESTIMONIALS_SECTION.testimonials);
         setIsLoading(false);
       } catch (err) {
         console.error("Error fetching testimonials:", err);
         setError(err.message);
         setIsLoading(false);
         
-        // Fallback to placeholder data
+        // Use placeholder data if error occurs
         setTestimonials(TESTIMONIALS_SECTION.testimonials);
       }
     };
     
-    // For now, we'll use placeholder data since API is not yet implemented
-    // fetchTestimonials();
-    setTestimonials(TESTIMONIALS_SECTION.testimonials);
-    setIsLoading(false);
+    // Execute the function safely
+    fetchTestimonials().catch(err => {
+      console.error("Unhandled error in fetchTestimonials:", err);
+      setError("Failed to load testimonials. Please try again later.");
+      setTestimonials(TESTIMONIALS_SECTION.testimonials);
+      setIsLoading(false);
+    });
   }, []);
 
   // Loading state
