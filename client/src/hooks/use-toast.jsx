@@ -14,9 +14,6 @@ const UPDATE_TOAST = "UPDATE_TOAST";
 const DISMISS_TOAST = "DISMISS_TOAST";
 const REMOVE_TOAST = "REMOVE_TOAST";
 
-// Store dispatch function
-let dispatchToast;
-
 /**
  * Reducer function for toast state
  * @param {Object} state - Current state
@@ -55,100 +52,61 @@ function reducer(state, action) {
 }
 
 /**
- * Hook for managing toast state internally
- * @returns {Object} Toast state and methods
+ * Toast provider component
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components
  */
-function useToaster() {
-  const [state, dispatchInternal] = useReducer(reducer, {
+export function ToastProvider({ children }) {
+  const [state, dispatch] = useReducer(reducer, {
     toasts: [],
   });
-
-  // Set global dispatch method
-  dispatchToast = dispatchInternal;
-
-  return {
-    ...state,
-    toast: (props) => {
-      const id = props.id || genId();
-      
-      dispatchInternal({
-        type: ADD_TOAST,
-        toast: {
-          id,
-          open: true,
-          ...props,
-        },
-      });
-      
-      return id;
-    },
-    update: (id, props) => {
-      dispatchInternal({
-        type: UPDATE_TOAST,
-        toast: {
-          id,
-          ...props,
-        },
-      });
-    },
-    dismiss: (toastId) => {
-      dispatchInternal({
-        type: DISMISS_TOAST,
-        toastId,
-      });
-    },
-    remove: (toastId) => {
-      dispatchInternal({
-        type: REMOVE_TOAST,
-        toastId,
-      });
-    },
-  };
-}
-
-/**
- * Creates a toast
- * @param {Object} props - Toast props
- * @param {number} props.duration - Duration in milliseconds before auto-dismiss (default: 5000ms)
- * @returns {Object} Toast object with methods
- */
-function toast(props) {
-  const id = genId();
-  const { duration = 5000, ...restProps } = props;
   
-  // Auto-dismiss toast after specified duration
-  let autoCloseTimeout;
-  
-  const dismiss = () => {
-    if (autoCloseTimeout) {
-      clearTimeout(autoCloseTimeout);
-    }
+  const toast = (props) => {
+    const id = props.id || genId();
+    const { duration = 5000, ...restProps } = props;
     
     dispatch({
-      type: DISMISS_TOAST,
-      toastId: id,
+      type: ADD_TOAST,
+      toast: {
+        id,
+        open: true,
+        ...restProps,
+      },
     });
+    
+    if (duration !== 0) {
+      setTimeout(() => {
+        dispatch({
+          type: DISMISS_TOAST,
+          toastId: id,
+        });
+      }, duration);
+    }
+    
+    return {
+      id,
+      update: (props) => {
+        dispatch({
+          type: UPDATE_TOAST,
+          toast: {
+            id,
+            ...props,
+          },
+        });
+      },
+      dismiss: () => {
+        dispatch({
+          type: DISMISS_TOAST,
+          toastId: id,
+        });
+      },
+    };
   };
   
-  dispatch({
-    type: ADD_TOAST,
-    toast: {
-      id,
-      open: true,
-      ...restProps,
-    },
-  });
-  
-  // Set the auto-dismiss timeout
-  if (duration !== 0) {
-    autoCloseTimeout = setTimeout(() => {
-      dismiss();
-    }, duration);
-  }
-  
-  return {
-    id,
-    update: (props) => {
+  const contextValue = {
+    ...state,
+    toast,
+    update: (id, props) => {
       dispatch({
         type: UPDATE_TOAST,
         toast: {
@@ -157,8 +115,25 @@ function toast(props) {
         },
       });
     },
-    dismiss,
+    dismiss: (toastId) => {
+      dispatch({
+        type: DISMISS_TOAST,
+        toastId,
+      });
+    },
+    remove: (toastId) => {
+      dispatch({
+        type: REMOVE_TOAST,
+        toastId,
+      });
+    },
   };
+  
+  return (
+    <ToastContext.Provider value={contextValue}>
+      {children}
+    </ToastContext.Provider>
+  );
 }
 
 /**
@@ -166,22 +141,13 @@ function toast(props) {
  * @returns {Object} Toast methods
  */
 export function useToast() {
-  return {
-    toast,
-  };
-}
-
-/**
- * Toast provider component
- * @param {Object} props - Component props
- * @param {React.ReactNode} props.children - Child components
- */
-export function ToastProvider({ children }) {
-  const toaster = useToaster();
+  const context = useContext(ToastContext);
   
-  return (
-    <ToastContext.Provider value={toaster}>
-      {children}
-    </ToastContext.Provider>
-  );
+  if (!context) {
+    throw new Error("useToast must be used within a ToastProvider");
+  }
+  
+  return {
+    toast: context.toast,
+  };
 }
