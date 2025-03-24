@@ -1,6 +1,5 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { format } from "date-fns";
 
 /**
  * Combines multiple class names into a single string and merges Tailwind classes
@@ -28,14 +27,15 @@ export function formatCurrency(amount, currencySymbol = "$") {
  * @returns {number} Converted amount
  */
 export function convertCurrency(amount, rate) {
-  return amount * rate;
+  return parseFloat((amount * rate).toFixed(2));
 }
 
 /**
  * Available time slots for booking
  */
 export const timeSlots = [
-  "12:00 PM", "12:30 PM",
+  "11:00 AM", "11:30 AM", 
+  "12:00 PM", "12:30 PM", 
   "1:00 PM", "1:30 PM",
   "2:00 PM", "2:30 PM",
   "3:00 PM", "3:30 PM",
@@ -59,7 +59,9 @@ export const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  */
 export function formatDate(date) {
   if (!date) return "";
-  return format(date, "MMMM d, yyyy");
+  
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
 }
 
 /**
@@ -68,7 +70,10 @@ export function formatDate(date) {
  */
 export function getMinDate() {
   const today = new Date();
-  return format(today, "yyyy-MM-dd");
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -79,7 +84,7 @@ export function getMinDate() {
  */
 export function truncateText(text, maxLength) {
   if (!text || text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + "...";
+  return text.substring(0, maxLength) + '...';
 }
 
 /**
@@ -87,7 +92,7 @@ export function truncateText(text, maxLength) {
  * @returns {string} Random ID
  */
 export function generateId() {
-  return Math.random().toString(36).substr(2, 9);
+  return Math.random().toString(36).substring(2, 9);
 }
 
 /**
@@ -112,7 +117,7 @@ export function debounce(func, wait) {
  */
 export function isValidEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+  return re.test(String(email).toLowerCase());
 }
 
 /**
@@ -121,8 +126,8 @@ export function isValidEmail(email) {
  * @returns {boolean} Whether phone number is valid
  */
 export function isValidPhone(phone) {
-  const re = /^\d{10,}$/;
-  return re.test(phone.replace(/\D/g, ""));
+  const re = /^\+?[0-9]{10,15}$/;
+  return re.test(String(phone).replace(/[^0-9+]/g, ''));
 }
 
 /**
@@ -151,6 +156,6 @@ export function capitalizeWords(str) {
   if (!str) return "";
   return str
     .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 }

@@ -14,13 +14,18 @@ export const useCurrency = () => {
     throw new Error("useCurrency must be used within a CurrencyProvider");
   }
   
+  const { currencySettings, currentCurrency, loading, error, setCurrency } = context;
+  
   /**
    * Convert an amount from USD to the current currency
    * @param {number} amount - Amount in USD
    * @returns {number} Converted amount
    */
-  const convertPrice = (amount) => {
-    return convertCurrency(amount, context.currentCurrency.rate);
+  const convert = (amount) => {
+    if (!amount) return 0;
+    if (!currentCurrency) return amount;
+    
+    return convertCurrency(amount, currentCurrency.rate);
   };
   
   /**
@@ -28,14 +33,23 @@ export const useCurrency = () => {
    * @param {number} amount - Amount in USD
    * @returns {string} Formatted amount with currency symbol
    */
-  const formatPrice = (amount) => {
-    const convertedAmount = convertPrice(amount);
-    return formatCurrency(convertedAmount, context.currentCurrency.symbol);
+  const format = (amount) => {
+    if (!amount) return formatCurrency(0, currentCurrency?.symbol || "$");
+    if (!currentCurrency) return formatCurrency(amount, "$");
+    
+    return formatCurrency(
+      convertCurrency(amount, currentCurrency.rate),
+      currentCurrency.symbol
+    );
   };
   
   return {
-    ...context,
-    convertPrice,
-    formatPrice
+    currencySettings,
+    currentCurrency,
+    loading,
+    error,
+    setCurrency,
+    convert,
+    format
   };
 };
