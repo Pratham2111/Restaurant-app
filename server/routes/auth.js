@@ -168,7 +168,10 @@ router.post('/login', async (req, res) => {
       passwordLength: user.password ? user.password.length : 0
     });
     
-    // Compare passwords
+    // Compare passwords with more detailed debugging
+    console.log('Comparing plaintext password (first 3 chars):', password.substring(0, 3) + '***');
+    console.log('With hashed password:', user.password);
+    
     const isMatch = await bcrypt.compare(password, user.password);
     console.log('Password comparison result:', isMatch);
     
