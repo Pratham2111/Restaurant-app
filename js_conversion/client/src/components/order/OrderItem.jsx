@@ -1,37 +1,40 @@
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useCart } from "../../hooks/useCart";
 
 /**
- * OrderItem component for cart
- * Displays a single menu item in the cart with quantity controls
+ * OrderItem component
+ * Displays an individual item in the cart with quantity controls
  * @param {Object} props - Component props
  * @param {Object} props.item - Cart item data
- * @param {Function} props.onRemove - Remove item handler
- * @param {Function} props.onUpdateQuantity - Update quantity handler
  */
-export const OrderItem = ({ item, onRemove, onUpdateQuantity }) => {
-  const { formatItemPrice, formatItemPriceWithQuantity } = useCart();
-  
-  // Handle quantity increase
-  const handleIncrease = () => {
-    onUpdateQuantity(item.quantity + 1);
+export const OrderItem = ({ item }) => {
+  const { removeFromCart, updateQuantity, formatItemPrice } = useCart();
+
+  // Handle removing item from cart
+  const handleRemove = () => {
+    removeFromCart(item.menuItemId);
   };
-  
-  // Handle quantity decrease
+
+  // Handle decreasing quantity
   const handleDecrease = () => {
     if (item.quantity > 1) {
-      onUpdateQuantity(item.quantity - 1);
+      updateQuantity(item.menuItemId, item.quantity - 1);
     } else {
-      onRemove();
+      removeFromCart(item.menuItemId);
     }
   };
-  
+
+  // Handle increasing quantity
+  const handleIncrease = () => {
+    updateQuantity(item.menuItemId, item.quantity + 1);
+  };
+
   return (
-    <div className="flex items-start gap-2">
+    <div className="flex items-start gap-4 border border-border rounded-md p-3">
       {/* Item image */}
       {item.image && (
-        <div className="h-14 w-14 flex-shrink-0 rounded-md overflow-hidden">
+        <div className="h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
           <img
             src={item.image}
             alt={item.name}
@@ -41,52 +44,48 @@ export const OrderItem = ({ item, onRemove, onUpdateQuantity }) => {
       )}
       
       {/* Item details */}
-      <div className="flex-1">
-        <div className="flex justify-between items-start mb-1">
-          <h4 className="font-medium text-sm">{item.name}</h4>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 -mr-2 -mt-1 text-muted-foreground hover:text-destructive"
-            onClick={onRemove}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between">
+          <h4 className="font-medium truncate">{item.name}</h4>
+          <span className="font-medium text-primary ml-2 whitespace-nowrap">
+            {formatItemPrice(item.price, item.quantity)}
+          </span>
         </div>
         
-        <div className="flex justify-between items-center">
-          {/* Quantity controls */}
-          <div className="flex items-center border rounded-md">
+        {/* Quantity controls */}
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center space-x-2">
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="icon" 
-              className="h-7 w-7 p-0 rounded-none" 
+              className="h-7 w-7"
               onClick={handleDecrease}
             >
               <Minus className="h-3 w-3" />
             </Button>
-            <span className="w-7 text-center text-sm font-medium">
-              {item.quantity}
-            </span>
+            
+            <span className="w-6 text-center">{item.quantity}</span>
+            
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="icon" 
-              className="h-7 w-7 p-0 rounded-none" 
+              className="h-7 w-7"
               onClick={handleIncrease}
             >
               <Plus className="h-3 w-3" />
             </Button>
           </div>
           
-          {/* Item price */}
-          <div className="text-sm">
-            <span className="font-medium">
-              {formatItemPriceWithQuantity(item.price, item.quantity)}
-            </span>
-            <span className="text-xs text-muted-foreground ml-1">
-              ({formatItemPrice(item.price)} each)
-            </span>
-          </div>
+          {/* Remove button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-7 px-2 text-muted-foreground hover:text-destructive"
+            onClick={handleRemove}
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Remove
+          </Button>
         </div>
       </div>
     </div>

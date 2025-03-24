@@ -1,49 +1,46 @@
 import { createContext, useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "../lib/queryClient";
 
 /**
- * Context for currency settings and conversion throughout the application
+ * Currency context type definition
  */
 const defaultCurrency = {
   id: 1,
   code: "USD",
   symbol: "$",
-  name: "US Dollar",
   rate: 1,
   isDefault: true
 };
 
 /**
  * Currency context
- * Provides access to currency data and conversion operations
+ * Provides currency-related functionality throughout the application
  */
 export const CurrencyContext = createContext({
   currencySettings: [],
   currentCurrency: defaultCurrency,
   loading: true,
   error: null,
-  setCurrency: () => Promise.resolve()
+  setCurrency: async () => {}
 });
 
 /**
- * Currency provider component
- * Manages currency state and provides currency functionality to children
+ * CurrencyProvider component
+ * Provides currency context to child components
  * @param {Object} props - Component props
- * @param {ReactNode} props.children - Child components
+ * @param {React.ReactNode} props.children - Child components
  */
 export const CurrencyProvider = ({ children }) => {
-  const queryClient = useQueryClient();
   const [currentCurrency, setCurrentCurrency] = useState(defaultCurrency);
   
-  // Fetch all available currencies
-  const { 
+  // Fetch all currency settings
+  const {
     data: currencySettings = [],
-    isLoading: loadingCurrencies,
-    error: currenciesError
+    isLoading: loadingSettings,
+    error: settingsError
   } = useQuery({
-    queryKey: ["/api/currency-settings"],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryKey: ["/api/currency-settings"]
   });
   
   // Fetch default currency
@@ -52,56 +49,36 @@ export const CurrencyProvider = ({ children }) => {
     isLoading: loadingDefault,
     error: defaultError
   } = useQuery({
-    queryKey: ["/api/currency-settings/default"],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryKey: ["/api/currency-settings/default"]
   });
   
-  // Set default currency when data is loaded
+  // Set current currency to default when data is loaded
   useEffect(() => {
-    if (defaultCurrencyData) {
+    if (defaultCurrencyData && !loadingDefault) {
       setCurrentCurrency(defaultCurrencyData);
     }
-  }, [defaultCurrencyData]);
+  }, [defaultCurrencyData, loadingDefault]);
   
-  // Mutation to update default currency
-  const updateDefaultMutation = useMutation({
-    mutationFn: async (id) => {
-      return apiRequest(`/api/currency-settings/${id}/set-default`, {
-        method: "POST"
-      });
-    },
-    onSuccess: () => {
-      // Invalidate currency queries to refetch the data
-      queryClient.invalidateQueries({ queryKey: ["/api/currency-settings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/currency-settings/default"] });
+  // Function to change the current currency
+  const setCurrency = async (currencyId) => {
+    const selected = currencySettings.find(c => c.id === currencyId);
+    if (selected) {
+      setCurrentCurrency(selected);
+      return true;
     }
-  });
-  
-  // Set currency function
-  const setCurrency = async (id) => {
-    try {
-      const selectedCurrency = currencySettings.find(c => c.id === id);
-      if (selectedCurrency) {
-        // First update UI for immediate feedback
-        setCurrentCurrency(selectedCurrency);
-        // Then update server
-        await updateDefaultMutation.mutateAsync(id);
-      }
-    } catch (err) {
-      console.error("Failed to set currency:", err);
-    }
+    return false;
   };
   
-  // Calculate loading and error states
-  const loading = loadingCurrencies || loadingDefault;
-  const error = currenciesError || defaultError || null;
+  // Determine loading and error states
+  const loading = loadingSettings || loadingDefault;
+  const error = settingsError || defaultError;
   
-  // Context value to provide
+  // Context value
   const contextValue = {
     currencySettings,
     currentCurrency,
     loading,
-    error,
+    error: error ? error.message : null,
     setCurrency
   };
   

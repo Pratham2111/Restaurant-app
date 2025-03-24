@@ -3,44 +3,46 @@ import { Button } from "../ui/button";
 import { HERO_SECTION } from "../../lib/constants";
 
 /**
- * Hero component for the home page
- * Displays the main banner with call-to-action buttons
+ * Hero component
+ * Main hero section of the homepage with call-to-action buttons
  */
 export const Hero = () => {
   return (
-    <div className="relative">
-      {/* Background image */}
-      <div className="absolute inset-0">
-        <img
-          src={HERO_SECTION.image}
-          alt="Restaurant interior"
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60" />
-      </div>
+    <section className="relative">
+      {/* Hero background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black to-transparent z-10" />
+      <div 
+        className="h-[600px] md:h-[700px] bg-cover bg-center"
+        style={{ backgroundImage: `url(${HERO_SECTION.backgroundImage})` }}
+      />
       
-      {/* Content */}
-      <div className="relative container py-24 md:py-32 lg:py-40 flex flex-col items-center text-center">
-        <h3 className="text-primary-foreground/90 font-medium mb-3 md:text-lg">
-          {HERO_SECTION.subtitle}
-        </h3>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white max-w-3xl">
-          {HERO_SECTION.title}
-        </h1>
-        <p className="text-primary-foreground/80 max-w-xl mb-8 md:text-lg">
-          {HERO_SECTION.description}
-        </p>
-        
-        {/* Call-to-action buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Button asChild size="lg">
-            <Link href="/menu">{HERO_SECTION.button1}</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg" className="bg-background/10 text-white hover:bg-background/20 hover:text-white border-white/20">
-            <Link href="/booking">{HERO_SECTION.button2}</Link>
-          </Button>
+      {/* Hero content */}
+      <div className="absolute inset-0 flex items-center z-20">
+        <div className="container">
+          <div className="max-w-xl">
+            <h3 className="text-primary font-medium mb-4">{HERO_SECTION.subtitle}</h3>
+            
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+              {HERO_SECTION.title}
+            </h1>
+            
+            <p className="text-gray-300 mb-8 text-lg">
+              {HERO_SECTION.description}
+            </p>
+            
+            {/* Call to action buttons */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button asChild size="lg" className="text-base font-medium">
+                <Link href="/order">Order Online</Link>
+              </Button>
+              
+              <Button asChild variant="outline" size="lg" className="text-base text-white border-white hover:text-primary-foreground hover:bg-primary hover:border-primary">
+                <Link href="/booking">Book a Table</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };

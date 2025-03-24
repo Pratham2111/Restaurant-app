@@ -1,46 +1,36 @@
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-import { Button } from "../ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { Loader2, Send } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { useToast } from "../../hooks/use-toast";
 import { apiRequest } from "../../lib/queryClient";
 
-// Form validation schema
+/**
+ * Form schema for contact validation
+ */
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters."
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address."
-  }),
-  subject: z.string().min(5, {
-    message: "Subject must be at least 5 characters."
-  }),
-  message: z.string().min(10, {
-    message: "Message must be at least 10 characters."
-  }),
+  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  subject: z.string().min(5, { message: "Subject must be at least 5 characters" }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters" }),
 });
 
 /**
- * Contact form component
- * Handles contact form submission and validation
+ * ContactForm component
+ * Form for sending contact messages to the restaurant
  */
 export const ContactForm = () => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Initialize form with default values
+  // Initialize form with react-hook-form
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,15 +41,12 @@ export const ContactForm = () => {
     },
   });
   
-  // Handle form submission with mutation
-  const mutation = useMutation({
-    mutationFn: (data) => {
+  // Mutation for creating contact message
+  const createContactMessage = useMutation({
+    mutationFn: async (data) => {
       return apiRequest("/api/contact-messages", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        body: data,
       });
     },
     onSuccess: () => {
@@ -70,100 +57,115 @@ export const ContactForm = () => {
       form.reset();
     },
     onError: (error) => {
-      console.error("Contact form error:", error);
       toast({
-        title: "Something went wrong",
-        description: "There was an error sending your message. Please try again.",
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
     },
   });
   
   // Form submission handler
   const onSubmit = (data) => {
-    mutation.mutate(data);
+    setIsSubmitting(true);
+    createContactMessage.mutate(data);
   };
   
   return (
-    <div className="bg-card p-6 rounded-lg border border-border">
-      <h3 className="text-xl font-bold mb-6">Send Us a Message</h3>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Name field */}
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Your full name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Email field */}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="your.email@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Subject field */}
-          <FormField
-            control={form.control}
-            name="subject"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Subject</FormLabel>
-                <FormControl>
-                  <Input placeholder="Subject of your message" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Message field */}
-          <FormField
-            control={form.control}
-            name="message"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Message</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Your message here..."
-                    className="resize-none min-h-[150px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Submit button */}
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending ? "Sending..." : "Send Message"}
-          </Button>
-        </form>
-      </Form>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Send Us a Message</CardTitle>
+        <CardDescription>
+          Fill out the form below and we'll get back to you as soon as possible.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Name */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your full name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="Enter your email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Subject */}
+            <FormField
+              control={form.control}
+              name="subject"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subject</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter the subject of your message" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Message */}
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Message</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Type your message here..." 
+                      className="min-h-[150px] resize-none" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Submit button */}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Message
+                </>
+              )}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 };

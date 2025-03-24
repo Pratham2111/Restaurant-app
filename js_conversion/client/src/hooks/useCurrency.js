@@ -19,7 +19,7 @@ export const useCurrency = () => {
    * @param {number} amount - Amount in USD
    * @returns {number} Converted amount
    */
-  const convert = (amount) => {
+  const convertPrice = (amount) => {
     return convertCurrency(amount, context.currentCurrency.rate);
   };
   
@@ -29,13 +29,13 @@ export const useCurrency = () => {
    * @returns {string} Formatted amount with currency symbol
    */
   const formatPrice = (amount) => {
-    const convertedAmount = convert(amount);
+    const convertedAmount = convertPrice(amount);
     return formatCurrency(convertedAmount, context.currentCurrency.symbol);
   };
   
   return {
     ...context,
-    convert,
+    convertPrice,
     formatPrice
   };
 };
