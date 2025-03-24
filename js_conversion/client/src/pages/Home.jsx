@@ -5,62 +5,78 @@ import { FeaturedMenu } from "@/components/home/FeaturedMenu";
 import { Testimonials } from "@/components/home/Testimonials";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { CONTACT_SECTION, BOOKING_SECTION } from "@/lib/constants";
+import { BOOKING_SECTION, ORDER_SECTION } from "@/lib/constants";
 
 const Home = () => {
   return (
-    <div>
+    <div className="flex flex-col w-full">
+      {/* Hero Section */}
       <Hero />
+      
+      {/* About Section */}
       <About />
+      
+      {/* Featured Menu Section */}
       <FeaturedMenu />
       
-      {/* Booking CTA Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral mb-4">
-              {BOOKING_SECTION.heading.split(" ").map((word, idx) => (
-                <span key={idx} className={idx === BOOKING_SECTION.heading.split(" ").length - 1 ? "text-primary" : ""}>
-                  {word}{" "}
-                </span>
-              ))}
-            </h2>
-            <p className="max-w-2xl mx-auto text-lg">{BOOKING_SECTION.description}</p>
-          </div>
-          <div className="flex justify-center">
-            <Link href="/booking">
-              <Button size="lg" className="bg-primary hover:bg-opacity-90 text-white">
-                Book a Table Now
-              </Button>
-            </Link>
+      {/* Book a Table Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-8">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+              <h2 className="text-3xl font-bold mb-4 text-gray-900">
+                {BOOKING_SECTION.heading}
+              </h2>
+              <p className="text-gray-700 mb-6">
+                {BOOKING_SECTION.description}
+              </p>
+              <Link href="/booking">
+                <Button size="lg" className="font-semibold">
+                  Book a Table Now
+                </Button>
+              </Link>
+            </div>
+            <div className="md:w-1/2">
+              <img
+                src={BOOKING_SECTION.imageUrl}
+                alt="Reserve a table"
+                className="rounded-lg shadow-lg w-full object-cover h-[400px]"
+              />
+            </div>
           </div>
         </div>
       </section>
       
+      {/* Order Online Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 sm:px-8">
+          <div className="flex flex-col md:flex-row-reverse items-center">
+            <div className="md:w-1/2 mb-8 md:mb-0 md:pl-8">
+              <h2 className="text-3xl font-bold mb-4 text-gray-900">
+                {ORDER_SECTION.heading}
+              </h2>
+              <p className="text-gray-700 mb-6">
+                {ORDER_SECTION.description}
+              </p>
+              <Link href="/order">
+                <Button size="lg" variant="outline" className="font-semibold">
+                  Order Online Now
+                </Button>
+              </Link>
+            </div>
+            <div className="md:w-1/2">
+              <img
+                src={ORDER_SECTION.imageUrl}
+                alt="Order online"
+                className="rounded-lg shadow-lg w-full object-cover h-[400px]"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Testimonials Section */}
       <Testimonials />
-      
-      {/* Contact CTA Section */}
-      <section className="py-16 bg-light-cream">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral mb-4">
-              {CONTACT_SECTION.heading.split(" ").map((word, idx) => (
-                <span key={idx} className={idx === CONTACT_SECTION.heading.split(" ").length - 1 ? "text-primary" : ""}>
-                  {word}{" "}
-                </span>
-              ))}
-            </h2>
-            <p className="max-w-2xl mx-auto text-lg">{CONTACT_SECTION.description}</p>
-          </div>
-          <div className="flex justify-center">
-            <Link href="/contact">
-              <Button size="lg" className="bg-primary hover:bg-opacity-90 text-white">
-                Contact Us
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
