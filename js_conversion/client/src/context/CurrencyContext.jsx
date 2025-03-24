@@ -1,81 +1,132 @@
-import { createContext, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "../lib/queryClient";
+import { createContext, useEffect, useState } from "react";
+import { formatCurrency, convertCurrency } from "../lib/utils";
+import { useToast } from "../hooks/use-toast";
+
+// Default currency if API fails
+const defaultCurrency = {
+  id: 1,
+  code: "USD",
+  symbol: "$",
+  rate: 1,
+  name: "US Dollar",
+  isDefault: true
+};
 
 /**
- * Context for managing currency throughout the application
+ * Context for currency functionality
  * @type {React.Context}
  */
 export const CurrencyContext = createContext({
   currencySettings: [],
-  currentCurrency: { id: 1, code: "USD", symbol: "$", rate: 1, isDefault: true },
-  loading: false,
+  currentCurrency: defaultCurrency,
+  loading: true,
   error: null,
-  setCurrency: async () => {},
+  setCurrency: async () => {}
 });
 
 /**
- * Provider component for currency context
+ * Provider component for the currency context
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components
  */
 export const CurrencyProvider = ({ children }) => {
-  const [currentCurrency, setCurrentCurrency] = useState(null);
+  const [currencySettings, setCurrencySettings] = useState([]);
+  const [currentCurrency, setCurrentCurrency] = useState(defaultCurrency);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Fetch all available currencies
-  const { data: currencySettings = [], isLoading: isLoadingSettings } = useQuery({
-    queryKey: ["/api/currency-settings"],
-  });
-
-  // Fetch default currency
-  const { data: defaultCurrency, isLoading: isLoadingDefault } = useQuery({
-    queryKey: ["/api/currency-settings/default"],
-  });
-
-  // Set current currency to default when loaded
+  const { toast } = useToast();
+  
+  // Load available currencies and default currency on mount
   useEffect(() => {
-    if (defaultCurrency && !currentCurrency) {
-      setCurrentCurrency(defaultCurrency);
-    }
-  }, [defaultCurrency, currentCurrency]);
-
+    const fetchCurrencies = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all available currencies
+        const currenciesResponse = await fetch("/api/currency-settings");
+        const currencies = await currenciesResponse.json();
+        
+        if (currencies && currencies.length > 0) {
+          setCurrencySettings(currencies);
+          
+          // Check if we have a saved currency preference
+          const savedCurrencyId = localStorage.getItem("preferredCurrency");
+          
+          if (savedCurrencyId) {
+            // Find the saved currency in the fetched currencies
+            const savedCurrency = currencies.find(c => c.id === parseInt(savedCurrencyId));
+            if (savedCurrency) {
+              setCurrentCurrency(savedCurrency);
+              setLoading(false);
+              return;
+            }
+          }
+          
+          // If no saved preference or it's invalid, get the default currency
+          const defaultResponse = await fetch("/api/currency-settings/default");
+          const defaultCurrencyData = await defaultResponse.json();
+          
+          if (defaultCurrencyData) {
+            setCurrentCurrency(defaultCurrencyData);
+          }
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch currency settings:", err);
+        setError("Failed to load currency settings");
+        setLoading(false);
+        
+        // Use default fallback if API fails
+        toast({
+          title: "Currency settings unavailable",
+          description: "Using default currency (USD)",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    fetchCurrencies();
+  }, [toast]);
+  
   /**
-   * Change currency by ID
-   * @param {number} currencyId - The ID of the currency to switch to
+   * Change the current currency
+   * @param {number} currencyId - ID of the currency to set
    * @returns {Promise<void>}
    */
   const setCurrency = async (currencyId) => {
     try {
-      setError(null);
+      const newCurrency = currencySettings.find(c => c.id === currencyId);
       
-      // Find the selected currency in settings
-      const selectedCurrency = currencySettings.find(
-        (currency) => currency.id === currencyId
-      );
-      
-      if (selectedCurrency) {
-        setCurrentCurrency(selectedCurrency);
-      } else {
-        throw new Error("Currency not found");
+      if (newCurrency) {
+        setCurrentCurrency(newCurrency);
+        localStorage.setItem("preferredCurrency", currencyId.toString());
+        
+        toast({
+          title: "Currency updated",
+          description: `Currency changed to ${newCurrency.name} (${newCurrency.code})`
+        });
       }
     } catch (err) {
-      setError(err.message);
-      console.error("Error setting currency:", err);
+      console.error("Failed to set currency:", err);
+      toast({
+        title: "Currency update failed",
+        description: "Could not change the currency",
+        variant: "destructive"
+      });
     }
   };
-
-  // Create context value
-  const contextValue = {
+  
+  const value = {
     currencySettings,
-    currentCurrency: currentCurrency || defaultCurrency,
-    loading: isLoadingSettings || isLoadingDefault,
+    currentCurrency,
+    loading,
     error,
-    setCurrency,
+    setCurrency
   };
-
+  
   return (
-    <CurrencyContext.Provider value={contextValue}>
+    <CurrencyContext.Provider value={value}>
       {children}
     </CurrencyContext.Provider>
   );

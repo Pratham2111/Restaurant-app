@@ -7,29 +7,15 @@ import { useCurrency } from "./useCurrency";
  * @returns {Object} Cart methods and state
  */
 export const useCart = () => {
-  const cartContext = useContext(CartContext);
-  const { convertPrice, formatPrice, formatConvertedPrice } = useCurrency();
-  
-  if (!cartContext) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
-  
-  // Add additional cart utility functions with currency conversion
-  
-  /**
-   * Get the subtotal in the current currency
-   * @returns {number} Converted subtotal
-   */
-  const getConvertedSubtotal = () => {
-    return convertPrice(cartContext.getSubtotal());
-  };
+  const cart = useContext(CartContext);
+  const { formatConvertedPrice, convertPrice } = useCurrency();
   
   /**
    * Format the subtotal in the current currency
    * @returns {string} Formatted subtotal
    */
-  const getFormattedSubtotal = () => {
-    return formatConvertedPrice(cartContext.getSubtotal());
+  const formatSubtotal = () => {
+    return formatConvertedPrice(cart.getSubtotal());
   };
   
   /**
@@ -37,15 +23,15 @@ export const useCart = () => {
    * @returns {number} Converted delivery fee
    */
   const getConvertedDeliveryFee = () => {
-    return convertPrice(cartContext.getDeliveryFee());
+    return convertPrice(cart.getDeliveryFee());
   };
   
   /**
    * Format the delivery fee in the current currency
    * @returns {string} Formatted delivery fee
    */
-  const getFormattedDeliveryFee = () => {
-    return formatConvertedPrice(cartContext.getDeliveryFee());
+  const formatDeliveryFee = () => {
+    return formatConvertedPrice(cart.getDeliveryFee());
   };
   
   /**
@@ -53,15 +39,15 @@ export const useCart = () => {
    * @returns {number} Converted tax
    */
   const getConvertedTax = () => {
-    return convertPrice(cartContext.getTax());
+    return convertPrice(cart.getTax());
   };
   
   /**
    * Format the tax in the current currency
    * @returns {string} Formatted tax
    */
-  const getFormattedTax = () => {
-    return formatConvertedPrice(cartContext.getTax());
+  const formatTax = () => {
+    return formatConvertedPrice(cart.getTax());
   };
   
   /**
@@ -69,15 +55,15 @@ export const useCart = () => {
    * @returns {number} Converted total
    */
   const getConvertedTotal = () => {
-    return convertPrice(cartContext.getTotal());
+    return convertPrice(cart.getTotal());
   };
   
   /**
    * Format the total in the current currency
    * @returns {string} Formatted total
    */
-  const getFormattedTotal = () => {
-    return formatConvertedPrice(cartContext.getTotal());
+  const formatTotal = () => {
+    return formatConvertedPrice(cart.getTotal());
   };
   
   /**
@@ -85,20 +71,19 @@ export const useCart = () => {
    * @param {number} price - The price to format
    * @returns {string} Formatted price
    */
-  const getFormattedPrice = (price) => {
+  const formatItemPrice = (price) => {
     return formatConvertedPrice(price);
   };
   
   return {
-    ...cartContext,
-    getConvertedSubtotal,
-    getFormattedSubtotal,
+    ...cart,
+    formatSubtotal,
     getConvertedDeliveryFee,
-    getFormattedDeliveryFee,
+    formatDeliveryFee,
     getConvertedTax,
-    getFormattedTax,
+    formatTax,
     getConvertedTotal,
-    getFormattedTotal,
-    getFormattedPrice,
+    formatTotal,
+    formatItemPrice
   };
 };

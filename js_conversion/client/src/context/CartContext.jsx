@@ -1,8 +1,9 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useEffect, useState } from "react";
+import { useCurrency } from "../hooks/useCurrency";
 import { useToast } from "../hooks/use-toast";
 
 /**
- * Context for managing shopping cart throughout the application
+ * Context for shopping cart functionality
  * @type {React.Context}
  */
 export const CartContext = createContext({
@@ -15,24 +16,20 @@ export const CartContext = createContext({
   getDeliveryFee: () => 0,
   getTax: () => 0,
   getTotal: () => 0,
-  getItemCount: () => 0,
+  getItemCount: () => 0
 });
 
 /**
- * Provider component for cart context
+ * Provider component for the cart context
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components
  */
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState([]);
+  const { convertPrice, formatConvertedPrice, currentCurrency } = useCurrency();
   const { toast } = useToast();
   
-  // Tax rate and delivery fee constants
-  const TAX_RATE = 0.1; // 10%
-  const DELIVERY_FEE = 5.99;
-  const FREE_DELIVERY_THRESHOLD = 50;
-
-  // Load cart from localStorage on initialization
+  // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) {
@@ -40,20 +37,19 @@ export const CartProvider = ({ children }) => {
         setItems(JSON.parse(savedCart));
       } catch (error) {
         console.error("Failed to parse cart from localStorage:", error);
-        localStorage.removeItem("cart");
       }
     }
   }, []);
-
+  
   // Save cart to localStorage when it changes
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
-
+  
   /**
    * Add an item to the cart
    * @param {Object} menuItem - The menu item to add
-   * @param {number} quantity - Quantity to add (default: 1)
+   * @param {number} quantity - The quantity to add (default: 1)
    */
   const addToCart = (menuItem, quantity = 1) => {
     setItems((prevItems) => {
@@ -61,133 +57,135 @@ export const CartProvider = ({ children }) => {
       const existingItemIndex = prevItems.findIndex(
         (item) => item.menuItemId === menuItem.id
       );
-
-      // Create new items array based on existing item presence
+      
       if (existingItemIndex >= 0) {
-        // Update existing item
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + quantity,
-        };
+        // Update quantity if item exists
+        const newItems = [...prevItems];
+        newItems[existingItemIndex].quantity += quantity;
         
         toast({
-          title: "Updated Cart",
-          description: `Added ${quantity} more ${menuItem.name} to your cart.`,
+          title: "Item quantity updated",
+          description: `${menuItem.name} quantity increased to ${newItems[existingItemIndex].quantity}`
         });
         
-        return updatedItems;
+        return newItems;
       } else {
-        // Add new item
+        // Add new item if it doesn't exist
         const newItem = {
           menuItemId: menuItem.id,
           name: menuItem.name,
           price: menuItem.price,
           quantity,
-          image: menuItem.image,
+          image: menuItem.image
         };
         
         toast({
-          title: "Added to Cart",
-          description: `${menuItem.name} has been added to your cart.`,
+          title: "Item added to cart",
+          description: `${quantity} × ${menuItem.name} added to your order`
         });
         
         return [...prevItems, newItem];
       }
     });
   };
-
+  
   /**
    * Remove an item from the cart
-   * @param {number} menuItemId - The ID of the menu item to remove
+   * @param {number} menuItemId - ID of the menu item to remove
    */
   const removeFromCart = (menuItemId) => {
     setItems((prevItems) => {
-      const removedItem = prevItems.find((item) => item.menuItemId === menuItemId);
-      
-      if (removedItem) {
+      const itemToRemove = prevItems.find(item => item.menuItemId === menuItemId);
+      if (itemToRemove) {
         toast({
-          title: "Removed from Cart",
-          description: `${removedItem.name} has been removed from your cart.`,
+          title: "Item removed",
+          description: `${itemToRemove.name} was removed from your order`
         });
       }
       
       return prevItems.filter((item) => item.menuItemId !== menuItemId);
     });
   };
-
+  
   /**
    * Update the quantity of an item in the cart
-   * @param {number} menuItemId - The ID of the menu item to update
-   * @param {number} quantity - The new quantity
+   * @param {number} menuItemId - ID of the menu item
+   * @param {number} quantity - New quantity
    */
   const updateQuantity = (menuItemId, quantity) => {
     if (quantity <= 0) {
       removeFromCart(menuItemId);
       return;
     }
-
+    
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.menuItemId === menuItemId ? { ...item, quantity } : item
+        item.menuItemId === menuItemId
+          ? { ...item, quantity }
+          : item
       )
     );
   };
-
+  
   /**
    * Clear all items from the cart
    */
   const clearCart = () => {
     setItems([]);
     toast({
-      title: "Cart Cleared",
-      description: "All items have been removed from your cart.",
+      title: "Cart cleared",
+      description: "All items have been removed from your order"
     });
   };
-
+  
   /**
    * Calculate the subtotal of all items in the cart
-   * @returns {number} Subtotal amount
+   * @returns {number} Subtotal amount in USD
    */
   const getSubtotal = () => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
+    return items.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
   };
-
+  
+  // Fixed delivery fee in USD
+  const BASE_DELIVERY_FEE = 4.99;
+  
   /**
-   * Calculate the delivery fee based on subtotal
-   * @returns {number} Delivery fee
+   * Get the delivery fee
+   * @returns {number} Delivery fee in USD
    */
   const getDeliveryFee = () => {
-    const subtotal = getSubtotal();
-    return subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+    // Free delivery for orders over $50
+    return getSubtotal() >= 50 ? 0 : BASE_DELIVERY_FEE;
   };
-
+  
   /**
-   * Calculate the tax based on subtotal
-   * @returns {number} Tax amount
+   * Calculate tax amount (10% of subtotal)
+   * @returns {number} Tax amount in USD
    */
   const getTax = () => {
-    return getSubtotal() * TAX_RATE;
+    return getSubtotal() * 0.1;
   };
-
+  
   /**
-   * Calculate the total order amount
-   * @returns {number} Total amount
+   * Calculate total order amount
+   * @returns {number} Total amount in USD
    */
   const getTotal = () => {
     return getSubtotal() + getDeliveryFee() + getTax();
   };
-
+  
   /**
-   * Get the total number of items in the cart
-   * @returns {number} Item count
+   * Count total number of items in cart
+   * @returns {number} Total item count
    */
   const getItemCount = () => {
     return items.reduce((count, item) => count + item.quantity, 0);
   };
-
-  // Create context value
-  const contextValue = {
+  
+  const value = {
     items,
     addToCart,
     removeFromCart,
@@ -197,11 +195,11 @@ export const CartProvider = ({ children }) => {
     getDeliveryFee,
     getTax,
     getTotal,
-    getItemCount,
+    getItemCount
   };
-
+  
   return (
-    <CartContext.Provider value={contextValue}>
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );

@@ -1,12 +1,11 @@
-import { Route, Switch } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "./components/ui/toaster";
-import { Layout } from "./components/layout/Layout";
+import { queryClient } from "./lib/queryClient";
 import { CartProvider } from "./context/CartContext";
 import { CurrencyProvider } from "./context/CurrencyContext";
-import { queryClient } from "./lib/queryClient";
+import { Toaster } from "./components/ui/toaster";
 
-// Import pages
+// Pages
 import Home from "./pages/Home";
 import Menu from "./pages/Menu";
 import Booking from "./pages/Booking";
@@ -14,10 +13,14 @@ import Order from "./pages/Order";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/not-found";
 
-// Router component to handle page routing
+/**
+ * Router component for handling page navigation
+ */
 function Router() {
+  const [location] = useLocation();
+  
   return (
-    <Switch>
+    <Switch location={location}>
       <Route path="/" component={Home} />
       <Route path="/menu" component={Menu} />
       <Route path="/booking" component={Booking} />
@@ -28,15 +31,16 @@ function Router() {
   );
 }
 
-// Main application component
+/**
+ * Main application component
+ * Sets up providers and global context
+ */
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <CurrencyProvider>
         <CartProvider>
-          <Layout>
-            <Router />
-          </Layout>
+          <Router />
           <Toaster />
         </CartProvider>
       </CurrencyProvider>

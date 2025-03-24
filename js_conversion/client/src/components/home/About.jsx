@@ -1,48 +1,51 @@
-import React from "react";
-import { ABOUT_SECTION } from "@/lib/constants";
+import { Check } from "lucide-react";
+import { ABOUT_SECTION } from "../../lib/constants";
 
+/**
+ * About component for the homepage
+ * Displays restaurant story, image and key features
+ */
 export const About = () => {
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-4 sm:px-8">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Image Column */}
-          <div className="lg:w-1/2">
-            <div className="relative">
-              <img
-                src={ABOUT_SECTION.restaurantImage}
-                alt="La Mason Restaurant Interior"
-                className="rounded-lg shadow-lg w-full h-[500px] object-cover"
-              />
-              <div className="absolute -bottom-6 -right-6 w-48 h-48 bg-primary/10 rounded-lg -z-10"></div>
-            </div>
+    <section className="py-16 max-w-screen-xl mx-auto px-4" id="about">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        {/* Image column */}
+        <div className="order-2 lg:order-1">
+          <div className="relative rounded-xl overflow-hidden">
+            <img
+              src={ABOUT_SECTION.image}
+              alt="Chef preparing food"
+              className="w-full h-auto object-cover"
+            />
+            
+            {/* Decorative elements */}
+            <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-primary/10 rounded-xl -z-10" />
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/10 rounded-xl -z-10" />
           </div>
-          
-          {/* Content Column */}
-          <div className="lg:w-1/2">
-            <h2 className="text-3xl font-bold mb-6 text-gray-900">
-              {ABOUT_SECTION.heading}
-            </h2>
-            
-            <div className="prose max-w-none mb-8">
-              {ABOUT_SECTION.description.split('\n\n').map((paragraph, index) => (
-                <p key={index} className="mb-4 text-gray-700">
-                  {paragraph}
-                </p>
-              ))}
+        </div>
+        
+        {/* Content column */}
+        <div className="order-1 lg:order-2">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-primary text-lg font-medium mb-2">{ABOUT_SECTION.subtitle}</h2>
+              <h3 className="text-3xl md:text-4xl font-bold mb-4">{ABOUT_SECTION.title}</h3>
+              <p className="text-muted-foreground">{ABOUT_SECTION.description}</p>
             </div>
             
-            {/* Chef Info */}
-            <div className="flex items-center mt-8">
-              <img 
-                src={ABOUT_SECTION.chefImage} 
-                alt={ABOUT_SECTION.chefName}
-                className="w-16 h-16 rounded-full object-cover mr-4"
-              />
-              <div>
-                <h3 className="text-lg font-semibold">{ABOUT_SECTION.chefName}</h3>
-                <p className="text-gray-600">{ABOUT_SECTION.chefTitle}</p>
-              </div>
+            {/* Features list */}
+            <div className="pt-6 space-y-4">
+              {ABOUT_SECTION.features.map((feature, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className="bg-primary/10 rounded-full p-1 mt-0.5">
+                    <Check className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">{feature.title}</h4>
+                    <p className="text-muted-foreground text-sm">{feature.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

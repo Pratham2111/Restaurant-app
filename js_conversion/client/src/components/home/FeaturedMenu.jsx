@@ -1,103 +1,84 @@
-import React from "react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { MENU_SECTION } from "@/lib/constants";
-import { useCart } from "@/hooks/useCart";
-import { useCurrency } from "@/hooks/useCurrency";
-import { formatCurrency, convertCurrency } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, ChevronRight } from "lucide-react";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import { MENU_SECTION } from "../../lib/constants";
+import { useCart } from "../../hooks/useCart";
+import { useCurrency } from "../../hooks/useCurrency";
+import { PlusCircle } from "lucide-react";
 
-export const FeaturedMenu = () => {
+/**
+ * FeaturedMenu component for the homepage
+ * Displays a grid of featured menu items
+ * @param {Object} props - Component props
+ * @param {Array} props.featuredItems - Array of featured menu items
+ */
+export const FeaturedMenu = ({ featuredItems = [] }) => {
   const { addToCart } = useCart();
-  const { currentCurrency } = useCurrency();
+  const { formatConvertedPrice } = useCurrency();
   
-  const { data: featuredItems = [], isLoading } = useQuery({
-    queryKey: ["/api/menu-items/featured"],
-  });
-  
+  // Handle add to cart button click
   const handleAddToCart = (item) => {
     addToCart(item);
   };
   
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4 sm:px-8">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold mb-4 text-gray-900">
-            {MENU_SECTION.heading}
-          </h2>
-          <p className="text-gray-700 max-w-2xl mx-auto">
+    <section className="py-16 bg-muted/30" id="menu">
+      <div className="max-w-screen-xl mx-auto px-4">
+        {/* Section header */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">{MENU_SECTION.title}</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
             {MENU_SECTION.description}
           </p>
         </div>
         
-        {isLoading ? (
-          // Loading state
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((item) => (
-              <Card key={item} className="overflow-hidden">
-                <div className="h-48 bg-gray-200 animate-pulse"></div>
-                <CardContent className="p-6">
-                  <div className="h-6 bg-gray-200 rounded animate-pulse mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          // Featured menu items
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden h-full flex flex-col">
-                <div className="relative h-48">
+        {/* Featured items grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {featuredItems.map((item) => (
+            <Card key={item.id} className="overflow-hidden group">
+              {/* Item image */}
+              {item.image && (
+                <div className="relative aspect-video overflow-hidden">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
                   {item.featured && (
-                    <div className="absolute top-2 right-2">
-                      <Badge variant="secondary">Featured</Badge>
+                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+                      Featured
                     </div>
                   )}
                 </div>
-                <CardContent className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
-                  <p className="text-gray-600 mb-4 flex-1">{item.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium">
-                      {formatCurrency(
-                        convertCurrency(item.price, currentCurrency?.rate || 1),
-                        currentCurrency?.symbol || "$"
-                      )}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddToCart(item)}
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Add to Cart
-                    </Button>
+              )}
+              
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-xl font-semibold">{item.name}</h3>
+                  <div className="text-lg font-bold text-primary">
+                    {formatConvertedPrice(item.price)}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                </div>
+                
+                <p className="text-muted-foreground mb-4">{item.description}</p>
+                
+                <Button
+                  onClick={() => handleAddToCart(item)}
+                  className="w-full gap-1"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Add to Order
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
         
-        {/* View Full Menu Button */}
-        <div className="mt-12 text-center">
-          <Link href="/menu">
-            <Button variant="outline" size="lg" className="font-medium">
-              View Full Menu
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+        {/* View full menu link */}
+        <div className="text-center">
+          <Button asChild variant="outline" size="lg">
+            <Link href={MENU_SECTION.ctaLink}>{MENU_SECTION.cta}</Link>
+          </Button>
         </div>
       </div>
     </section>
