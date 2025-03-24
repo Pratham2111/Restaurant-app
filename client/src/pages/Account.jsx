@@ -8,18 +8,44 @@ import { Badge } from "../components/ui/badge";
 import { formatCurrency } from "../lib/utils";
 import { useToast } from "../hooks/use-toast.jsx";
 import { useCurrency } from "../hooks/useCurrency";
+import { apiRequest } from "../lib/queryClient";
 
 /**
  * Account page for logged-in users
  */
 function Account() {
-  const { user, logout, isAdmin, isSubAdmin, loading } = useAuth();
+  const { user, logout, isAdmin, isSubAdmin, loading, setUser } = useAuth();
   const [, navigate] = useLocation();
   const [orders, setOrders] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { formatAmount } = useCurrency();
+  
+  // Profile edit state
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [profileErrors, setProfileErrors] = useState({});
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+
+  // Initialize form data when user data is available
+  useEffect(() => {
+    if (user) {
+      setProfileData(prevData => ({
+        ...prevData,
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      }));
+    }
+  }, [user]);
 
   // Fetch user's orders and bookings
   useEffect(() => {
@@ -77,6 +103,130 @@ function Account() {
     
     fetchUserData();
   }, [user, toast]);
+  
+  // Handle profile form change
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error for the field
+    if (profileErrors[name]) {
+      setProfileErrors(prev => ({
+        ...prev,
+        [name]: null
+      }));
+    }
+  };
+  
+  // Validate profile form
+  const validateProfileForm = () => {
+    const errors = {};
+    
+    if (!profileData.name) {
+      errors.name = "Name is required";
+    }
+    
+    if (!profileData.email) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(profileData.email)) {
+      errors.email = "Email is invalid";
+    }
+    
+    // If changing password, validate password fields
+    if (profileData.newPassword) {
+      if (!profileData.currentPassword) {
+        errors.currentPassword = "Current password is required";
+      }
+      
+      if (profileData.newPassword.length < 6) {
+        errors.newPassword = "Password must be at least 6 characters";
+      }
+      
+      if (profileData.newPassword !== profileData.confirmPassword) {
+        errors.confirmPassword = "Passwords don't match";
+      }
+    }
+    
+    setProfileErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+  
+  // Handle profile update
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    
+    if (!validateProfileForm()) {
+      return;
+    }
+    
+    setIsSubmittingProfile(true);
+    
+    try {
+      // Prepare data to send
+      const updateData = {
+        name: profileData.name,
+        email: profileData.email,
+        phone: profileData.phone,
+      };
+      
+      // Add password fields if updating password
+      if (profileData.newPassword) {
+        updateData.currentPassword = profileData.currentPassword;
+        updateData.newPassword = profileData.newPassword;
+      }
+      
+      // Send update request
+      const result = await apiRequest(`/api/users/${user.id || user._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData),
+        credentials: 'include'
+      });
+      
+      // Update user in context
+      if (result && setUser) {
+        setUser({
+          ...user,
+          name: result.name,
+          email: result.email,
+          phone: result.phone,
+        });
+      }
+      
+      // Reset password fields
+      setProfileData(prev => ({
+        ...prev,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+      
+      // Show success message
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+      
+      // Exit edit mode
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      
+      // Show error message
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingProfile(false);
+    }
+  };
 
   // Redirect to login if not authenticated
   if (!loading && !user) {
@@ -129,33 +279,180 @@ function Account() {
             <CardTitle>Your Account</CardTitle>
             <CardDescription>View and manage your account information</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-medium text-sm text-muted-foreground">Name</h3>
-              <p className="text-lg">{user.name}</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-sm text-muted-foreground">Email</h3>
-              <p className="text-lg">{user.email}</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-sm text-muted-foreground">Role</h3>
-              <p className="text-lg capitalize">{user.role}</p>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={handleLogout}>Logout</Button>
-            {isAdmin() && (
-              <Button onClick={() => navigate("/admin")} variant="default">
-                Admin Dashboard
-              </Button>
-            )}
-            {isSubAdmin() && (
-              <Button onClick={() => navigate("/admin")} variant="default">
-                Staff Dashboard
-              </Button>
-            )}
-          </CardFooter>
+          
+          {isEditing ? (
+            <form onSubmit={handleProfileUpdate}>
+              <CardContent className="space-y-4">
+                {/* Name */}
+                <div>
+                  <label htmlFor="name" className="font-medium text-sm text-muted-foreground block mb-1">Name</label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={profileData.name}
+                    onChange={handleProfileChange}
+                    className={`w-full px-3 py-2 border rounded-md ${
+                      profileErrors.name ? "border-red-500" : "border-input"
+                    } bg-background`}
+                  />
+                  {profileErrors.name && (
+                    <p className="text-red-500 text-sm mt-1">{profileErrors.name}</p>
+                  )}
+                </div>
+                
+                {/* Email */}
+                <div>
+                  <label htmlFor="email" className="font-medium text-sm text-muted-foreground block mb-1">Email</label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={profileData.email}
+                    onChange={handleProfileChange}
+                    className={`w-full px-3 py-2 border rounded-md ${
+                      profileErrors.email ? "border-red-500" : "border-input"
+                    } bg-background`}
+                  />
+                  {profileErrors.email && (
+                    <p className="text-red-500 text-sm mt-1">{profileErrors.email}</p>
+                  )}
+                </div>
+                
+                {/* Phone */}
+                <div>
+                  <label htmlFor="phone" className="font-medium text-sm text-muted-foreground block mb-1">Phone (optional)</label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={profileData.phone}
+                    onChange={handleProfileChange}
+                    className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                  />
+                </div>
+                
+                <div className="pt-4 border-t">
+                  <h3 className="text-sm font-medium mb-3">Change Password (optional)</h3>
+                  
+                  {/* Current Password */}
+                  <div className="mb-3">
+                    <label htmlFor="currentPassword" className="font-medium text-sm text-muted-foreground block mb-1">Current Password</label>
+                    <input
+                      id="currentPassword"
+                      name="currentPassword"
+                      type="password"
+                      value={profileData.currentPassword}
+                      onChange={handleProfileChange}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profileErrors.currentPassword ? "border-red-500" : "border-input"
+                      } bg-background`}
+                    />
+                    {profileErrors.currentPassword && (
+                      <p className="text-red-500 text-sm mt-1">{profileErrors.currentPassword}</p>
+                    )}
+                  </div>
+                  
+                  {/* New Password */}
+                  <div className="mb-3">
+                    <label htmlFor="newPassword" className="font-medium text-sm text-muted-foreground block mb-1">New Password</label>
+                    <input
+                      id="newPassword"
+                      name="newPassword"
+                      type="password"
+                      value={profileData.newPassword}
+                      onChange={handleProfileChange}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profileErrors.newPassword ? "border-red-500" : "border-input"
+                      } bg-background`}
+                    />
+                    {profileErrors.newPassword && (
+                      <p className="text-red-500 text-sm mt-1">{profileErrors.newPassword}</p>
+                    )}
+                  </div>
+                  
+                  {/* Confirm Password */}
+                  <div>
+                    <label htmlFor="confirmPassword" className="font-medium text-sm text-muted-foreground block mb-1">Confirm New Password</label>
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      value={profileData.confirmPassword}
+                      onChange={handleProfileChange}
+                      className={`w-full px-3 py-2 border rounded-md ${
+                        profileErrors.confirmPassword ? "border-red-500" : "border-input"
+                      } bg-background`}
+                    />
+                    {profileErrors.confirmPassword && (
+                      <p className="text-red-500 text-sm mt-1">{profileErrors.confirmPassword}</p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+              
+              <CardFooter className="flex justify-between space-x-3">
+                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmittingProfile}
+                  className="flex items-center"
+                >
+                  {isSubmittingProfile ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </CardFooter>
+            </form>
+          ) : (
+            <>
+              <CardContent className="space-y-4">
+                <div>
+                  <h3 className="font-medium text-sm text-muted-foreground">Name</h3>
+                  <p className="text-lg">{user.name}</p>
+                </div>
+                <div>
+                  <h3 className="font-medium text-sm text-muted-foreground">Email</h3>
+                  <p className="text-lg">{user.email}</p>
+                </div>
+                {user.phone && (
+                  <div>
+                    <h3 className="font-medium text-sm text-muted-foreground">Phone</h3>
+                    <p className="text-lg">{user.phone}</p>
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-medium text-sm text-muted-foreground">Role</h3>
+                  <p className="text-lg capitalize">{user.role}</p>
+                </div>
+              </CardContent>
+              
+              <CardFooter className="flex justify-between">
+                <div className="space-x-3">
+                  <Button variant="outline" onClick={handleLogout}>Logout</Button>
+                  <Button variant="outline" onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                </div>
+                {isAdmin() && (
+                  <Button onClick={() => navigate("/admin")} variant="default">
+                    Admin Dashboard
+                  </Button>
+                )}
+                {isSubAdmin() && (
+                  <Button onClick={() => navigate("/admin")} variant="default">
+                    Staff Dashboard
+                  </Button>
+                )}
+              </CardFooter>
+            </>
+          )}
         </Card>
 
         {/* Orders/Bookings */}
