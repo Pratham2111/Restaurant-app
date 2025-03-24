@@ -14,10 +14,17 @@ const router = express.Router();
  */
 router.post('/register', async (req, res) => {
   try {
+    console.log('Register attempt with data:', { 
+      email: req.body.email, 
+      name: req.body.name,
+      hasPassword: !!req.body.password 
+    });
+    
     const userData = req.body;
     
     // Data validation
     if (!userData.email || !userData.password || !userData.name) {
+      console.log('Registration failed: Missing required fields');
       return res.status(400).json({ 
         message: "Please provide email, password, and name" 
       });
@@ -26,6 +33,7 @@ router.post('/register', async (req, res) => {
     // Check if email already exists
     const existingUser = await req.app.locals.storage.getUserByEmail(userData.email);
     if (existingUser) {
+      console.log('Registration failed: Email already in use:', userData.email);
       return res.status(400).json({ message: "Email already in use" });
     }
     
@@ -40,21 +48,37 @@ router.post('/register', async (req, res) => {
       password: hashedPassword
     };
     
+    console.log('Creating user with role:', userToCreate.role);
     const user = await req.app.locals.storage.createUser(userToCreate);
+    console.log('User created with ID:', user._id || user.id);
+    
+    // Convert Mongoose document to plain object if needed
+    let userObj = user;
+    if (user.toObject) {
+      userObj = user.toObject();
+      console.log('Converted user Mongoose document to object');
+    }
+    
+    // Ensure ID is consistent
+    userObj.id = userObj._id?.toString() || userObj.id;
     
     // Create token for immediate login
-    const token = generateToken(user);
+    const token = generateToken(userObj);
+    console.log('Generated token for new user');
     
-    // Set cookie
+    // Set cookie with more permissive settings for development
     res.cookie('token', token, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'strict'
+      sameSite: 'lax', // Use 'lax' instead of 'strict' to allow cross-site requests
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
+      path: '/' // Ensure the cookie is available for all paths
     });
     
     // Return user data without password
-    const { password: pwd, ...userWithoutPassword } = user;
+    const { password: pwd, ...userWithoutPassword } = userObj;
     
+    console.log('Registration successful for:', userData.email);
     res.status(201).json({ 
       user: userWithoutPassword,
       token 
@@ -161,11 +185,13 @@ router.post('/login', async (req, res) => {
     const token = generateToken(userObj);
     console.log('Generated token with user ID:', userObj.id);
     
-    // Set cookie
+    // Set cookie with more permissive settings for development
     res.cookie('token', token, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'strict'
+      sameSite: 'lax', // Use 'lax' instead of 'strict' to allow cross-site requests
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
+      path: '/' // Ensure the cookie is available for all paths
     });
     
     // Return user data without password
@@ -197,7 +223,13 @@ router.get('/me', authenticate, (req, res) => {
  * @access Private
  */
 router.post('/logout', (req, res) => {
-  res.clearCookie('token');
+  console.log('Logout request received');
+  res.clearCookie('token', { 
+    path: '/',
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  });
+  console.log('Cookie cleared');
   res.json({ message: "Logged out successfully" });
 });
 

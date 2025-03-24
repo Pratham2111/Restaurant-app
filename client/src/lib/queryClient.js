@@ -31,7 +31,9 @@ export async function apiRequest(path, options = {}) {
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "same-origin",
+    // Use 'include' instead of 'same-origin' to ensure cookies are sent with cross-origin requests
+    // This is important in development since Vite's dev server might use a different port
+    credentials: "include",
   };
 
   // Combine default options with provided options
@@ -43,9 +45,28 @@ export async function apiRequest(path, options = {}) {
       ...options.headers,
     },
   };
+  
+  // Always ensure credentials are included
+  fetchOptions.credentials = "include";
+
+  console.log(`Making API request to: ${path}`, { 
+    method: fetchOptions.method || 'GET',
+    credentials: fetchOptions.credentials,
+    withHeaders: Object.keys(fetchOptions.headers)
+  });
 
   try {
     const res = await fetch(path, fetchOptions);
+    
+    console.log(`Response from ${path}:`, { 
+      status: res.status, 
+      ok: res.ok,
+      headers: [...res.headers.entries()].reduce((obj, [key, value]) => {
+        obj[key] = value;
+        return obj;
+      }, {})
+    });
+    
     await throwIfResNotOk(res);
     
     // For no content responses
@@ -53,7 +74,8 @@ export async function apiRequest(path, options = {}) {
       return null;
     }
     
-    return await res.json();
+    const data = await res.json();
+    return data;
   } catch (error) {
     console.error(`API request error for ${path}:`, error);
     throw error;

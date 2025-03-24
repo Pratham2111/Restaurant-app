@@ -59,7 +59,7 @@ async function main() {
     app.use(express.urlencoded({ extended: true }));
     app.use(cookieParser());
 
-    // Configure session management
+    // Configure session management with more permissive settings for development
     app.use(
       session({
         store: new MemoryStore({
@@ -70,6 +70,10 @@ async function main() {
         saveUninitialized: false,
         cookie: {
           maxAge: 24 * 60 * 60 * 1000, // 24 hours
+          path: '/',
+          httpOnly: true,
+          sameSite: 'lax', // Less restrictive setting for development
+          secure: process.env.NODE_ENV === 'production' // Only use secure in production
         },
       })
     );
