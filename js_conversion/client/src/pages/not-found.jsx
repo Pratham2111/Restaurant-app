@@ -1,36 +1,40 @@
 import { Link } from "wouter";
 import { Layout } from "../components/layout/Layout";
 import { Button } from "../components/ui/button";
+import { HomeIcon, UtensilsCrossed } from "lucide-react";
 
 /**
  * NotFound page component
- * Displayed when a user navigates to a non-existent route
+ * Displayed when user navigates to a non-existent route
  */
 export default function NotFound() {
   return (
     <Layout>
       <div className="container py-20 text-center">
         <div className="max-w-md mx-auto">
-          {/* Error code */}
-          <h1 className="text-9xl font-bold text-primary">404</h1>
-          
-          {/* Error message */}
-          <h2 className="text-2xl font-bold mt-4 mb-2">Page Not Found</h2>
-          <p className="text-muted-foreground mb-8">
-            The page you are looking for doesn't exist or has been moved.
-          </p>
+          {/* Error code and icons */}
+          <div className="mb-8">
+            <div className="flex justify-center items-center mb-6">
+              <UtensilsCrossed className="h-16 w-16 text-muted-foreground" />
+            </div>
+            <h1 className="text-7xl font-bold text-primary mb-2">404</h1>
+            <h2 className="text-2xl font-semibold mb-4">Page Not Found</h2>
+            <p className="text-muted-foreground">
+              The page you're looking for doesn't exist or has been moved.
+            </p>
+          </div>
           
           {/* Navigation buttons */}
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild>
               <Link href="/">
-                <a>Return Home</a>
+                <HomeIcon className="mr-2 h-4 w-4" />
+                Back to Home
               </Link>
             </Button>
-            
             <Button variant="outline" asChild>
               <Link href="/menu">
-                <a>View Our Menu</a>
+                View Our Menu
               </Link>
             </Button>
           </div>

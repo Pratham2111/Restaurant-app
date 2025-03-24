@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { CurrencyContext } from "../context/CurrencyContext";
-import { formatCurrency } from "../lib/utils";
+import { formatCurrency, convertCurrency } from "../lib/utils";
 
 /**
  * Custom hook for accessing currency functionality
@@ -8,22 +8,21 @@ import { formatCurrency } from "../lib/utils";
  * @returns {Object} Currency methods and state
  */
 export const useCurrency = () => {
-  const { 
-    currencySettings, 
-    currentCurrency, 
-    loading, 
-    error, 
-    setCurrency 
-  } = useContext(CurrencyContext);
+  const context = useContext(CurrencyContext);
+  
+  if (!context) {
+    throw new Error("useCurrency must be used within a CurrencyProvider");
+  }
+  
+  const { currencySettings, currentCurrency, loading, error, setCurrency } = context;
   
   /**
    * Convert an amount from USD to the current currency
    * @param {number} amount - Amount in USD
    * @returns {number} Converted amount
    */
-  const convertAmount = (amount) => {
-    if (!currentCurrency) return amount;
-    return amount * currentCurrency.rate;
+  const convert = (amount) => {
+    return convertCurrency(amount, currentCurrency.rate);
   };
   
   /**
@@ -32,8 +31,7 @@ export const useCurrency = () => {
    * @returns {string} Formatted amount with currency symbol
    */
   const formatPrice = (amount) => {
-    const convertedAmount = convertAmount(amount);
-    return formatCurrency(convertedAmount, currentCurrency?.symbol || "$");
+    return formatCurrency(convert(amount), currentCurrency.symbol);
   };
   
   return {
@@ -42,7 +40,7 @@ export const useCurrency = () => {
     loading,
     error,
     setCurrency,
-    convertAmount,
-    formatPrice
+    convert,
+    formatPrice,
   };
 };
