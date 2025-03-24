@@ -1,10 +1,19 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart, User } from "lucide-react";
 import { RESTAURANT_INFO } from "../../lib/constants";
 import CurrencySelector from "../common/CurrencySelector";
 import { useCart } from "../../hooks/useCart";
+import { useAuth } from "../../context/AuthContext";
 import { generatePlaceholderImage } from "../../lib/utils";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 /**
  * Header component that appears at the top of every page
@@ -12,6 +21,8 @@ import { generatePlaceholderImage } from "../../lib/utils";
 function Header({ toggleMobileMenu }) {
   const [location] = useLocation();
   const { totalQuantity } = useCart();
+  const { user, logout, isAdmin, isSubAdmin } = useAuth();
+  const [, navigate] = useLocation();
   
   // Navigation links
   const navLinks = [
@@ -21,6 +32,12 @@ function Header({ toggleMobileMenu }) {
     { href: "/order", label: "Order Online" },
     { href: "/contact", label: "Contact Us" }
   ];
+  
+  // Handle logout
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50">
@@ -57,7 +74,7 @@ function Header({ toggleMobileMenu }) {
             ))}
           </nav>
 
-          {/* Currency and Cart */}
+          {/* Currency, Cart, and Profile */}
           <div className="flex items-center space-x-4">
             <div className="hidden sm:block">
               <CurrencySelector />
@@ -73,6 +90,49 @@ function Header({ toggleMobileMenu }) {
                 )}
               </div>
             </Link>
+            
+            {/* Profile Icon & Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="relative cursor-pointer p-1 hover:bg-muted rounded-full">
+                  <User className="h-6 w-6" />
+                  {user && (
+                    <span className="absolute -bottom-1 -right-1 bg-green-500 rounded-full h-2.5 w-2.5 border-2 border-background"></span>
+                  )}
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {user ? (
+                  <>
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col">
+                        <span>{user.name}</span>
+                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/account")}>
+                      My Account
+                    </DropdownMenuItem>
+                    {(isAdmin() || isSubAdmin()) && (
+                      <DropdownMenuItem onClick={() => navigate("/admin")}>
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Logout
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/login")}>
+                      Login
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             {/* Mobile Menu Button */}
             <button 

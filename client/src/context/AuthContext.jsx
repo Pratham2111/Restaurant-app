@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { apiRequest } from "../lib/queryClient";
-import { useToast } from "../hooks/use-toast";
+import { useToast } from "../hooks/use-toast.jsx";
 
 /**
  * Context for authentication-related functionality

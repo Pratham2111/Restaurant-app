@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import MobileMenu from "./MobileMenu";
+import { Toaster } from "../ui/toaster";
 
 /**
  * Layout component that wraps the entire application
- * Includes Header, Footer, and MobileMenu
+ * Includes Header, Footer, MobileMenu, and Toast notifications
  */
 function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -28,6 +29,7 @@ function Layout({ children }) {
       </main>
       
       <Footer />
+      <Toaster />
     </div>
   );
 }
