@@ -1,17 +1,19 @@
 import React from "react";
 import { Route, Switch } from "wouter";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { CartProvider } from "@/context/CartContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { Layout } from "@/components/layout/Layout";
+import { Toaster } from "@/components/ui/toaster";
+
+// Import pages
 import Home from "@/pages/Home";
 import Menu from "@/pages/Menu";
 import Booking from "@/pages/Booking";
 import Order from "@/pages/Order";
 import Contact from "@/pages/Contact";
 import NotFound from "@/pages/not-found";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
-import { Toaster } from "@/components/ui/toaster";
-import { CartProvider } from "@/context/CartContext";
-import { CurrencyProvider } from "@/context/CurrencyContext";
 
 function Router() {
   return (
@@ -33,8 +35,8 @@ function App() {
         <CartProvider>
           <Layout>
             <Router />
-            <Toaster />
           </Layout>
+          <Toaster />
         </CartProvider>
       </CurrencyProvider>
     </QueryClientProvider>
