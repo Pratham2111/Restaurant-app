@@ -104,6 +104,10 @@ function Booking() {
         date: formatDate(new Date(formData.date)),
       };
       
+      // API integration will be implemented later
+      // For now simulate a successful booking
+      // Uncomment the below code when API is ready
+      /*
       // Call API to create reservation
       const response = await apiRequest('/api/reservations', {
         method: 'POST',
@@ -113,6 +117,11 @@ function Booking() {
       // Handle success
       setIsSuccess(true);
       setBookingReference(response.id || "BR" + Math.floor(Math.random() * 10000));
+      */
+      
+      // Simulate successful booking for now
+      setIsSuccess(true);
+      setBookingReference("BR" + Math.floor(Math.random() * 10000));
       
       // Reset form
       setFormData({
@@ -142,17 +151,6 @@ function Booking() {
     } finally {
       setIsSubmitting(false);
     }
-    
-    // For now, we'll just simulate a successful booking
-    // since the API is not yet implemented
-    setIsSuccess(true);
-    setBookingReference("BR" + Math.floor(Math.random() * 10000));
-    
-    // Show success toast
-    toast({
-      title: "Reservation Confirmed!",
-      description: `Your reservation has been successfully booked for ${formData.date} at ${formData.time}.`,
-    });
   };
 
   // Handle reset
