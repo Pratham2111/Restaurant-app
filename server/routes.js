@@ -368,8 +368,24 @@ async function registerRoutes(app) {
       // Log the incoming order data for debugging
       console.log("Received order data:", JSON.stringify(req.body));
       
-      // Parse and validate the order data
-      const orderData = insertOrderSchema.parse(req.body);
+      // Handle pickup orders differently - they don't need a detailed address
+      let orderData;
+      if (req.body.orderType === 'pickup') {
+        // For pickup orders, extend the schema to make address optional
+        const pickupOrderSchema = insertOrderSchema.extend({
+          address: z.string().min(1, "Address is required").default("Pickup")
+        });
+        
+        // Set a default address value for pickup orders if it's too short
+        if (!req.body.address || req.body.address.length < 5) {
+          req.body.address = "Pickup at restaurant";
+        }
+        
+        orderData = pickupOrderSchema.parse(req.body);
+      } else {
+        // For delivery orders, use the standard schema where address is required
+        orderData = insertOrderSchema.parse(req.body);
+      }
       
       // User is authenticated (required), so associate the order with their userId
       const userId = req.user.id || req.user._id;
@@ -385,6 +401,7 @@ async function registerRoutes(app) {
         }));
       }
       
+      console.log("Processed order data:", JSON.stringify(orderData));
       const order = await storage.createOrder(orderData);
       res.status(201).json(order);
     } catch (error) {
