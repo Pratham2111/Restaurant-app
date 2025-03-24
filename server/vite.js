@@ -20,8 +20,15 @@ async function setupVite(app, server) {
     
     // Create Vite server in middleware mode
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { 
+        middlewareMode: true,
+        hmr: { clientPort: 443 },
+        host: '0.0.0.0',
+        allowedHosts: ["4cad050f-76f9-4af7-9027-5625a4c913e3-00-2nerdeeq86zec.janeway.replit.dev", "all"],
+      },
+      root: "./client",
       appType: "custom",
+      assetsInclude: ["**/*.html"],
     });
     
     // Use Vite's connect instance as middleware
@@ -30,14 +37,17 @@ async function setupVite(app, server) {
     // Function to generate HTML responses
     const generateHtml = async (req, res) => {
       try {
-        // Get index.html
-        let template = await vite.transformIndexHtml(
-          req.originalUrl,
-          await vite.ssrLoadModule("./client/index.html")
-        );
+        // Read the index.html file
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const indexPath = path.default.resolve('./client/index.html');
+        const template = await fs.readFile(indexPath, 'utf-8');
+        
+        // Transform the template with Vite
+        const transformedTemplate = await vite.transformIndexHtml(req.originalUrl, template);
         
         // Send HTML response
-        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+        res.status(200).set({ "Content-Type": "text/html" }).end(transformedTemplate);
       } catch (e) {
         // If error, let Vite fix the stack trace for better debugging
         vite.ssrFixStacktrace(e);
