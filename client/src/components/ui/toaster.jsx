@@ -1,11 +1,15 @@
-import { useToast } from "../../hooks/use-toast";
-import { Toast, ToastProvider, ToastViewport } from "./toast";
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "./toast"
+import { useToast } from "../../hooks/use-toast"
 
-/**
- * Toaster component that manages and displays toast notifications
- */
 export function Toaster() {
-  const { toast, toasts } = useToast();
+  const { toasts } = useToast()
 
   return (
     <ToastProvider>
@@ -13,14 +17,17 @@ export function Toaster() {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">
-              {title && <div className="font-medium">{title}</div>}
-              {description && <div className="text-sm opacity-90">{description}</div>}
+              {title && <ToastTitle>{title}</ToastTitle>}
+              {description && (
+                <ToastDescription>{description}</ToastDescription>
+              )}
             </div>
             {action}
+            <ToastClose />
           </Toast>
-        );
+        )
       })}
       <ToastViewport />
     </ToastProvider>
-  );
+  )
 }
