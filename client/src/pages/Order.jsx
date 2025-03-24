@@ -5,6 +5,8 @@ import { useCart } from "../hooks/useCart";
 import { useCurrency } from "../hooks/useCurrency";
 import { useToast } from "../hooks/use-toast.jsx";
 import { isValidEmail, isValidPhone } from "../lib/utils";
+import { useAuth } from "../context/AuthContext";
+import { useLocation } from "wouter";
 
 /**
  * Order page component
@@ -24,6 +26,8 @@ function Order() {
     formattedTotal
   } = useCart();
   const { formatAmount } = useCurrency();
+  const { user, isLoading: authLoading } = useAuth();
+  const [, navigate] = useLocation();
   
   // Categories and menu items
   const [categories, setCategories] = useState([]);
@@ -50,6 +54,31 @@ function Order() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderReference, setOrderReference] = useState("");
+
+  // Autofill form with user data when authenticated
+  useEffect(() => {
+    if (user && !authLoading) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || ""
+      }));
+    }
+  }, [user, authLoading]);
+  
+  // Check if user is authenticated and redirect if not
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to place an order.",
+        variant: "destructive",
+      });
+      navigate("/login");
+    }
+  }, [user, authLoading, navigate, toast]);
 
   // Fetch categories and menu items
   useEffect(() => {

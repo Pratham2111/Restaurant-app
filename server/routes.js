@@ -311,8 +311,8 @@ async function registerRoutes(app) {
     }
   });
 
-  // Orders - with optional authentication
-  app.get("/api/orders", optionalAuth, async (req, res) => {
+  // Orders - requires authentication
+  app.get("/api/orders", authenticate, async (req, res) => {
     try {
       // Get all orders first
       const allOrders = await storage.getOrders();
@@ -347,7 +347,7 @@ async function registerRoutes(app) {
     }
   });
 
-  app.get("/api/orders/:id", async (req, res) => {
+  app.get("/api/orders/:id", authenticate, async (req, res) => {
     try {
       const id = req.params.id;
       const order = await storage.getOrderById(id);
@@ -363,38 +363,33 @@ async function registerRoutes(app) {
     }
   });
 
-  app.post("/api/orders", async (req, res) => {
+  app.post("/api/orders", authenticate, async (req, res) => {
     try {
-      // Try to authenticate but proceed even if it fails
-      optionalAuth(req, res, async () => {
-        try {
-          const orderData = insertOrderSchema.parse(req.body);
-          
-          // If user is authenticated, associate the order with their userId
-          if (req.user) {
-            const userId = req.user.id || req.user._id;
-            console.log(`Associating order with authenticated user ID: ${userId}`);
-            orderData.userId = userId;
-            
-            // Also ensure email matches the logged-in user if possible
-            if (!orderData.customerEmail && req.user.email) {
-              orderData.customerEmail = req.user.email;
-            }
-          }
-          
-          const order = await storage.createOrder(orderData);
-          res.status(201).json(order);
-        } catch (error) {
-          handleZodError(error, res);
-        }
-      });
+      const orderData = insertOrderSchema.parse(req.body);
+      
+      // User is authenticated (required), so associate the order with their userId
+      const userId = req.user.id || req.user._id;
+      console.log(`Associating order with authenticated user ID: ${userId}`);
+      orderData.userId = userId;
+      
+      // Ensure email matches the logged-in user
+      if (!orderData.customerEmail && req.user.email) {
+        orderData.customerEmail = req.user.email;
+      }
+      
+      // Also ensure name matches the logged-in user if available
+      if (!orderData.customerName && req.user.name) {
+        orderData.customerName = req.user.name;
+      }
+      
+      const order = await storage.createOrder(orderData);
+      res.status(201).json(order);
     } catch (error) {
-      console.error("Error creating order:", error);
-      res.status(500).json({ message: "Failed to create order" });
+      handleZodError(error, res);
     }
   });
 
-  app.patch("/api/orders/:id/status", async (req, res) => {
+  app.patch("/api/orders/:id/status", authenticate, async (req, res) => {
     try {
       const id = req.params.id;
       const { status } = req.body;
