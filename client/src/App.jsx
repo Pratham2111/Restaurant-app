@@ -8,6 +8,7 @@ import Booking from "./pages/Booking";
 import Order from "./pages/Order";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Account from "./pages/Account";
 import AdminDashboard from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -23,6 +24,7 @@ function App() {
           <Route path="/order" component={Order} />
           <Route path="/contact" component={Contact} />
           <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
           <Route path="/account" component={Account} />
           <Route path="/admin" component={AdminDashboard} />
           <Route component={NotFound} />

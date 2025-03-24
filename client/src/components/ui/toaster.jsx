@@ -14,6 +14,13 @@ export function Toaster() {
   // Use ToastContext to access the actual toast state
   const toastContext = React.useContext(ToastContext)
   const toasts = toastContext?.toasts || []
+  
+  // Add a function to handle toast dismissal
+  const handleClose = (id) => {
+    if (toastContext && toastContext.dismiss) {
+      toastContext.dismiss(id);
+    }
+  }
 
   return (
     <ToastProvider>
@@ -27,7 +34,7 @@ export function Toaster() {
               )}
             </div>
             {action}
-            <ToastClose />
+            <ToastClose onClick={() => handleClose(id)} />
           </Toast>
         )
       })}

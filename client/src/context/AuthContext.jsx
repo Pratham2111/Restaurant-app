@@ -66,6 +66,46 @@ export function AuthProvider({ children }) {
   };
 
   /**
+   * Register a new user
+   * @param {Object} userData - User registration data
+   * @param {string} userData.name - User's name
+   * @param {string} userData.email - User's email
+   * @param {string} userData.password - User's password
+   * @returns {Promise<boolean>} - Success status
+   */
+  const register = async (userData) => {
+    try {
+      setLoading(true);
+      const response = await apiRequest("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...userData,
+          role: "customer" // Default role for new registrations
+        }),
+      });
+
+      // Auto-login after successful registration
+      setUser(response.user);
+      
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created!",
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Could not create account. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
    * Logout the current user
    */
   const logout = async () => {
@@ -119,6 +159,7 @@ export function AuthProvider({ children }) {
       user, 
       loading,
       login,
+      register,
       logout,
       isAdmin,
       isSubAdmin,

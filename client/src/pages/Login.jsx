@@ -63,10 +63,23 @@ function Login() {
               />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </Button>
+            <div className="text-center text-sm">
+              Don't have an account?{" "}
+              <a 
+                href="/register" 
+                className="text-primary font-medium hover:underline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/register");
+                }}
+              >
+                Create account
+              </a>
+            </div>
           </CardFooter>
         </form>
       </Card>
