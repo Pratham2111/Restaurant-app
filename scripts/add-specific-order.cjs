@@ -1,6 +1,6 @@
 /**
  * Script to add a specific test order to MongoDB database
- * Run with: node scripts/add-specific-order.js
+ * Run with: node scripts/add-specific-order.cjs
  */
 
 const mongoose = require('mongoose');
@@ -30,12 +30,9 @@ async function connectToMongoDB() {
 // Define schemas
 const orderItemSchema = new mongoose.Schema({
   menuItem: {
-    type: mongoose.Schema.Types.Mixed,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'MenuItem',
     required: true,
-  },
-  menuItemId: {
-    type: mongoose.Schema.Types.Mixed,
-    required: false,
   },
   name: {
     type: String,
@@ -59,7 +56,7 @@ const orderItemSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.Mixed,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
@@ -148,103 +145,177 @@ const orderSchema = new mongoose.Schema({
 });
 
 // Create models
-const Order = mongoose.model('Order', orderSchema, 'orders');
-const User = mongoose.model('User', new mongoose.Schema({}), 'users');
-const MenuItem = mongoose.model('MenuItem', new mongoose.Schema({}), 'menuItems');
+const Order = mongoose.model('Order', orderSchema);
+const User = mongoose.model('User', new mongoose.Schema({}));
+const MenuItem = mongoose.model('MenuItem', new mongoose.Schema({}));
 
-// Create a specific test order for a user
-async function createSpecificOrder() {
+// Create a specific order for testing
+async function createOrderForUser() {
   try {
-    // Find a specific user (you can replace this with a specific email)
-    const user = await User.findOne({ email: 'tl@tl.com' });
+    // Get customer user (not admin)
+    const user = await User.findOne({ role: 'customer' });
     if (!user) {
-      console.log('User not found. Looking for any user...');
-      // Try to find any user
-      const anyUser = await User.findOne({});
-      if (!anyUser) {
-        throw new Error('No users found in the database');
-      }
-      console.log(`Using user: ${anyUser.email} (ID: ${anyUser._id})`);
-      return createOrderForUser(anyUser);
+      throw new Error('No customer user found in the database');
+    }
+    console.log(`Found user: ${user.email} (ID: ${user._id})`);
+    
+    // Get menu items
+    const menuItems = await MenuItem.find({}).limit(3);
+    if (menuItems.length === 0) {
+      throw new Error('No menu items found in the database');
+    }
+    console.log(`Found ${menuItems.length} menu items to use in the order`);
+
+    // Create order items
+    const orderItems = [];
+    let subtotal = 0;
+    
+    // Add 2 of the first item
+    const item1 = menuItems[0];
+    const quantity1 = 2;
+    orderItems.push({
+      menuItem: item1._id,
+      name: item1.name,
+      price: item1.price,
+      quantity: quantity1,
+      specialInstructions: "Extra sauce, please"
+    });
+    subtotal += item1.price * quantity1;
+    
+    // Add 1 of the second item if available
+    if (menuItems.length > 1) {
+      const item2 = menuItems[1];
+      const quantity2 = 1;
+      orderItems.push({
+        menuItem: item2._id,
+        name: item2.name,
+        price: item2.price,
+        quantity: quantity2
+      });
+      subtotal += item2.price * quantity2;
     }
     
-    console.log(`Found user: ${user.email} (ID: ${user._id})`);
-    return createOrderForUser(user);
+    const tax = parseFloat((subtotal * 0.08).toFixed(2)); // 8% tax
+    const deliveryFee = 5.99;
+    const total = parseFloat((subtotal + tax + deliveryFee).toFixed(2));
     
+    // Create order
+    const order = new Order({
+      userId: user._id,
+      customer: {
+        name: user.name || "Customer",
+        email: user.email,
+        phone: "555-123-4567"
+      },
+      items: orderItems,
+      subtotal: subtotal,
+      tax: tax,
+      deliveryFee: deliveryFee,
+      total: total,
+      delivery: true,
+      address: {
+        street: "123 Main St",
+        city: "Anytown",
+        state: "CA",
+        zipCode: "90210"
+      },
+      paymentMethod: "creditCard",
+      status: "pending",
+      specialInstructions: "Please deliver to the back door",
+      createdAt: new Date(),
+      estimatedDeliveryTime: new Date(Date.now() + 45 * 60000) // 45 minutes from now
+    });
+    
+    await order.save();
+    console.log(`Created order with ID: ${order._id}`);
+    console.log(`Order total: $${order.total.toFixed(2)}`);
+    console.log(`Order items: ${order.items.length}`);
+    return order;
   } catch (error) {
-    console.error('Error creating test order:', error);
+    console.error('Error creating order:', error);
+    throw error;
   }
 }
 
-async function createOrderForUser(user) {
-  // Find some menu items
-  const menuItems = await MenuItem.find({}).limit(3);
-  if (menuItems.length === 0) {
-    throw new Error('No menu items found in the database');
-  }
-  console.log(`Found ${menuItems.length} menu items`);
-  
-  // Create order items
-  const orderItems = [];
-  let subtotal = 0;
-  
-  for (const menuItem of menuItems) {
-    const quantity = Math.ceil(Math.random() * 2); // 1 or 2
-    const price = parseFloat(menuItem.price);
+// Create a completed order in the past
+async function createCompletedOrder() {
+  try {
+    // Get customer user (not admin)
+    const user = await User.findOne({ role: 'customer' });
+    if (!user) {
+      throw new Error('No customer user found in the database');
+    }
     
-    orderItems.push({
-      menuItem: menuItem._id,
-      menuItemId: menuItem._id,
-      name: menuItem.name,
-      price: price,
-      quantity: quantity,
-      specialInstructions: ""
+    // Get menu items
+    const menuItems = await MenuItem.find({}).limit(3);
+    if (menuItems.length === 0) {
+      throw new Error('No menu items found in the database');
+    }
+
+    // Create order items for a past order
+    const orderItems = [];
+    let subtotal = 0;
+    
+    // Add some items
+    menuItems.forEach((item, index) => {
+      const quantity = index === 0 ? 2 : 1;
+      orderItems.push({
+        menuItem: item._id,
+        name: item.name,
+        price: item.price,
+        quantity: quantity
+      });
+      subtotal += item.price * quantity;
     });
     
-    subtotal += price * quantity;
+    const tax = parseFloat((subtotal * 0.08).toFixed(2)); // 8% tax
+    const deliveryFee = 0; // Pickup order
+    const total = parseFloat((subtotal + tax).toFixed(2));
+    
+    // Create a past order (7 days ago)
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 7);
+    
+    const order = new Order({
+      userId: user._id,
+      customer: {
+        name: user.name || "Customer",
+        email: user.email,
+        phone: "555-123-4567"
+      },
+      items: orderItems,
+      subtotal: subtotal,
+      tax: tax,
+      deliveryFee: deliveryFee,
+      total: total,
+      delivery: false, // Pickup
+      paymentMethod: "cash",
+      status: "completed", // Already completed
+      createdAt: pastDate,
+    });
+    
+    await order.save();
+    console.log(`Created completed order with ID: ${order._id} (dated ${pastDate.toLocaleDateString()})`);
+    return order;
+  } catch (error) {
+    console.error('Error creating completed order:', error);
+    throw error;
   }
-  
-  const tax = subtotal * 0.08; // 8% tax
-  const deliveryFee = 5.99;
-  const total = subtotal + tax + deliveryFee;
-  
-  // Create the order
-  const order = new Order({
-    userId: user._id,
-    customer: {
-      name: user.name || user.username || 'Customer',
-      email: user.email,
-      phone: user.phone || '555-123-4567',
-    },
-    items: orderItems,
-    subtotal: parseFloat(subtotal.toFixed(2)),
-    tax: parseFloat(tax.toFixed(2)),
-    deliveryFee: deliveryFee,
-    total: parseFloat(total.toFixed(2)),
-    delivery: true,
-    address: {
-      street: '123 Main St',
-      city: 'Anytown', 
-      state: 'CA',
-      zipCode: '90210',
-    },
-    paymentMethod: 'creditCard',
-    status: 'delivered',
-    specialInstructions: "Please deliver to the back door",
-    createdAt: new Date(),
-    estimatedDeliveryTime: new Date(Date.now() + 1000 * 60 * 45), // 45 min from now
-  });
-  
-  await order.save();
-  console.log(`Created test order for user ${user.email} with ${orderItems.length} items`);
-  return order;
 }
 
 // Main function
 async function main() {
   try {
-    const db = await connectToMongoDB();
-    await createSpecificOrder();
+    await connectToMongoDB();
+    
+    // Check if we already have orders in the database
+    const orderCount = await Order.countDocuments();
+    console.log(`Found ${orderCount} existing orders`);
+    
+    // Create two sample orders (one current, one past)
+    await createOrderForUser();
+    await createCompletedOrder();
+    
     await mongoose.disconnect();
     console.log('Database connection closed');
   } catch (error) {
