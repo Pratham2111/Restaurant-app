@@ -6,6 +6,7 @@ import http from "http";
 import { registerRoutes } from "./routes.js";
 import { log, setupVite, serveStatic } from "./vite.js";
 import { connectDB } from "./db/mongoose.js";
+import { initializeStorage } from "./storage.js";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -22,12 +23,21 @@ async function main() {
       try {
         mongoConnection = await connectDB(mongoURI);
         log('MongoDB connected successfully', 'mongodb');
+        
+        // Initialize storage with MongoDB
+        initializeStorage(true);
       } catch (error) {
         console.error('Failed to connect to MongoDB:', error.message);
         log('Failed to connect to MongoDB, falling back to in-memory storage', 'mongodb');
+        
+        // Initialize with in-memory storage
+        initializeStorage(false);
       }
     } else {
       log('No MongoDB URI provided, using in-memory storage', 'mongodb');
+      
+      // Initialize with in-memory storage
+      initializeStorage(false);
     }
     
     // Create Express app

@@ -473,11 +473,38 @@ class MemStorage {
   }
 }
 
-// Export singleton instance
-const storage = new MemStorage();
+// Determine which storage implementation to use
+let storage;
+
+/**
+ * Initialize the appropriate storage implementation
+ * MongoDB is used if a connection is available, otherwise falls back to in-memory storage
+ * @param {boolean} useMongoStorage - Whether to use MongoDB storage
+ */
+function initializeStorage(useMongoStorage = false) {
+  if (useMongoStorage) {
+    console.log('Using MongoDB storage implementation');
+    storage = new MongoStorage();
+  } else {
+    console.log('Using in-memory storage implementation');
+    storage = new MemStorage();
+  }
+  
+  // Initialize the storage data
+  if (storage.initializeData) {
+    storage.initializeData();
+  }
+  
+  return storage;
+}
+
+// Initialize with in-memory storage by default
+// The server will update this based on MongoDB connection status
+storage = initializeStorage();
 
 export {
   IStorage,
   MemStorage,
-  storage
+  storage,
+  initializeStorage
 };
