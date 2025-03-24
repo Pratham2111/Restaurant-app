@@ -14,10 +14,8 @@ const UPDATE_TOAST = "UPDATE_TOAST";
 const DISMISS_TOAST = "DISMISS_TOAST";
 const REMOVE_TOAST = "REMOVE_TOAST";
 
-// Dispatch toast action
-function dispatch(action) {
-  window.dispatchToast && window.dispatchToast(action);
-}
+// Store dispatch function
+let dispatchToast;
 
 /**
  * Reducer function for toast state
@@ -66,7 +64,7 @@ function useToaster() {
   });
 
   // Set global dispatch method
-  window.dispatchToast = dispatchInternal;
+  dispatchToast = dispatchInternal;
 
   return {
     ...state,
