@@ -3,17 +3,15 @@
  */
 export const RESTAURANT_INFO = {
   name: "La Mason",
-  slogan: "Fine Dining & Culinary Excellence",
-  description: "A culinary journey through Mediterranean flavors in an elegant setting",
-  founded: 2015,
-  address: "123 Gourmet Avenue, Culinary District, NY 10001",
-  phone: "(212) 555-7890",
-  email: "info@lamason.com",
-  openingHours: {
-    weekdays: "11:00 AM - 10:00 PM",
-    weekends: "10:00 AM - 11:00 PM"
+  description: "A fine dining experience featuring fusion cuisine from around the world.",
+  address: "123 Gourmet Avenue, Culinary District, FS 12345",
+  phone: "+1 (555) 123-4567",
+  email: "contact@lamason.com",
+  hours: {
+    weekday: "11:00 AM - 10:00 PM",
+    weekend: "10:00 AM - 11:00 PM"
   },
-  socialMedia: {
+  social: {
     facebook: "https://facebook.com/lamason",
     instagram: "https://instagram.com/lamason",
     twitter: "https://twitter.com/lamason"
@@ -24,17 +22,17 @@ export const RESTAURANT_INFO = {
  * Currency options for the currency selector
  */
 export const CURRENCY_OPTIONS = [
-  { code: "USD", name: "US Dollar", symbol: "$" },
-  { code: "EUR", name: "Euro", symbol: "€" },
-  { code: "GBP", name: "British Pound", symbol: "£" }
+  { id: 1, code: "USD", symbol: "$", rate: 1, isDefault: true },
+  { id: 2, code: "EUR", symbol: "€", rate: 0.93, isDefault: false },
+  { id: 3, code: "GBP", symbol: "£", rate: 0.8, isDefault: false }
 ];
 
 /**
  * Content for the hero section
  */
 export const HERO_SECTION = {
-  title: "Experience Culinary Excellence",
-  subtitle: "At La Mason, we blend tradition with innovation to create an unforgettable dining experience",
+  title: "Culinary Excellence in Every Bite",
+  subtitle: "Experience the art of fine dining with our innovative fusion cuisine crafted by world-class chefs.",
   cta: {
     primary: {
       text: "Book a Table",
@@ -46,10 +44,10 @@ export const HERO_SECTION = {
     }
   },
   features: [
-    "Elegant Atmosphere",
-    "Seasonal Ingredients",
-    "Award-Winning Chef",
-    "Mediterranean Inspired"
+    "Fine Dining",
+    "Fusion Cuisine",
+    "Private Events",
+    "Award Winning"
   ]
 };
 
@@ -57,34 +55,25 @@ export const HERO_SECTION = {
  * Content for the about section
  */
 export const ABOUT_SECTION = {
-  title: "Our Story",
-  subtitle: "Passion for Culinary Excellence",
-  description: `La Mason was founded in 2015 by Chef Michael Laurent with a vision to create a dining experience that celebrates Mediterranean flavors with a modern twist. Our restaurant has quickly become a local favorite, known for its elegant atmosphere and commitment to quality.
-  
-  We source the finest ingredients from local farmers and suppliers, ensuring that each dish is prepared with care and attention to detail. Our team of talented chefs and staff are dedicated to providing an exceptional dining experience for every guest.`,
-  values: [
-    {
-      title: "Quality Ingredients",
-      description: "We source the finest, freshest ingredients from local farmers and suppliers."
-    },
-    {
-      title: "Culinary Artistry",
-      description: "Our chefs blend traditional techniques with innovative approaches."
-    },
-    {
-      title: "Warm Hospitality",
-      description: "We believe in creating a welcoming atmosphere for every guest."
-    },
-    {
-      title: "Sustainability",
-      description: "We're committed to eco-friendly practices throughout our operations."
-    }
+  subtitle: "Our Story",
+  title: "Tradition Meets Innovation",
+  paragraphs: [
+    "Founded in 2005, La Mason has been serving culinary masterpieces that blend traditional techniques with innovative flavors. Our commitment to excellence extends beyond our menu to the warm, inviting atmosphere and impeccable service.",
+    "Each dish tells a story, crafted with locally-sourced, seasonal ingredients and prepared with passion by our team of expert chefs led by renowned Chef Michael Laurent."
   ],
-  chef: {
-    name: "Michael Laurent",
-    title: "Executive Chef & Founder",
-    bio: "With over 20 years of culinary experience in top restaurants across Europe and America, Chef Michael brings his passion for Mediterranean cuisine and innovative cooking techniques to every dish at La Mason.",
-    image: "https://randomuser.me/api/portraits/men/42.jpg"
+  features: [
+    "Locally Sourced",
+    "Seasonal Menu",
+    "Expert Chefs",
+    "Sustainable Practices"
+  ],
+  image: {
+    main: "https://images.unsplash.com/photo-1564759298141-cef86f51d4d4?w=600&auto=format&fit=crop&q=80",
+    accent: "https://images.unsplash.com/photo-1592861956120-e524fc739696?w=400&auto=format&fit=crop&q=80"
+  },
+  experience: {
+    years: 18,
+    text: "Years of Excellence"
   }
 };
 
@@ -92,9 +81,9 @@ export const ABOUT_SECTION = {
  * Content for the menu section
  */
 export const MENU_SECTION = {
-  title: "Our Menu",
-  subtitle: "Crafted with Passion & Precision",
-  description: "Explore our diverse menu featuring seasonal ingredients and chef's specialties. Each dish is prepared with care to deliver exceptional flavors and presentation.",
+  subtitle: "Our Menu",
+  title: "Culinary Masterpieces",
+  description: "Explore our diverse selection of dishes crafted with the finest ingredients and creative techniques.",
   categories: [
     "Appetizers",
     "Main Courses",
@@ -109,95 +98,52 @@ export const MENU_SECTION = {
  * Content for the booking section
  */
 export const BOOKING_SECTION = {
-  title: "Reserve Your Table",
-  subtitle: "Join Us for an Unforgettable Dining Experience",
-  description: "Make a reservation at La Mason for a special occasion or a delightful evening. We recommend booking in advance to secure your preferred date and time.",
-  phone: RESTAURANT_INFO.phone,
-  email: RESTAURANT_INFO.email,
-  address: RESTAURANT_INFO.address,
-  openingHours: [
-    { day: "Monday", hours: "11:00 AM - 10:00 PM" },
-    { day: "Tuesday", hours: "11:00 AM - 10:00 PM" },
-    { day: "Wednesday", hours: "11:00 AM - 10:00 PM" },
-    { day: "Thursday", hours: "11:00 AM - 10:00 PM" },
-    { day: "Friday", hours: "11:00 AM - 11:00 PM" },
-    { day: "Saturday", hours: "10:00 AM - 11:00 PM" },
-    { day: "Sunday", hours: "10:00 AM - 10:00 PM" }
-  ],
-  specialEvents: {
-    title: "Private Events & Celebrations",
-    description: "Our private dining room is perfect for celebrations, corporate events, and special occasions. Contact us for details and availability."
-  }
+  subtitle: "Reservations",
+  title: "Book Your Dining Experience",
+  description: "Reserve your table at La Mason for an unforgettable culinary journey.",
+  cta: "Book Now"
 };
 
 /**
  * Content for the order section
  */
 export const ORDER_SECTION = {
-  title: "Order Online",
-  subtitle: "Enjoy La Mason at Home",
-  description: "Can't dine with us? Order your favorite dishes for delivery or pickup. We ensure the same quality and care for every order.",
+  subtitle: "Order Online",
+  title: "Enjoy La Mason at Home",
+  description: "Order your favorite La Mason dishes for delivery or pickup.",
+  cta: "Order Now",
   features: [
     {
       title: "Fast Delivery",
-      description: "We deliver within 5 miles of our location, typically within 30-45 minutes."
+      description: "Enjoy our dishes delivered to your doorstep within 45 minutes."
     },
     {
-      title: "Quality Guaranteed",
-      description: "Special packaging ensures your food arrives hot and fresh."
+      title: "Carefully Packaged",
+      description: "Every dish is carefully packaged to maintain flavor and quality."
     },
     {
-      title: "Easy Pickup",
-      description: "Prefer to pickup? Your order will be ready at your chosen time."
+      title: "Easy Ordering",
+      description: "Simple, intuitive ordering process with real-time tracking."
     }
-  ],
-  policies: {
-    title: "Delivery Information",
-    details: [
-      "Delivery available within 5 miles",
-      "Minimum order of $25 for delivery",
-      "Delivery fee: $5 (free for orders over $50)",
-      "30-45 minute estimated delivery time"
-    ]
-  }
+  ]
 };
 
 /**
  * Content for the testimonials section
  */
 export const TESTIMONIALS_SECTION = {
-  title: "Guest Experiences",
-  subtitle: "What Our Guests Say",
-  description: "We take pride in creating memorable dining experiences for our guests. Here are some thoughts from our valued patrons."
+  subtitle: "Testimonials",
+  title: "What Our Guests Say",
+  description: "Read about the experiences of our valued guests."
 };
 
 /**
  * Content for the contact section
  */
 export const CONTACT_SECTION = {
-  title: "Contact Us",
-  subtitle: "We'd Love to Hear from You",
-  description: "Whether you have a question, feedback, or want to inquire about special events, we're here to help. Reach out to us using any of the methods below.",
-  address: RESTAURANT_INFO.address,
-  phone: RESTAURANT_INFO.phone,
-  email: RESTAURANT_INFO.email,
-  hours: "Monday-Friday: 11AM-10PM, Saturday-Sunday: 10AM-11PM",
-  faqs: [
-    {
-      question: "Do you accommodate dietary restrictions?",
-      answer: "Yes, we offer various options for different dietary needs including vegetarian, vegan, and gluten-free. Please inform your server about any allergies or restrictions."
-    },
-    {
-      question: "Can I make a reservation for a large group?",
-      answer: "Absolutely! For groups larger than 8 people, please call us directly to arrange a reservation and discuss any special requirements."
-    },
-    {
-      question: "Is there parking available?",
-      answer: "We offer complimentary valet parking for our guests. There's also public parking available within a short walking distance."
-    },
-    {
-      question: "Do you host private events?",
-      answer: "Yes, we have a private dining area perfect for celebrations, corporate events, and special occasions. Please contact us for availability and details."
-    }
-  ]
+  subtitle: "Contact Us",
+  title: "Get in Touch",
+  description: "We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
+  cta: "Send Message",
+  mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.0608019392337!2d-122.4194!3d37.7749!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDQ2JzMwLjUiTiAxMjLCsDI1JzA5LjkiVw!5e0!3m2!1sen!2sus!4v1647882708559!5m2!1sen!2sus"
 };

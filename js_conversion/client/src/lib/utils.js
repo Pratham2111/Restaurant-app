@@ -27,17 +27,22 @@ export function formatCurrency(amount, currencySymbol = "$") {
  * @returns {number} Converted amount
  */
 export function convertCurrency(amount, rate) {
-  return parseFloat((amount * rate).toFixed(2));
+  return amount * rate;
 }
 
 /**
  * Available time slots for booking
  */
 export const timeSlots = [
-  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", 
-  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", 
-  "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", 
-  "20:00", "20:30", "21:00", "21:30"
+  "11:00 AM", "11:30 AM", 
+  "12:00 PM", "12:30 PM", 
+  "1:00 PM", "1:30 PM", 
+  "2:00 PM", "2:30 PM", 
+  "5:00 PM", "5:30 PM", 
+  "6:00 PM", "6:30 PM", 
+  "7:00 PM", "7:30 PM", 
+  "8:00 PM", "8:30 PM", 
+  "9:00 PM", "9:30 PM"
 ];
 
 /**
@@ -51,7 +56,12 @@ export const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  * @returns {string} Formatted date string
  */
 export function formatDate(date) {
-  return date.toISOString().split('T')[0];
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
 }
 
 /**
@@ -59,7 +69,8 @@ export function formatDate(date) {
  * @returns {string} Minimum date in YYYY-MM-DD format
  */
 export function getMinDate() {
-  return formatDate(new Date());
+  const today = new Date();
+  return today.toISOString().split("T")[0];
 }
 
 /**
@@ -69,8 +80,7 @@ export function getMinDate() {
  * @returns {string} Truncated text
  */
 export function truncateText(text, maxLength) {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
+  if (!text || text.length <= maxLength) return text;
   return `${text.substring(0, maxLength)}...`;
 }
 
@@ -79,7 +89,7 @@ export function truncateText(text, maxLength) {
  * @returns {string} Random ID
  */
 export function generateId() {
-  return Math.random().toString(36).substring(2, 15);
+  return Math.random().toString(36).substring(2, 9);
 }
 
 /**
@@ -106,8 +116,8 @@ export function debounce(func, wait) {
  * @returns {boolean} Whether email is valid
  */
 export function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(String(email).toLowerCase());
 }
 
 /**
@@ -116,8 +126,8 @@ export function isValidEmail(email) {
  * @returns {boolean} Whether phone number is valid
  */
 export function isValidPhone(phone) {
-  const phoneRegex = /^[\d\s\-+()]{7,15}$/;
-  return phoneRegex.test(phone);
+  const re = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+  return re.test(String(phone).trim());
 }
 
 /**
@@ -144,5 +154,8 @@ export function formatNumber(number) {
  */
 export function capitalizeWords(str) {
   if (!str) return "";
-  return str.replace(/\b\w/g, char => char.toUpperCase());
+  return str
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }

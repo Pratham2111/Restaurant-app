@@ -2,34 +2,34 @@ import { useState, useEffect } from "react";
 
 /**
  * Hook to check if a media query matches
+ * Used for responsive design breakpoints
  * @param {string} query - Media query string to match
  * @returns {boolean} Whether the media query matches
  */
 export function useMediaQuery(query) {
   const [matches, setMatches] = useState(false);
-
+  
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    // Create a MediaQueryList object
+    const mediaQuery = window.matchMedia(query);
     
-    const media = window.matchMedia(query);
-    setMatches(media.matches);
-
+    // Set initial value
+    setMatches(mediaQuery.matches);
+    
+    // Define event listener function
     const handleChange = (event) => {
       setMatches(event.matches);
     };
-
-    // Modern browsers
-    if (media.addEventListener) {
-      media.addEventListener("change", handleChange);
-      return () => media.removeEventListener("change", handleChange);
-    } 
-    // Legacy browsers
-    else {
-      media.addListener(handleChange);
-      return () => media.removeListener(handleChange);
-    }
+    
+    // Add event listener
+    mediaQuery.addEventListener("change", handleChange);
+    
+    // Clean up
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
   }, [query]);
-
+  
   return matches;
 }
 
@@ -38,7 +38,7 @@ export function useMediaQuery(query) {
  * @returns {boolean} Whether screen is mobile size
  */
 export function useMobile() {
-  return useMediaQuery("(max-width: 639px)");
+  return useMediaQuery("(max-width: 767px)");
 }
 
 /**
@@ -46,7 +46,7 @@ export function useMobile() {
  * @returns {boolean} Whether screen is tablet size
  */
 export function useTablet() {
-  return useMediaQuery("(min-width: 640px) and (max-width: 1023px)");
+  return useMediaQuery("(min-width: 768px) and (max-width: 1023px)");
 }
 
 /**

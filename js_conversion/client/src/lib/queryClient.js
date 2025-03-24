@@ -2,14 +2,24 @@ import { QueryClient } from "@tanstack/react-query";
 
 /**
  * Checks if a Response is okay, throws an error if not
+ * Used for API error handling
  * @param {Response} res - The Response object
  * @throws {Error} If the response is not okay
  */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    const errorData = await res.json().catch(() => null);
-    const errorMessage = errorData?.message || res.statusText || `HTTP error ${res.status}`;
-    throw new Error(errorMessage);
+    // Try to parse error message from response
+    let errorMessage;
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.message || errorData.error || `HTTP error ${res.status}`;
+    } catch (e) {
+      errorMessage = `HTTP error ${res.status}`;
+    }
+    
+    const error = new Error(errorMessage);
+    error.status = res.status;
+    throw error;
   }
 }
 
@@ -20,31 +30,42 @@ async function throwIfResNotOk(res) {
  * @returns {Promise<any>} Response data
  */
 export async function apiRequest(path, options = {}) {
-  const defaultOptions = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-
-  const mergedOptions = {
-    ...defaultOptions,
-    ...options,
-    headers: {
-      ...defaultOptions.headers,
-      ...options.headers,
-    },
-  };
-
-  const response = await fetch(path, mergedOptions);
-  await throwIfResNotOk(response);
+  // Set default headers if not provided
+  const headers = options.headers || {};
+  if (!headers["Content-Type"] && !(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
   
-  // Handle empty responses
-  const contentType = response.headers.get("content-type");
-  if (!contentType || !contentType.includes("application/json")) {
+  // Set default method
+  const method = options.method || "GET";
+  
+  // Stringify body if it's an object and not FormData
+  if (typeof options.body === "object" && !(options.body instanceof FormData)) {
+    options.body = JSON.stringify(options.body);
+  }
+  
+  // Make the request
+  const res = await fetch(path, {
+    ...options,
+    headers,
+    method
+  });
+  
+  // Check for errors
+  await throwIfResNotOk(res);
+  
+  // If no content, return null
+  if (res.status === 204) {
     return null;
   }
   
-  return await response.json();
+  // Parse the response based on content type
+  const contentType = res.headers.get("Content-Type") || "";
+  if (contentType.includes("application/json")) {
+    return res.json();
+  }
+  
+  return res.text();
 }
 
 /**
@@ -54,13 +75,16 @@ export async function apiRequest(path, options = {}) {
  */
 export const getQueryFn = (options = { on401: "throw" }) => {
   return async ({ queryKey }) => {
-    const [path] = queryKey;
+    let path = Array.isArray(queryKey) ? queryKey[0] : queryKey;
     
     try {
       return await apiRequest(path);
     } catch (error) {
-      if (options.on401 === "returnNull" && error.message.includes("401")) {
-        return null;
+      // Handle 401 Unauthorized based on options
+      if (error.status === 401) {
+        if (options.on401 === "returnNull") {
+          return null;
+        }
       }
       throw error;
     }
@@ -75,14 +99,15 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn(),
       staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
       retry: (failureCount, error) => {
-        // Don't retry on 4xx errors
-        if (error.message.includes("4")) {
+        // Don't retry on 401, 403, 404, or 500
+        if (error.status === 401 || error.status === 403 || error.status === 404 || error.status === 500) {
           return false;
         }
+        
+        // Retry other errors up to 3 times
         return failureCount < 3;
-      },
-    },
-  },
+      }
+    }
+  }
 });
