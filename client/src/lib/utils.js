@@ -21,6 +21,18 @@ export function formatCurrency(amount, currencySymbol = "$") {
 }
 
 /**
+ * Generate a base64 data URI of a placeholder image with text
+ * @param {string} text - Text to display on the placeholder
+ * @param {number} width - Width of the image
+ * @param {number} height - Height of the image
+ * @returns {string} Base64 data URI of the image
+ */
+export function generatePlaceholderImage(text = "Image", width = 400, height = 300) {
+  // Return a simple data URI for a colored rectangle with text
+  return `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect fill='%23cccccc' width='${width}' height='${height}'/%3E%3Ctext fill='%23666666' font-family='sans-serif' font-size='24' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3E${text}%3C/text%3E%3C/svg%3E`;
+}
+
+/**
  * Converts an amount from one currency to another
  * @param {number} amount - The amount to convert
  * @param {number} rate - The conversion rate

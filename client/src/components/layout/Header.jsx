@@ -4,6 +4,7 @@ import { Menu, X, ShoppingCart } from "lucide-react";
 import { RESTAURANT_INFO } from "../../lib/constants";
 import CurrencySelector from "../common/CurrencySelector";
 import { useCart } from "../../hooks/useCart";
+import { generatePlaceholderImage } from "../../lib/utils";
 
 /**
  * Header component that appears at the top of every page
@@ -34,7 +35,7 @@ function Header({ toggleMobileMenu }) {
                 className="h-10 w-auto"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = "https://via.placeholder.com/40";
+                  e.target.src = generatePlaceholderImage("Logo", 40, 40);
                 }}
               />
               <span className="font-bold text-xl">{RESTAURANT_INFO.name}</span>

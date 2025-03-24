@@ -4,6 +4,7 @@ import { MENU_SECTION } from "../../lib/constants";
 import { useCart } from "../../hooks/useCart";
 import { useCurrency } from "../../hooks/useCurrency";
 import { apiRequest } from "../../lib/queryClient";
+import { generatePlaceholderImage } from "../../lib/utils";
 
 /**
  * FeaturedMenu section component for the home page
@@ -125,7 +126,7 @@ function FeaturedMenu() {
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = "https://via.placeholder.com/400x300?text=Food+Item";
+                    e.target.src = generatePlaceholderImage(item.name || "Food Item", 400, 300);
                   }}
                 />
               </div>
