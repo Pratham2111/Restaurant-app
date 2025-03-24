@@ -1,93 +1,104 @@
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { useCurrency } from "@/hooks/useCurrency";
-import { formatCurrency } from "@/lib/utils";
+import { Button } from "../ui/button";
+import { formatCurrency, convertCurrency } from "../../lib/utils";
+import { useCart } from "../../hooks/useCart";
+import { useCurrency } from "../../hooks/useCurrency";
 
-export const OrderItem = ({ item, onRemove, onUpdateQuantity }) => {
+/**
+ * Component for displaying a single item in the cart/order
+ * Allows quantity adjustment and removal
+ */
+export const OrderItem = ({ item }) => {
+  const { updateQuantity, removeFromCart } = useCart();
   const { currentCurrency } = useCurrency();
   
-  // Format currency with the current currency symbol
-  const formatWithCurrency = (amount) => {
-    return formatCurrency(amount, currentCurrency?.symbol || "$");
-  };
+  // Convert prices to the selected currency
+  const convertedPrice = convertCurrency(item.price, currentCurrency.rate);
+  const formattedPrice = formatCurrency(convertedPrice, currentCurrency.symbol);
   
+  const itemTotal = convertedPrice * item.quantity;
+  const formattedTotal = formatCurrency(itemTotal, currentCurrency.symbol);
+  
+  // Handle quantity decrease
   const handleDecrease = () => {
     if (item.quantity > 1) {
-      onUpdateQuantity(item.quantity - 1);
+      updateQuantity(item.menuItemId, item.quantity - 1);
     } else {
-      onRemove();
+      removeFromCart(item.menuItemId);
     }
   };
   
+  // Handle quantity increase
   const handleIncrease = () => {
-    onUpdateQuantity(item.quantity + 1);
+    updateQuantity(item.menuItemId, item.quantity + 1);
+  };
+  
+  // Handle item removal
+  const handleRemove = () => {
+    removeFromCart(item.menuItemId);
   };
   
   return (
-    <Card className="overflow-hidden border">
-      <CardContent className="p-3 flex items-start">
-        {/* Item Image (if available) */}
-        {item.image && (
-          <div className="flex-shrink-0 mr-3">
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-16 h-16 rounded object-cover"
-            />
-          </div>
-        )}
+    <div className="flex flex-col sm:flex-row gap-4 py-4 border-b">
+      {/* Item image */}
+      {item.image && (
+        <div className="flex-shrink-0 w-full sm:w-24 h-24 rounded overflow-hidden">
+          <img
+            src={item.image}
+            alt={item.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      
+      {/* Item details */}
+      <div className="flex-grow">
+        <div className="flex justify-between">
+          <h3 className="font-medium text-base">{item.name}</h3>
+          <span className="text-sm font-medium">{formattedPrice} each</span>
+        </div>
         
-        {/* Item Details */}
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start">
-            <div>
-              <h4 className="font-medium truncate">{item.name}</h4>
-              <div className="text-sm text-muted-foreground mt-1">
-                {formatWithCurrency(item.price)} x {item.quantity}
-              </div>
-            </div>
-            <div className="text-sm font-medium">
-              {formatWithCurrency(item.price * item.quantity)}
-            </div>
+        {/* Quantity controls */}
+        <div className="flex justify-between items-center mt-2">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleDecrease}
+              aria-label="Decrease quantity"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            
+            <span className="w-8 text-center">{item.quantity}</span>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleIncrease}
+              aria-label="Increase quantity"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
           
-          {/* Quantity Controls */}
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleDecrease}
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              
-              <span className="w-8 text-center">{item.quantity}</span>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleIncrease}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
+          <div className="flex items-center space-x-4">
+            <span className="font-medium">{formattedTotal}</span>
             
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={onRemove}
+              className="h-8 w-8 text-destructive"
+              onClick={handleRemove}
+              aria-label="Remove item"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

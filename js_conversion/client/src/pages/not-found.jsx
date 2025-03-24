@@ -1,25 +1,26 @@
-import React from "react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 
-export default function NotFound() {
+const NotFound = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
-      <h1 className="text-9xl font-bold text-gray-200">404</h1>
-      <h2 className="mt-4 text-3xl font-extrabold tracking-tight lg:text-4xl">
-        Page not found
-      </h2>
-      <p className="mt-4 text-lg text-muted-foreground">
-        Sorry, we couldn't find the page you're looking for.
-      </p>
-      <div className="mt-8 flex gap-4">
-        <Button asChild>
-          <Link href="/">Go back home</Link>
-        </Button>
-        <Button variant="outline" asChild>
-          <Link href="/contact">Contact us</Link>
-        </Button>
+    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] p-4">
+      <div className="text-center">
+        <h1 className="text-7xl font-bold text-primary mb-4">404</h1>
+        <h2 className="text-3xl font-semibold mb-2">Page Not Found</h2>
+        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+          The page you are looking for doesn't exist or has been moved.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button asChild size="lg">
+            <Link href="/">Return to Home</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/menu">View Menu</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default NotFound;

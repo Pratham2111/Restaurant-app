@@ -1,26 +1,30 @@
-import React from "react";
-import { MenuTabs } from "@/components/menu/MenuTabs";
-import { MENU_SECTION } from "@/lib/constants";
+import { useQuery } from "@tanstack/react-query";
+import { MenuTabs } from "../components/menu/MenuTabs";
+import { MENU_SECTION } from "../lib/constants";
 
 const Menu = () => {
-  return (
-    <div className="flex flex-col w-full">
-      {/* Menu Header */}
-      <section className="bg-gray-900 py-12 text-white">
-        <div className="container mx-auto px-4 sm:px-8 text-center">
-          <h1 className="text-4xl font-bold mb-4">{MENU_SECTION.heading}</h1>
-          <p className="max-w-2xl mx-auto">
-            {MENU_SECTION.description}
-          </p>
-        </div>
-      </section>
+  // Fetch all categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ["/api/categories"],
+  });
 
-      {/* Menu Content */}
-      <section className="py-12">
-        <div className="container mx-auto px-4 sm:px-8">
-          <MenuTabs />
-        </div>
-      </section>
+  // Fetch all menu items
+  const { data: menuItems = [] } = useQuery({
+    queryKey: ["/api/menu-items"],
+  });
+
+  return (
+    <div className="max-w-screen-xl mx-auto px-4 py-12">
+      {/* Menu header */}
+      <div className="text-center mb-12">
+        <h1 className="text-3xl md:text-4xl font-bold mb-3">{MENU_SECTION.title}</h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          {MENU_SECTION.description}
+        </p>
+      </div>
+
+      {/* Menu items organized by category */}
+      <MenuTabs categories={categories} menuItems={menuItems} />
     </div>
   );
 };
