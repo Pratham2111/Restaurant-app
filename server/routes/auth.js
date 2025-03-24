@@ -331,13 +331,12 @@ router.post('/reset-password/:id', authenticate, authorizeAdmin, async (req, res
     
     console.log(`Admin ${req.user.email} is resetting password for user ${user.email || user.name} (ID: ${id})`);
     
-    // Hash new password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    // Hash new password - Do NOT hash here, let updateUser handle it
+    // The problem is that we're double-hashing when we do it here
     
-    // Update user with new password
+    // Update user with new password - Send plain password, updateUser will hash it
     const updatedUser = await req.app.locals.storage.updateUser(id, {
-      password: hashedPassword
+      password: newPassword
     });
     
     if (!updatedUser) {
