@@ -3,13 +3,24 @@
  */
 export const RESTAURANT_INFO = {
   name: "La Mason",
-  description: "A fine dining experience featuring fusion cuisine from around the world.",
-  address: "123 Gourmet Avenue, Culinary District, FS 12345",
-  phone: "+1 (555) 123-4567",
-  email: "contact@lamason.com",
+  tagline: "Fine French Cuisine",
+  address: {
+    street: "123 Gourmet Boulevard",
+    city: "Paris",
+    state: "Île-de-France",
+    zip: "75001",
+    country: "France"
+  },
+  phone: "+33 1 23 45 67 89",
+  email: "info@lamasonfr.com",
   hours: {
-    weekday: "11:00 AM - 10:00 PM",
-    weekend: "10:00 AM - 11:00 PM"
+    monday: "11:00 AM - 10:00 PM",
+    tuesday: "11:00 AM - 10:00 PM",
+    wednesday: "11:00 AM - 10:00 PM",
+    thursday: "11:00 AM - 10:00 PM",
+    friday: "11:00 AM - 11:00 PM",
+    saturday: "10:00 AM - 11:00 PM",
+    sunday: "10:00 AM - 10:00 PM"
   },
   social: {
     facebook: "https://facebook.com/lamason",
@@ -22,128 +33,96 @@ export const RESTAURANT_INFO = {
  * Currency options for the currency selector
  */
 export const CURRENCY_OPTIONS = [
-  { id: 1, code: "USD", symbol: "$", rate: 1, isDefault: true },
-  { id: 2, code: "EUR", symbol: "€", rate: 0.93, isDefault: false },
-  { id: 3, code: "GBP", symbol: "£", rate: 0.8, isDefault: false }
+  { value: "USD", label: "USD ($)", symbol: "$" },
+  { value: "EUR", label: "EUR (€)", symbol: "€" },
+  { value: "GBP", label: "GBP (£)", symbol: "£" }
 ];
 
 /**
  * Content for the hero section
  */
 export const HERO_SECTION = {
-  title: "Culinary Excellence in Every Bite",
-  subtitle: "Experience the art of fine dining with our innovative fusion cuisine crafted by world-class chefs.",
-  cta: {
-    primary: {
-      text: "Book a Table",
-      link: "/booking"
-    },
-    secondary: {
-      text: "View Menu",
-      link: "/menu"
-    }
-  },
-  features: [
-    "Fine Dining",
-    "Fusion Cuisine",
-    "Private Events",
-    "Award Winning"
-  ]
+  title: "Experience Authentic French Cuisine",
+  subtitle: "Welcome to La Mason",
+  description: "Indulge in the finest French culinary traditions in an elegant and cozy atmosphere. Our award-winning chefs craft each dish with passion and the freshest ingredients.",
+  button1: "View Menu",
+  button2: "Book a Table",
+  image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
 };
 
 /**
  * Content for the about section
  */
 export const ABOUT_SECTION = {
-  subtitle: "Our Story",
-  title: "Tradition Meets Innovation",
-  paragraphs: [
-    "Founded in 2005, La Mason has been serving culinary masterpieces that blend traditional techniques with innovative flavors. Our commitment to excellence extends beyond our menu to the warm, inviting atmosphere and impeccable service.",
-    "Each dish tells a story, crafted with locally-sourced, seasonal ingredients and prepared with passion by our team of expert chefs led by renowned Chef Michael Laurent."
-  ],
+  title: "Our Story",
+  subtitle: "About Us",
+  description: "La Mason was founded in 1998 by acclaimed chef Michel Bourbon, who wanted to bring the authentic flavors of French countryside to the heart of Paris. Over two decades later, we continue to honor traditional recipes while embracing modern culinary innovations. Our commitment to quality ingredients and exceptional service has earned us numerous accolades and a loyal clientele.",
+  image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80",
   features: [
-    "Locally Sourced",
-    "Seasonal Menu",
-    "Expert Chefs",
-    "Sustainable Practices"
-  ],
-  image: {
-    main: "https://images.unsplash.com/photo-1564759298141-cef86f51d4d4?w=600&auto=format&fit=crop&q=80",
-    accent: "https://images.unsplash.com/photo-1592861956120-e524fc739696?w=400&auto=format&fit=crop&q=80"
-  },
-  experience: {
-    years: 18,
-    text: "Years of Excellence"
-  }
+    {
+      title: "Authentic Recipes",
+      description: "Our dishes are prepared using traditional French recipes passed down through generations."
+    },
+    {
+      title: "Fresh Ingredients",
+      description: "We source the finest local and imported ingredients to ensure exceptional quality and flavor."
+    },
+    {
+      title: "Expert Chefs",
+      description: "Our culinary team is led by award-winning chefs with experience in renowned French restaurants."
+    },
+    {
+      title: "Elegant Ambiance",
+      description: "Our restaurant offers a sophisticated yet comfortable setting for an unforgettable dining experience."
+    }
+  ]
 };
 
 /**
  * Content for the menu section
  */
 export const MENU_SECTION = {
-  subtitle: "Our Menu",
-  title: "Culinary Masterpieces",
-  description: "Explore our diverse selection of dishes crafted with the finest ingredients and creative techniques.",
-  categories: [
-    "Appetizers",
-    "Main Courses",
-    "Seafood",
-    "Vegetarian",
-    "Desserts",
-    "Beverages"
-  ]
+  title: "Explore Our Menu",
+  subtitle: "Our Specialties",
+  description: "Discover our carefully crafted menu featuring traditional French classics and innovative seasonal dishes. Each item is prepared with the finest ingredients and expert technique.",
+  button: "View Full Menu"
 };
 
 /**
  * Content for the booking section
  */
 export const BOOKING_SECTION = {
-  subtitle: "Reservations",
-  title: "Book Your Dining Experience",
-  description: "Reserve your table at La Mason for an unforgettable culinary journey.",
-  cta: "Book Now"
+  title: "Reserve Your Table",
+  subtitle: "Book Online",
+  description: "Secure your dining experience at La Mason with our easy online reservation system. For special events or large parties, please contact us directly.",
+  image: "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
 };
 
 /**
  * Content for the order section
  */
 export const ORDER_SECTION = {
-  subtitle: "Order Online",
-  title: "Enjoy La Mason at Home",
-  description: "Order your favorite La Mason dishes for delivery or pickup.",
-  cta: "Order Now",
-  features: [
-    {
-      title: "Fast Delivery",
-      description: "Enjoy our dishes delivered to your doorstep within 45 minutes."
-    },
-    {
-      title: "Carefully Packaged",
-      description: "Every dish is carefully packaged to maintain flavor and quality."
-    },
-    {
-      title: "Easy Ordering",
-      description: "Simple, intuitive ordering process with real-time tracking."
-    }
-  ]
+  title: "Order Online",
+  subtitle: "Delivery & Takeout",
+  description: "Enjoy La Mason's culinary delights in the comfort of your home. Browse our menu, place your order, and experience gourmet French cuisine wherever you are.",
+  button: "Start Order"
 };
 
 /**
  * Content for the testimonials section
  */
 export const TESTIMONIALS_SECTION = {
-  subtitle: "Testimonials",
   title: "What Our Guests Say",
-  description: "Read about the experiences of our valued guests."
+  subtitle: "Testimonials",
+  description: "Read what our valued guests have to say about their dining experiences at La Mason."
 };
 
 /**
  * Content for the contact section
  */
 export const CONTACT_SECTION = {
-  subtitle: "Contact Us",
   title: "Get in Touch",
-  description: "We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
-  cta: "Send Message",
-  mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.0608019392337!2d-122.4194!3d37.7749!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDQ2JzMwLjUiTiAxMjLCsDI1JzA5LjkiVw!5e0!3m2!1sen!2sus!4v1647882708559!5m2!1sen!2sus"
+  subtitle: "Contact Us",
+  description: "Have questions or special requests? Reach out to our team and we'll be happy to assist you.",
+  button: "Send Message"
 };

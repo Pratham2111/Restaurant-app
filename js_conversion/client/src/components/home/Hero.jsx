@@ -1,76 +1,46 @@
 import { Link } from "wouter";
 import { Button } from "../ui/button";
-import { HERO_SECTION, RESTAURANT_INFO } from "../../lib/constants";
+import { HERO_SECTION } from "../../lib/constants";
 
 /**
- * Hero component for the homepage
- * The main banner section at the top of the home page
+ * Hero component for the home page
+ * Displays the main banner with call-to-action buttons
  */
 export const Hero = () => {
   return (
-    <section className="relative overflow-hidden">
-      {/* Hero background with overlay */}
-      <div className="absolute inset-0 bg-zinc-900 z-0">
-        <div 
-          className="absolute inset-0 bg-gradient-to-b from-zinc-900/70 to-zinc-900/90 z-10"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1920&auto=format&fit=crop')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundBlendMode: "overlay",
-            opacity: 0.7
-          }}
+    <div className="relative">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <img
+          src={HERO_SECTION.image}
+          alt="Restaurant interior"
+          className="h-full w-full object-cover"
         />
+        <div className="absolute inset-0 bg-black/60" />
       </div>
       
-      {/* Hero content */}
-      <div className="container relative z-20 py-20 md:py-32 lg:py-40 text-white">
-        <div className="max-w-3xl mx-auto text-center">
-          {/* Restaurant name and title */}
-          <h1 className="font-serif text-2xl mb-2">{RESTAURANT_INFO.name}</h1>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-            {HERO_SECTION.title}
-          </h2>
-          
-          {/* Subtitle */}
-          <p className="text-lg md:text-xl text-zinc-200 mb-8 max-w-2xl mx-auto">
-            {HERO_SECTION.subtitle}
-          </p>
-          
-          {/* CTA buttons */}
-          <div className="flex flex-wrap gap-4 justify-center mb-12">
-            <Button 
-              asChild
-              size="lg" 
-              className="text-base font-medium"
-            >
-              <Link href={HERO_SECTION.cta.primary.link}>
-                {HERO_SECTION.cta.primary.text}
-              </Link>
-            </Button>
-            
-            <Button 
-              asChild
-              variant="outline" 
-              size="lg" 
-              className="text-base font-medium bg-transparent text-white border-white hover:bg-white hover:text-zinc-900"
-            >
-              <Link href={HERO_SECTION.cta.secondary.link}>
-                {HERO_SECTION.cta.secondary.text}
-              </Link>
-            </Button>
-          </div>
-          
-          {/* Features list */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm md:text-base text-zinc-100">
-            {HERO_SECTION.features.map((feature, index) => (
-              <div key={index} className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-md">
-                {feature}
-              </div>
-            ))}
-          </div>
+      {/* Content */}
+      <div className="relative container py-24 md:py-32 lg:py-40 flex flex-col items-center text-center">
+        <h3 className="text-primary-foreground/90 font-medium mb-3 md:text-lg">
+          {HERO_SECTION.subtitle}
+        </h3>
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white max-w-3xl">
+          {HERO_SECTION.title}
+        </h1>
+        <p className="text-primary-foreground/80 max-w-xl mb-8 md:text-lg">
+          {HERO_SECTION.description}
+        </p>
+        
+        {/* Call-to-action buttons */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button asChild size="lg">
+            <Link href="/menu">{HERO_SECTION.button1}</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="bg-background/10 text-white hover:bg-background/20 hover:text-white border-white/20">
+            <Link href="/booking">{HERO_SECTION.button2}</Link>
+          </Button>
         </div>
       </div>
-    </section>
+    </div>
   );
 };

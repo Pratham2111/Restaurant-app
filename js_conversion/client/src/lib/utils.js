@@ -34,15 +34,10 @@ export function convertCurrency(amount, rate) {
  * Available time slots for booking
  */
 export const timeSlots = [
-  "11:00 AM", "11:30 AM", 
-  "12:00 PM", "12:30 PM", 
-  "1:00 PM", "1:30 PM", 
-  "2:00 PM", "2:30 PM", 
-  "5:00 PM", "5:30 PM", 
-  "6:00 PM", "6:30 PM", 
-  "7:00 PM", "7:30 PM", 
-  "8:00 PM", "8:30 PM", 
-  "9:00 PM", "9:30 PM"
+  "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM",
+  "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM",
+  "5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM",
+  "8:00 PM", "8:30 PM", "9:00 PM", "9:30 PM"
 ];
 
 /**
@@ -56,12 +51,16 @@ export const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  * @returns {string} Formatted date string
  */
 export function formatDate(date) {
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  });
+  if (!date) return "";
+  
+  const options = { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  };
+  
+  return date.toLocaleDateString('en-US', options);
 }
 
 /**
@@ -70,7 +69,7 @@ export function formatDate(date) {
  */
 export function getMinDate() {
   const today = new Date();
-  return today.toISOString().split("T")[0];
+  return today.toISOString().split('T')[0];
 }
 
 /**
@@ -80,8 +79,13 @@ export function getMinDate() {
  * @returns {string} Truncated text
  */
 export function truncateText(text, maxLength) {
-  if (!text || text.length <= maxLength) return text;
-  return `${text.substring(0, maxLength)}...`;
+  if (!text) return "";
+  
+  if (text.length <= maxLength) {
+    return text;
+  }
+  
+  return text.slice(0, maxLength) + "...";
 }
 
 /**
@@ -100,11 +104,13 @@ export function generateId() {
  */
 export function debounce(func, wait) {
   let timeout;
+  
   return function executedFunction(...args) {
     const later = () => {
       clearTimeout(timeout);
       func(...args);
     };
+    
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
@@ -116,8 +122,8 @@ export function debounce(func, wait) {
  * @returns {boolean} Whether email is valid
  */
 export function isValidEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(String(email).toLowerCase());
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
 }
 
 /**
@@ -126,8 +132,8 @@ export function isValidEmail(email) {
  * @returns {boolean} Whether phone number is valid
  */
 export function isValidPhone(phone) {
-  const re = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
-  return re.test(String(phone).trim());
+  const regex = /^\d{10,15}$/;
+  return regex.test(phone.replace(/[^0-9]/g, ""));
 }
 
 /**
@@ -135,7 +141,7 @@ export function isValidPhone(phone) {
  * @returns {number} Viewport width
  */
 export function getViewportWidth() {
-  return Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+  return window.innerWidth || document.documentElement.clientWidth;
 }
 
 /**
@@ -154,6 +160,7 @@ export function formatNumber(number) {
  */
 export function capitalizeWords(str) {
   if (!str) return "";
+  
   return str
     .split(" ")
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())

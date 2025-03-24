@@ -8,15 +8,15 @@ import { QueryClient } from "@tanstack/react-query";
  */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    // Try to parse error message from response
     let errorMessage;
+
     try {
-      const errorData = await res.json();
-      errorMessage = errorData.message || errorData.error || `HTTP error ${res.status}`;
+      const data = await res.json();
+      errorMessage = data.message || data.error || `Error: ${res.status} ${res.statusText}`;
     } catch (e) {
-      errorMessage = `HTTP error ${res.status}`;
+      errorMessage = `Error: ${res.status} ${res.statusText}`;
     }
-    
+
     const error = new Error(errorMessage);
     error.status = res.status;
     throw error;
@@ -30,42 +30,16 @@ async function throwIfResNotOk(res) {
  * @returns {Promise<any>} Response data
  */
 export async function apiRequest(path, options = {}) {
-  // Set default headers if not provided
-  const headers = options.headers || {};
-  if (!headers["Content-Type"] && !(options.body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
-  }
+  const res = await fetch(path, options);
   
-  // Set default method
-  const method = options.method || "GET";
-  
-  // Stringify body if it's an object and not FormData
-  if (typeof options.body === "object" && !(options.body instanceof FormData)) {
-    options.body = JSON.stringify(options.body);
-  }
-  
-  // Make the request
-  const res = await fetch(path, {
-    ...options,
-    headers,
-    method
-  });
-  
-  // Check for errors
   await throwIfResNotOk(res);
   
-  // If no content, return null
+  // Return null for 204 No Content
   if (res.status === 204) {
     return null;
   }
   
-  // Parse the response based on content type
-  const contentType = res.headers.get("Content-Type") || "";
-  if (contentType.includes("application/json")) {
-    return res.json();
-  }
-  
-  return res.text();
+  return res.json();
 }
 
 /**
@@ -75,16 +49,34 @@ export async function apiRequest(path, options = {}) {
  */
 export const getQueryFn = (options = { on401: "throw" }) => {
   return async ({ queryKey }) => {
-    let path = Array.isArray(queryKey) ? queryKey[0] : queryKey;
-    
     try {
-      return await apiRequest(path);
-    } catch (error) {
-      // Handle 401 Unauthorized based on options
-      if (error.status === 401) {
-        if (options.on401 === "returnNull") {
-          return null;
+      const [path, ...params] = Array.isArray(queryKey) ? queryKey : [queryKey];
+      
+      // Build URL with params if needed
+      let url = path;
+      if (params.length > 0 && typeof params[params.length - 1] === "object") {
+        const queryParams = params[params.length - 1];
+        const searchParams = new URLSearchParams();
+        
+        for (const [key, value] of Object.entries(queryParams)) {
+          if (value !== undefined && value !== null) {
+            searchParams.append(key, value.toString());
+          }
         }
+        
+        const queryString = searchParams.toString();
+        if (queryString) {
+          url = `${url}?${queryString}`;
+        }
+      } else if (params.length > 0) {
+        // Handle path parameters like /api/endpoint/:id/subresource
+        url = [path, ...params].join("/");
+      }
+      
+      return apiRequest(url);
+    } catch (error) {
+      if (error.status === 401 && options.on401 === "returnNull") {
+        return null;
       }
       throw error;
     }
@@ -97,17 +89,10 @@ export const getQueryFn = (options = { on401: "throw" }) => {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn(),
+      refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: (failureCount, error) => {
-        // Don't retry on 401, 403, 404, or 500
-        if (error.status === 401 || error.status === 403 || error.status === 404 || error.status === 500) {
-          return false;
-        }
-        
-        // Retry other errors up to 3 times
-        return failureCount < 3;
-      }
-    }
-  }
+      retry: 1,
+      queryFn: getQueryFn(),
+    },
+  },
 });
