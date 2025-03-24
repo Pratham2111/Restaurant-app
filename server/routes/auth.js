@@ -262,12 +262,10 @@ router.put('/users/:id', authenticate, authorizeAdmin, async (req, res) => {
       return res.status(400).json({ message: "Cannot change your own role" });
     }
     
-    // If password is being updated, hash it manually
-    // We need to do this because findByIdAndUpdate bypasses the pre-save middleware
+    // If password is being updated, do NOT hash it here
+    // updateUser method will handle the hashing
     if (userData.password) {
-      const saltRounds = 10;
-      userData.password = await bcrypt.hash(userData.password, saltRounds);
-      console.log('Admin update: Password hashed manually, length:', userData.password.length);
+      console.log('Admin update: Sending plaintext password to updateUser, which will hash it');
     }
     
     const user = await req.app.locals.storage.updateUser(id, userData);

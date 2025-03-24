@@ -124,16 +124,13 @@ async function registerRoutes(app) {
           }
         }
         
-        // Hash the new password
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-        
-        // Update with new password
+        // Let updateUser hash the password - avoid double hashing
+        // Update with new plaintext password
         const updatedUser = await storage.updateUser(id, {
           name,
           email,
           phone,
-          password: hashedPassword
+          password: newPassword // updateUser will hash this
         });
         
         // Remove password from response
