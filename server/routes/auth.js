@@ -1,5 +1,5 @@
 /**
- * Authentication routes for admin and sub-admin users
+ * Authentication routes for users
  */
 import express from 'express';
 import bcrypt from 'bcryptjs';
@@ -8,11 +8,69 @@ import { generateToken, authenticate, authorizeAdmin } from '../middleware/auth.
 const router = express.Router();
 
 /**
- * Register a new user (admin only)
+ * Register a new customer (public access)
  * @route POST /api/auth/register
+ * @access Public
+ */
+router.post('/register', async (req, res) => {
+  try {
+    const userData = req.body;
+    
+    // Data validation
+    if (!userData.email || !userData.password || !userData.name) {
+      return res.status(400).json({ 
+        message: "Please provide email, password, and name" 
+      });
+    }
+    
+    // Check if email already exists
+    const existingUser = await req.app.locals.storage.getUserByEmail(userData.email);
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+    
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
+    
+    // Create user with hashed password - ensure role is customer for public registrations
+    const userToCreate = {
+      ...userData,
+      role: "customer", // Force role to be customer for public registrations
+      password: hashedPassword
+    };
+    
+    const user = await req.app.locals.storage.createUser(userToCreate);
+    
+    // Create token for immediate login
+    const token = generateToken(user);
+    
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'strict'
+    });
+    
+    // Return user data without password
+    const { password: pwd, ...userWithoutPassword } = user;
+    
+    res.status(201).json({ 
+      user: userWithoutPassword,
+      token 
+    });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ message: "Failed to register user" });
+  }
+});
+
+/**
+ * Register a new user (admin only)
+ * @route POST /api/auth/admin/register
  * @access Admin only
  */
-router.post('/register', authenticate, authorizeAdmin, async (req, res) => {
+router.post('/admin/register', authenticate, authorizeAdmin, async (req, res) => {
   try {
     const userData = req.body;
     

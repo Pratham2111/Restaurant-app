@@ -79,10 +79,7 @@ export function AuthProvider({ children }) {
       const response = await apiRequest("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...userData,
-          role: "customer" // Default role for new registrations
-        }),
+        body: JSON.stringify(userData), // The server will automatically set role to "customer"
       });
 
       // Auto-login after successful registration
