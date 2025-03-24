@@ -84,33 +84,29 @@ function Order() {
   useEffect(() => {
     const fetchMenuData = async () => {
       try {
-        // API integration will be implemented later
-        // For now use the placeholder data without making API calls
-        // Uncomment the below code when API is ready
-        /*
         // Fetch categories
         const categoriesData = await apiRequest('/api/categories');
-        setCategories(categoriesData || []);
+        const fetchedCategories = categoriesData || [];
+        setCategories(fetchedCategories);
         
-        if (categoriesData && categoriesData.length > 0) {
-          setActiveCategory(categoriesData[0].id);
+        if (fetchedCategories.length > 0) {
+          setActiveCategory(fetchedCategories[0].id);
           
           // Fetch menu items for the first category
-          const menuItemsData = await apiRequest(`/api/menu?categoryId=${categoriesData[0].id}`);
+          const menuItemsData = await apiRequest(`/api/menu-items?categoryId=${fetchedCategories[0].id}`);
           setMenuItems(menuItemsData || []);
-        }
-        */
-        
-        // Use placeholder data
-        const placeholderCategories = ORDER_SECTION.categories;
-        const placeholderMenuItems = ORDER_SECTION.items;
-        
-        setCategories(placeholderCategories);
-        if (placeholderCategories.length > 0) {
-          setActiveCategory(placeholderCategories[0].id);
-          setMenuItems(placeholderMenuItems.filter(item => 
-            item.categoryId === placeholderCategories[0].id
-          ));
+        } else {
+          // Fallback to sample data if no categories returned from API
+          const placeholderCategories = ORDER_SECTION.categories;
+          const placeholderMenuItems = ORDER_SECTION.items;
+          
+          setCategories(placeholderCategories);
+          if (placeholderCategories.length > 0) {
+            setActiveCategory(placeholderCategories[0].id);
+            setMenuItems(placeholderMenuItems.filter(item => 
+              item.categoryId === placeholderCategories[0].id
+            ));
+          }
         }
         
         setIsLoadingMenu(false);
@@ -160,18 +156,9 @@ function Order() {
     setIsLoadingMenu(true);
     
     try {
-      // API integration will be implemented later
-      // For now use the placeholder data without making API calls
-      // Uncomment the below code when API is ready
-      /*
       // Fetch menu items for the selected category
-      const menuItemsData = await apiRequest(`/api/menu?categoryId=${categoryId}`);
+      const menuItemsData = await apiRequest(`/api/menu-items?categoryId=${categoryId}`);
       setMenuItems(menuItemsData || []);
-      */
-      
-      // Use placeholder data
-      const placeholderMenuItems = ORDER_SECTION.items;
-      setMenuItems(placeholderMenuItems.filter(item => item.categoryId === categoryId));
       setIsLoadingMenu(false);
     } catch (err) {
       console.error("Error fetching menu items:", err);
@@ -284,10 +271,6 @@ function Order() {
         status: "pending"
       };
       
-      // API integration will be implemented later
-      // For now simulate a successful order
-      // Uncomment the below code when API is ready
-      /*
       // Call API to create order
       const response = await apiRequest('/api/orders', {
         method: 'POST',
@@ -297,11 +280,6 @@ function Order() {
       // Handle success
       setIsSuccess(true);
       setOrderReference(response.id || "OR" + Math.floor(Math.random() * 10000));
-      */
-      
-      // Simulate successful order for now
-      setIsSuccess(true);
-      setOrderReference("OR" + Math.floor(Math.random() * 10000));
       
       // Clear cart
       clearCart();
