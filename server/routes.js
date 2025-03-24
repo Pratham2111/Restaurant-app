@@ -376,6 +376,15 @@ async function registerRoutes(app) {
       console.log(`Associating order with authenticated user ID: ${userId}`);
       orderData.userId = userId;
       
+      // Ensure the customer email matches the authenticated user's email if possible
+      if (req.user.email && (!orderData.customer || !orderData.customer.email)) {
+        if (!orderData.customer) {
+          orderData.customer = { email: req.user.email };
+        } else {
+          orderData.customer.email = req.user.email;
+        }
+      }
+      
       // Format menu item IDs if needed (MongoDB ObjectId handling)
       if (orderData.items && orderData.items.length > 0) {
         // Ensure the menuItemId values are numbers (or strings that can be converted if needed)

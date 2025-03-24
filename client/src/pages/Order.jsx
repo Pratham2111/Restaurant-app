@@ -256,23 +256,40 @@ function Order() {
     setIsSubmitting(true);
     
     try {
-      // Format data for API according to schema requirements
+      // Calculate the values for the order
+      const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const deliveryFee = orderType === "delivery" ? 5.99 : 0;
+      const taxRate = 0.08; // 8% tax rate
+      const tax = subtotal * taxRate;
+      const total = subtotal + deliveryFee + tax;
+      
+      // Format data for API according to schema requirements and MongoDB model structure
       const orderData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: orderType === "delivery" ? formData.address : "Pickup Order - No Address",
+        // Customer info
+        customer: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+        },
+        // Order items
         items: items.map(item => ({
-          menuItem: item.menuItemId, // Changed from menuItemId to menuItem to match server expectation
+          menuItem: item.menuItemId, // The field expected by MongoDB
           name: item.name,
           quantity: item.quantity,
           price: item.price
         })),
-        total: items.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 
-               (orderType === "delivery" ? 5.99 : 0) +
-               (items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.08),
-        paymentMethod: formData.paymentMethod === "card" ? "card" : "cash",
-        notes: formData.notes || ""
+        // Order details
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        tax: parseFloat(tax.toFixed(2)),
+        deliveryFee: parseFloat(deliveryFee.toFixed(2)),
+        total: parseFloat(total.toFixed(2)),
+        // Delivery details
+        delivery: orderType === "delivery",
+        address: orderType === "delivery" ? {
+          street: formData.address, // For MongoDB model we need to use the structure here
+        } : null,
+        paymentMethod: formData.paymentMethod === "card" ? "creditCard" : "cash",
+        specialInstructions: formData.notes || ""
       };
       
       // Call API to create order

@@ -37,10 +37,14 @@ const insertContactMessageSchema = z.object({
 
 // Orders
 const insertOrderSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(5, "Phone number is required"),
-  address: z.string().min(5, "Address is required"),
+  // Customer information
+  customer: z.object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().min(5, "Phone number is required"),
+  }),
+  
+  // Order items
   items: z.array(
     z.object({
       menuItemId: z.union([z.string(), z.number()]).optional(), // For client-side usage
@@ -48,6 +52,7 @@ const insertOrderSchema = z.object({
       name: z.string(),
       price: z.number().positive(),
       quantity: z.number().int().positive(),
+      specialInstructions: z.string().optional(),
     })
     // Make one of menuItemId or menuItem required
     .refine(data => data.menuItemId || data.menuItem, {
@@ -55,9 +60,25 @@ const insertOrderSchema = z.object({
       path: ["menuItem"]
     })
   ).min(1, "Order must have at least one item"),
+  
+  // Order calculations
+  subtotal: z.number().positive("Subtotal must be positive"),
+  tax: z.number().min(0, "Tax must be non-negative"),
+  deliveryFee: z.number().min(0, "Delivery fee must be non-negative"),
   total: z.number().positive("Total must be positive"),
-  paymentMethod: z.enum(["cash", "card"]),
-  notes: z.string().optional(),
+  
+  // Delivery information
+  delivery: z.boolean().optional().default(false),
+  address: z.object({
+    street: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    zipCode: z.string().optional(),
+  }).optional().nullable(),
+  
+  // Payment and notes
+  paymentMethod: z.enum(["cash", "card", "creditCard", "paypal"]),
+  specialInstructions: z.string().optional(),
 });
 
 // Testimonials
@@ -97,6 +118,7 @@ const CartItem = z.object({
   price: z.number(),
   quantity: z.number().int().positive(),
   image: z.string().optional(),
+  specialInstructions: z.string().optional(),
 });
 
 export {
