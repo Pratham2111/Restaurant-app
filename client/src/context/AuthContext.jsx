@@ -167,16 +167,15 @@ export function AuthProvider({ children }) {
       setLoading(true);
       console.log('Attempting to logout user');
       
-      // First set user to null to immediately update UI
-      setUser(null);
-      
       // Clear token from localStorage
       saveToken(null);
       
-      // Then call the server to clear the cookie
+      // Set user to null
+      setUser(null);
+      
+      // Call the server to clear the cookie
       await apiRequest("/api/auth/logout", {
         method: "POST",
-        // Adding credentials include to ensure cookies are sent with the request
         credentials: "include",
       });
       
@@ -187,9 +186,8 @@ export function AuthProvider({ children }) {
         description: "You have been successfully logged out",
       });
       
-      // Force a page refresh to ensure all state is cleared
-      // Comment out this line if you want to handle navigation without refresh
-      // window.location.href = '/';
+      // Force a page refresh to ensure a clean state
+      window.location.href = '/';
       
       return true;
     } catch (error) {
@@ -204,6 +202,9 @@ export function AuthProvider({ children }) {
         description: "You've been logged out locally, but there was an issue with the server.",
         variant: "destructive",
       });
+      
+      // Still force a refresh to ensure clean state
+      window.location.href = '/';
       
       return false;
     } finally {

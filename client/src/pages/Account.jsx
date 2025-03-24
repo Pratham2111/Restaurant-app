@@ -97,11 +97,9 @@ function Account() {
   }
 
   const handleLogout = async () => {
-    const success = await logout();
-    if (success) {
-      // Navigate to home page after successful logout
-      navigate("/");
-    }
+    // Just call logout - it will handle redirection via page refresh
+    await logout();
+    // No need to navigate here as we're using window.location.href in logout function
   };
 
   if (loading) {

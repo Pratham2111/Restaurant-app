@@ -35,8 +35,9 @@ function Header({ toggleMobileMenu }) {
   
   // Handle logout
   const handleLogout = async () => {
+    // Just call logout - it handles redirection via page refresh
     await logout();
-    navigate("/");
+    // No navigation needed as logout will refresh the page
   };
 
   return (
