@@ -1,41 +1,34 @@
 import { useContext } from "react";
 import { CartContext } from "../context/CartContext";
 import { useCurrency } from "./useCurrency";
+import { formatCurrency } from "../lib/utils";
 
 /**
  * Custom hook for accessing cart functionality
- * @returns {Object} Cart methods and state
+ * Provides access to cart data and operations with currency conversion
+ * @returns {Object} Cart methods and state with currency formatting
  */
 export const useCart = () => {
-  const cartContext = useContext(CartContext);
-  const { formatConvertedPrice, convertPrice } = useCurrency();
-  
-  if (!cartContext) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
+  const cart = useContext(CartContext);
+  const { currentCurrency, convertAmount } = useCurrency();
   
   /**
    * Format the subtotal in the current currency
    * @returns {string} Formatted subtotal
    */
   const formatSubtotal = () => {
-    return formatConvertedPrice(cartContext.getSubtotal());
+    const subtotal = cart.getSubtotal();
+    const convertedSubtotal = convertAmount(subtotal);
+    return formatCurrency(convertedSubtotal, currentCurrency.symbol);
   };
   
   /**
    * Get the delivery fee in the current currency
    * @returns {number} Converted delivery fee
    */
-  const getDeliveryFee = () => {
-    // Base delivery fee is $5.00
-    const baseFee = 5.00;
-    
-    // Free delivery for orders over $50
-    if (cartContext.getSubtotal() > 50) {
-      return 0;
-    }
-    
-    return convertPrice(baseFee);
+  const getConvertedDeliveryFee = () => {
+    const fee = cart.getDeliveryFee();
+    return convertAmount(fee);
   };
   
   /**
@@ -43,17 +36,17 @@ export const useCart = () => {
    * @returns {string} Formatted delivery fee
    */
   const formatDeliveryFee = () => {
-    return formatConvertedPrice(getDeliveryFee());
+    const convertedFee = getConvertedDeliveryFee();
+    return formatCurrency(convertedFee, currentCurrency.symbol);
   };
   
   /**
    * Get the tax in the current currency
    * @returns {number} Converted tax
    */
-  const getTax = () => {
-    // Tax rate is 8.875% (NYC tax rate)
-    const taxRate = 0.08875;
-    return convertPrice(cartContext.getSubtotal() * taxRate);
+  const getConvertedTax = () => {
+    const tax = cart.getTax();
+    return convertAmount(tax);
   };
   
   /**
@@ -61,15 +54,17 @@ export const useCart = () => {
    * @returns {string} Formatted tax
    */
   const formatTax = () => {
-    return formatConvertedPrice(getTax());
+    const convertedTax = getConvertedTax();
+    return formatCurrency(convertedTax, currentCurrency.symbol);
   };
   
   /**
    * Get the total in the current currency
    * @returns {number} Converted total
    */
-  const getTotal = () => {
-    return cartContext.getSubtotal() + getDeliveryFee() + getTax();
+  const getConvertedTotal = () => {
+    const total = cart.getTotal();
+    return convertAmount(total);
   };
   
   /**
@@ -77,7 +72,8 @@ export const useCart = () => {
    * @returns {string} Formatted total
    */
   const formatTotal = () => {
-    return formatConvertedPrice(getTotal());
+    const convertedTotal = getConvertedTotal();
+    return formatCurrency(convertedTotal, currentCurrency.symbol);
   };
   
   /**
@@ -85,19 +81,32 @@ export const useCart = () => {
    * @param {number} price - The price to format
    * @returns {string} Formatted price
    */
-  const formatItemPrice = (price) => {
-    return formatConvertedPrice(price);
+  const formatPrice = (price) => {
+    const convertedPrice = convertAmount(price);
+    return formatCurrency(convertedPrice, currentCurrency.symbol);
+  };
+  
+  /**
+   * Format an item's price with quantity
+   * @param {number} price - The price of the item
+   * @param {number} quantity - The quantity of the item
+   * @returns {string} Formatted price with quantity
+   */
+  const formatItemTotal = (price, quantity) => {
+    const total = price * quantity;
+    return formatPrice(total);
   };
   
   return {
-    ...cartContext,
+    ...cart,
     formatSubtotal,
-    getDeliveryFee,
     formatDeliveryFee,
-    getTax,
     formatTax,
-    getTotal,
     formatTotal,
-    formatItemPrice,
+    formatPrice,
+    formatItemTotal,
+    getConvertedTotal,
+    getConvertedTax,
+    getConvertedDeliveryFee
   };
 };

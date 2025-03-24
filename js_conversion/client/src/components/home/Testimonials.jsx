@@ -1,144 +1,132 @@
-import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
-import { Button } from "../ui/button";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../ui/carousel";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Card, CardContent } from "../ui/card";
+import { Skeleton } from "../ui/skeleton";
 import { TESTIMONIALS_SECTION } from "../../lib/constants";
 
 /**
  * Testimonials component for the homepage
- * Displays a carousel of customer testimonials
- * @param {Object} props - Component props
- * @param {Array} props.testimonials - Array of testimonial objects
+ * Displays customer reviews in a carousel
  */
-export const Testimonials = ({ testimonials = [] }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [autoplay, setAutoplay] = useState(true);
+export const Testimonials = () => {
+  // Fetch testimonials
+  const { 
+    data: testimonials, 
+    isLoading, 
+    error 
+  } = useQuery({
+    queryKey: ["/api/testimonials"]
+  });
   
-  // Stop autoplay on user interaction and restart after 10 seconds
-  const pauseAutoplay = () => {
-    setAutoplay(false);
-    setTimeout(() => setAutoplay(true), 10000);
+  // Generate initials for avatar fallback
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase();
   };
-  
-  // Handle next testimonial button click
-  const nextTestimonial = () => {
-    pauseAutoplay();
-    setActiveIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
-  };
-  
-  // Handle previous testimonial button click
-  const prevTestimonial = () => {
-    pauseAutoplay();
-    setActiveIndex((prevIndex) => 
-      prevIndex === 0 ? testimonials.length - 1 : prevIndex - 1
-    );
-  };
-  
-  // Autoplay functionality
-  useEffect(() => {
-    if (!autoplay || testimonials.length <= 1) return;
-    
-    const interval = setInterval(() => {
-      setActiveIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
-    }, 6000);
-    
-    return () => clearInterval(interval);
-  }, [autoplay, testimonials.length]);
-  
-  // If no testimonials, don't render the section
-  if (!testimonials.length) return null;
-  
+
   return (
-    <section className="py-16 bg-primary/5" id="testimonials">
-      <div className="max-w-screen-xl mx-auto px-4">
-        {/* Section header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-2">{TESTIMONIALS_SECTION.title}</h2>
-          <p className="text-lg text-primary font-medium mb-2">{TESTIMONIALS_SECTION.subtitle}</p>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            {TESTIMONIALS_SECTION.description}
+    <div className="container">
+      {/* Section header */}
+      <div className="text-center mb-10 md:mb-16">
+        <h3 className="text-primary font-medium mb-2">
+          {TESTIMONIALS_SECTION.subtitle}
+        </h3>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          {TESTIMONIALS_SECTION.title}
+        </h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          {TESTIMONIALS_SECTION.description}
+        </p>
+      </div>
+      
+      {/* Testimonials carousel */}
+      {isLoading && (
+        <div className="flex justify-center">
+          <Skeleton className="h-80 w-full max-w-3xl" />
+        </div>
+      )}
+      
+      {error && (
+        <div className="text-center py-10">
+          <p className="text-red-500 mb-2">
+            Failed to load testimonials
+          </p>
+          <p className="text-muted-foreground">
+            Please try again later or contact support.
           </p>
         </div>
-        
-        {/* Testimonials carousel */}
-        <div className="relative max-w-4xl mx-auto">
-          {/* Navigation arrows */}
-          {testimonials.length > 1 && (
-            <div className="absolute -left-4 md:-left-12 top-1/2 transform -translate-y-1/2 z-10">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full bg-background shadow-sm hover:bg-background hover:text-primary"
-                onClick={prevTestimonial}
-                aria-label="Previous testimonial"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-            </div>
-          )}
+      )}
+      
+      {testimonials && testimonials.length > 0 && (
+        <Carousel
+          opts={{
+            align: "center",
+            loop: true,
+          }}
+          className="w-full max-w-4xl mx-auto"
+        >
+          <CarouselContent>
+            {testimonials.map((testimonial) => (
+              <CarouselItem key={testimonial.id} className="md:basis-4/5 lg:basis-3/4">
+                <Card className="border-0 shadow-md">
+                  <CardContent className="p-8">
+                    {/* Quote icon */}
+                    <div className="mb-6 text-primary/20">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="opacity-80"
+                      >
+                        <path d="M11.0362 5C7.61055 5 5.82556 7.75 5.82556 10.4167C5.82556 12.3333 6.72228 13 7.79769 13C8.87311 13 9.5915 12.0833 9.5915 11.25C9.5915 10.4167 9.05981 9.58333 7.97439 9.58333C7.97439 7.75 8.69276 6.66667 10.5064 6.66667V5ZM17.3276 5C13.9019 5 12.1169 7.75 12.1169 10.4167C12.1169 12.3333 13.0136 13 14.089 13C15.1644 13 15.8828 12.0833 15.8828 11.25C15.8828 10.4167 15.3511 9.58333 14.2657 9.58333C14.2657 7.75 14.984 6.66667 16.7977 6.66667V5Z" />
+                        <path d="M11.0362 13.9167C7.61055 13.9167 5.82556 16.6667 5.82556 19.3333C5.82556 21.25 6.72228 21.9167 7.79769 21.9167C8.87311 21.9167 9.5915 21 9.5915 20.1667C9.5915 19.3333 9.05981 18.5 7.97439 18.5C7.97439 16.6667 8.69276 15.5833 10.5064 15.5833V13.9167ZM17.3276 13.9167C13.9019 13.9167 12.1169 16.6667 12.1169 19.3333C12.1169 21.25 13.0136 21.9167 14.089 21.9167C15.1644 21.9167 15.8828 21 15.8828 20.1667C15.8828 19.3333 15.3511 18.5 14.2657 18.5C14.2657 16.6667 14.984 15.5833 16.7977 15.5833V13.9167Z" />
+                      </svg>
+                    </div>
+                    
+                    {/* Testimonial text */}
+                    <p className="text-lg mb-8">
+                      {testimonial.content}
+                    </p>
+                    
+                    {/* Customer info */}
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={testimonial.image} alt={testimonial.name} />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {getInitials(testimonial.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h4 className="font-medium">{testimonial.name}</h4>
+                        {testimonial.title && (
+                          <p className="text-sm text-muted-foreground">
+                            {testimonial.title}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
           
-          {testimonials.length > 1 && (
-            <div className="absolute -right-4 md:-right-12 top-1/2 transform -translate-y-1/2 z-10">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full bg-background shadow-sm hover:bg-background hover:text-primary"
-                onClick={nextTestimonial}
-                aria-label="Next testimonial"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </div>
-          )}
-          
-          {/* Current testimonial */}
-          <div className="bg-card rounded-xl p-6 md:p-8 shadow-sm relative">
-            {/* Quote icon */}
-            <div className="absolute top-6 left-6 text-primary/10">
-              <Quote className="h-20 w-20" />
-            </div>
-            
-            <div className="text-center relative z-10">
-              <div className="mb-6">
-                <Avatar className="h-20 w-20 mx-auto border-4 border-primary/10">
-                  <AvatarImage src={testimonials[activeIndex].image} alt={testimonials[activeIndex].name} />
-                  <AvatarFallback>{testimonials[activeIndex].name.substring(0, 2)}</AvatarFallback>
-                </Avatar>
-              </div>
-              
-              <blockquote className="text-lg md:text-xl font-medium mb-6 max-w-2xl mx-auto">
-                "{testimonials[activeIndex].comment}"
-              </blockquote>
-              
-              <div>
-                <div className="font-bold">{testimonials[activeIndex].name}</div>
-                {testimonials[activeIndex].title && (
-                  <div className="text-muted-foreground text-sm">{testimonials[activeIndex].title}</div>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          {/* Testimonial indicators */}
-          {testimonials.length > 1 && (
-            <div className="flex justify-center mt-6">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  className={`w-2.5 h-2.5 rounded-full mx-1 transition-colors ${
-                    index === activeIndex ? "bg-primary" : "bg-primary/20"
-                  }`}
-                  onClick={() => {
-                    pauseAutoplay();
-                    setActiveIndex(index);
-                  }}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
+          <CarouselPrevious className="hidden md:flex" />
+          <CarouselNext className="hidden md:flex" />
+        </Carousel>
+      )}
+    </div>
   );
 };

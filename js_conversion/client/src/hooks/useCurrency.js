@@ -1,44 +1,48 @@
 import { useContext } from "react";
 import { CurrencyContext } from "../context/CurrencyContext";
-import { formatCurrency, convertCurrency } from "../lib/utils";
+import { formatCurrency } from "../lib/utils";
 
 /**
  * Custom hook for accessing currency functionality
+ * Provides access to currency data and conversion operations
  * @returns {Object} Currency methods and state
  */
 export const useCurrency = () => {
-  const currencyContext = useContext(CurrencyContext);
-  
-  if (!currencyContext) {
-    throw new Error("useCurrency must be used within a CurrencyProvider");
-  }
-  
-  const { currentCurrency } = currencyContext;
+  const { 
+    currencySettings, 
+    currentCurrency, 
+    loading, 
+    error, 
+    setCurrency 
+  } = useContext(CurrencyContext);
   
   /**
-   * Convert a price from USD to current currency
-   * @param {number} amount - Price amount in USD
-   * @returns {number} Converted price
+   * Convert an amount from USD to the current currency
+   * @param {number} amount - Amount in USD
+   * @returns {number} Converted amount
    */
-  const convertPrice = (amount) => {
-    if (!amount) return 0;
-    return convertCurrency(amount, currentCurrency.rate);
+  const convertAmount = (amount) => {
+    if (!currentCurrency) return amount;
+    return amount * currentCurrency.rate;
   };
   
   /**
-   * Format a price after converting to current currency
-   * @param {number} amount - Price amount in USD
-   * @returns {string} Formatted converted price string
+   * Format an amount in the current currency
+   * @param {number} amount - Amount in USD
+   * @returns {string} Formatted amount with currency symbol
    */
-  const formatConvertedPrice = (amount) => {
-    if (!amount) return formatCurrency(0, currentCurrency.symbol);
-    const convertedAmount = convertPrice(amount);
-    return formatCurrency(convertedAmount, currentCurrency.symbol);
+  const formatPrice = (amount) => {
+    const convertedAmount = convertAmount(amount);
+    return formatCurrency(convertedAmount, currentCurrency?.symbol || "$");
   };
   
   return {
-    ...currencyContext,
-    convertPrice,
-    formatConvertedPrice
+    currencySettings,
+    currentCurrency,
+    loading,
+    error,
+    setCurrency,
+    convertAmount,
+    formatPrice
   };
 };
