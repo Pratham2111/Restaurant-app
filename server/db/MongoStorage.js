@@ -311,6 +311,40 @@ class MongoStorage {
       throw error;
     }
   }
+  
+  /**
+   * Updates a menu item
+   * @param {string} id - The menu item ID
+   * @param {Object} menuItemData - The menu item data to update
+   * @returns {Promise<Object|undefined>} The updated menu item or undefined
+   */
+  async updateMenuItem(id, menuItemData) {
+    try {
+      return await MenuItem.findByIdAndUpdate(
+        id,
+        menuItemData,
+        { new: true }
+      ).populate('category');
+    } catch (error) {
+      console.error('Error updating menu item:', error);
+      return undefined;
+    }
+  }
+  
+  /**
+   * Deletes a menu item
+   * @param {string} id - The menu item ID
+   * @returns {Promise<boolean>} Whether the menu item was deleted
+   */
+  async deleteMenuItem(id) {
+    try {
+      const result = await MenuItem.findByIdAndDelete(id);
+      return !!result;
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      return false;
+    }
+  }
 
   /**
    * Retrieves all reservations
@@ -392,10 +426,30 @@ class MongoStorage {
     const newContactMessage = {
       id: Date.now(),
       ...contactMessage,
+      read: false,
       timestamp: new Date().toISOString()
     };
     this.contactMessages.push(newContactMessage);
     return newContactMessage;
+  }
+  
+  /**
+   * Updates a contact message status
+   * @param {number} id - The contact message ID
+   * @param {Object} statusData - The status data to update
+   * @returns {Promise<Object|undefined>} The updated contact message or undefined
+   */
+  async updateContactMessageStatus(id, statusData) {
+    // Using in-memory approach until we create a model for contact messages
+    const index = this.contactMessages.findIndex(msg => msg.id === parseInt(id));
+    if (index === -1) return undefined;
+    
+    this.contactMessages[index] = {
+      ...this.contactMessages[index],
+      ...statusData
+    };
+    
+    return this.contactMessages[index];
   }
 
   /**
@@ -461,11 +515,16 @@ class MongoStorage {
 
   /**
    * Retrieves all testimonials
+   * @param {boolean} showAll - Whether to show all testimonials or just approved ones
    * @returns {Promise<Array>} Array of testimonial objects
    */
-  async getTestimonials() {
+  async getTestimonials(showAll = false) {
     // Using in-memory approach until we create a model for testimonials
-    return this.testimonials;
+    if (showAll) {
+      return this.testimonials;
+    } else {
+      return this.testimonials.filter(t => t.status === 'approved');
+    }
   }
 
   /**
@@ -477,10 +536,44 @@ class MongoStorage {
     // Using in-memory approach until we create a model for testimonials
     const newTestimonial = {
       id: Date.now(),
-      ...testimonial
+      ...testimonial,
+      status: 'pending', // All new testimonials start as pending for admin approval
+      createdAt: new Date().toISOString()
     };
     this.testimonials.push(newTestimonial);
     return newTestimonial;
+  }
+  
+  /**
+   * Updates a testimonial status
+   * @param {number} id - The testimonial ID
+   * @param {string} status - The new status (pending, approved, rejected)
+   * @returns {Promise<Object|undefined>} The updated testimonial or undefined
+   */
+  async updateTestimonialStatus(id, status) {
+    // Using in-memory approach until we create a model for testimonials
+    const index = this.testimonials.findIndex(t => t.id === parseInt(id));
+    if (index === -1) return undefined;
+    
+    this.testimonials[index] = {
+      ...this.testimonials[index],
+      status,
+      updatedAt: new Date().toISOString()
+    };
+    
+    return this.testimonials[index];
+  }
+  
+  /**
+   * Deletes a testimonial
+   * @param {number} id - The testimonial ID
+   * @returns {Promise<boolean>} Whether the testimonial was deleted
+   */
+  async deleteTestimonial(id) {
+    // Using in-memory approach until we create a model for testimonials
+    const initialLength = this.testimonials.length;
+    this.testimonials = this.testimonials.filter(t => t.id !== parseInt(id));
+    return initialLength > this.testimonials.length;
   }
 
   /**
