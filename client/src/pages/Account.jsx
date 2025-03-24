@@ -19,7 +19,7 @@ function Account() {
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { format } = useCurrency();
+  const { formatAmount } = useCurrency();
 
   // Fetch user's orders and bookings
   useEffect(() => {
