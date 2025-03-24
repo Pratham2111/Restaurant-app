@@ -55,7 +55,7 @@ async function registerRoutes(app) {
 
   app.get("/api/categories/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const category = await storage.getCategoryById(id);
       
       if (!category) {
@@ -90,9 +90,30 @@ async function registerRoutes(app) {
     }
   });
 
+  app.get("/api/menu-items/featured", async (req, res) => {
+    try {
+      const featuredItems = await storage.getFeaturedMenuItems();
+      res.json(featuredItems);
+    } catch (error) {
+      console.error("Error fetching featured menu items:", error);
+      res.status(500).json({ message: "Failed to fetch featured menu items" });
+    }
+  });
+
+  app.get("/api/menu-items/category/:categoryId", async (req, res) => {
+    try {
+      const categoryId = req.params.categoryId; // Keep as string for MongoDB ObjectId
+      const menuItems = await storage.getMenuItemsByCategory(categoryId);
+      res.json(menuItems);
+    } catch (error) {
+      console.error("Error fetching menu items by category:", error);
+      res.status(500).json({ message: "Failed to fetch menu items by category" });
+    }
+  });
+
   app.get("/api/menu-items/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const menuItem = await storage.getMenuItemById(id);
       
       if (!menuItem) {
@@ -103,27 +124,6 @@ async function registerRoutes(app) {
     } catch (error) {
       console.error("Error fetching menu item:", error);
       res.status(500).json({ message: "Failed to fetch menu item" });
-    }
-  });
-
-  app.get("/api/menu-items/category/:categoryId", async (req, res) => {
-    try {
-      const categoryId = parseInt(req.params.categoryId);
-      const menuItems = await storage.getMenuItemsByCategory(categoryId);
-      res.json(menuItems);
-    } catch (error) {
-      console.error("Error fetching menu items by category:", error);
-      res.status(500).json({ message: "Failed to fetch menu items by category" });
-    }
-  });
-
-  app.get("/api/menu-items/featured", async (req, res) => {
-    try {
-      const featuredItems = await storage.getFeaturedMenuItems();
-      res.json(featuredItems);
-    } catch (error) {
-      console.error("Error fetching featured menu items:", error);
-      res.status(500).json({ message: "Failed to fetch featured menu items" });
     }
   });
 
@@ -150,7 +150,7 @@ async function registerRoutes(app) {
 
   app.get("/api/reservations/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const reservation = await storage.getReservationById(id);
       
       if (!reservation) {
@@ -176,7 +176,7 @@ async function registerRoutes(app) {
 
   app.patch("/api/reservations/:id/status", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const { status } = req.body;
       
       if (!status || typeof status !== "string") {
@@ -230,7 +230,7 @@ async function registerRoutes(app) {
 
   app.get("/api/orders/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const order = await storage.getOrderById(id);
       
       if (!order) {
@@ -256,7 +256,7 @@ async function registerRoutes(app) {
 
   app.patch("/api/orders/:id/status", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const { status } = req.body;
       
       if (!status || typeof status !== "string") {
