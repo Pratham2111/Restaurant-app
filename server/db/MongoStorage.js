@@ -486,43 +486,7 @@ class MongoStorage {
    */
   async createOrder(order) {
     try {
-      // Transform the data to match the MongoDB schema
-      const orderData = {
-        customer: {
-          name: order.name,
-          email: order.email,
-          phone: order.phone
-        },
-        items: order.items.map(item => ({
-          menuItem: item.menuItemId, // This should be the MongoDB ObjectId or string ID
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          specialInstructions: item.notes || ""
-        })),
-        subtotal: order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        tax: order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.08,
-        deliveryFee: order.orderType === "delivery" ? 5.99 : 0,
-        total: order.total,
-        delivery: order.orderType === "delivery",
-        paymentMethod: order.paymentMethod,
-        status: "pending",
-        specialInstructions: order.notes || "",
-        createdAt: new Date()
-      };
-      
-      // Add address if it's a delivery order
-      if (order.orderType === "delivery") {
-        orderData.address = {
-          street: order.address,
-          city: order.city || "",
-          state: order.state || "",
-          zipCode: order.zipCode || ""
-        };
-      }
-      
-      console.log("Transformed order data for MongoDB:", JSON.stringify(orderData));
-      const newOrder = new Order(orderData);
+      const newOrder = new Order(order);
       return await newOrder.save();
     } catch (error) {
       console.error('Error creating order:', error);
