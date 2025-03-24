@@ -6,9 +6,13 @@ import mongoose from 'mongoose';
 
 const orderItemSchema = new mongoose.Schema({
   menuItem: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.Mixed, // Using Mixed type to accept both ObjectId and other formats
     ref: 'MenuItem',
     required: true,
+  },
+  menuItemId: {
+    type: mongoose.Schema.Types.Mixed, // Allow for either string or number IDs
+    required: false, // Not required as we might use menuItem directly
   },
   name: {
     type: String,
@@ -31,6 +35,11 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.Mixed, // Use Mixed to handle different ID formats
+    ref: 'User',
+    required: true,
+  },
   customer: {
     name: {
       type: String,

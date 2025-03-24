@@ -37,6 +37,9 @@ const insertContactMessageSchema = z.object({
 
 // Orders
 const insertOrderSchema = z.object({
+  // User ID (added for authenticated orders)
+  userId: z.union([z.string(), z.number()]).optional(), // Will be set by the server
+  
   // Customer information
   customer: z.object({
     name: z.string().min(1, "Name is required"),

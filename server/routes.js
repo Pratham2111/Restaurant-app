@@ -379,10 +379,34 @@ async function registerRoutes(app) {
       // Ensure the customer email matches the authenticated user's email if possible
       if (req.user.email && (!orderData.customer || !orderData.customer.email)) {
         if (!orderData.customer) {
-          orderData.customer = { email: req.user.email };
+          orderData.customer = { 
+            name: req.user.name || 'Customer',
+            email: req.user.email,
+            phone: req.user.phone || ''
+          };
         } else {
           orderData.customer.email = req.user.email;
+          if (!orderData.customer.name) orderData.customer.name = req.user.name || 'Customer';
         }
+      }
+      
+      // Process items to work with MongoDB model
+      if (orderData.items && orderData.items.length > 0) {
+        orderData.items = orderData.items.map(item => {
+          // Make sure each item has both menuItemId and menuItem for flexibility
+          const updatedItem = { ...item };
+          
+          // If menuItemId exists but not menuItem
+          if (item.menuItemId && !item.menuItem) {
+            updatedItem.menuItem = item.menuItemId;
+          }
+          // If menuItem exists but not menuItemId
+          else if (item.menuItem && !item.menuItemId) {
+            updatedItem.menuItemId = item.menuItem;
+          }
+          
+          return updatedItem;
+        });
       }
       
       // Format menu item IDs if needed (MongoDB ObjectId handling)
