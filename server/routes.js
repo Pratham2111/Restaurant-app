@@ -365,6 +365,10 @@ async function registerRoutes(app) {
 
   app.post("/api/orders", authenticate, async (req, res) => {
     try {
+      // Log the incoming order data for debugging
+      console.log("Received order data:", JSON.stringify(req.body));
+      
+      // Parse and validate the order data
       const orderData = insertOrderSchema.parse(req.body);
       
       // User is authenticated (required), so associate the order with their userId
@@ -372,19 +376,19 @@ async function registerRoutes(app) {
       console.log(`Associating order with authenticated user ID: ${userId}`);
       orderData.userId = userId;
       
-      // Ensure email matches the logged-in user
-      if (!orderData.customerEmail && req.user.email) {
-        orderData.customerEmail = req.user.email;
-      }
-      
-      // Also ensure name matches the logged-in user if available
-      if (!orderData.customerName && req.user.name) {
-        orderData.customerName = req.user.name;
+      // Format menu item IDs if needed (MongoDB ObjectId handling)
+      if (orderData.items && orderData.items.length > 0) {
+        // Ensure the menuItemId values are numbers (or strings that can be converted if needed)
+        orderData.items = orderData.items.map(item => ({
+          ...item,
+          // Keep menuItemId as is, storage layer will handle conversion if needed
+        }));
       }
       
       const order = await storage.createOrder(orderData);
       res.status(201).json(order);
     } catch (error) {
+      console.error("Order creation error:", error);
       handleZodError(error, res);
     }
   });

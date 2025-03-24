@@ -256,19 +256,23 @@ function Order() {
     setIsSubmitting(true);
     
     try {
-      // Format data for API
+      // Format data for API according to schema requirements
       const orderData = {
-        ...formData,
-        orderType,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: orderType === "delivery" ? formData.address : "Pickup Order - No Address",
         items: items.map(item => ({
           menuItemId: item.menuItemId,
+          name: item.name,
           quantity: item.quantity,
           price: item.price
         })),
-        subtotal: items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        deliveryFee: orderType === "delivery" ? 5.99 : 0,
-        tax: items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.08,
-        status: "pending"
+        total: items.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 
+               (orderType === "delivery" ? 5.99 : 0) +
+               (items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.08),
+        paymentMethod: formData.paymentMethod === "card" ? "card" : "cash",
+        notes: formData.notes || ""
       };
       
       // Call API to create order
@@ -449,7 +453,7 @@ function Order() {
                         </p>
                         <button
                           onClick={() => addItem({
-                            menuItemId: item.id,
+                            menuItemId: item._id || item.id, // Support MongoDB _id or regular id
                             name: item.name,
                             price: item.price,
                             quantity: 1,

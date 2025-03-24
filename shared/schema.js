@@ -43,7 +43,7 @@ const insertOrderSchema = z.object({
   address: z.string().min(5, "Address is required"),
   items: z.array(
     z.object({
-      menuItemId: z.number().int(),
+      menuItemId: z.union([z.string(), z.number()]), // Accept both string IDs (MongoDB) and number IDs
       name: z.string(),
       price: z.number().positive(),
       quantity: z.number().int().positive(),
