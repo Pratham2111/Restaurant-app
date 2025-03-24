@@ -1,39 +1,22 @@
-// This is a dummy file to replace Vite's HMR client
-// It provides empty implementations of the functions that Vite's client uses
+// Simple HMR disabling for Vite
+// This file provides minimal intervention to stop HMR refresh loops
 
-// Mock createHotContext function
-window.createHotContext = () => ({
-  accept: () => {},
-  dispose: () => {},
-  prune: () => {},
-  decline: () => {},
-  invalidate: () => {},
-  on: () => {},
-  send: () => {}
-});
-
-// Mock other HMR-related functions
-window.__HMR_PROTOCOL__ = null;
-window.__HMR_HOSTNAME__ = null;
-window.__HMR_PORT__ = null;
-window.__HMR_BASE_PATH__ = null;
-window.__HMR_TIMEOUT__ = null;
-window.__HMR_ENABLE_OVERLAY__ = false;
-
-// Override WebSocket to prevent Vite from establishing connections
-const OriginalWebSocket = window.WebSocket;
-window.WebSocket = function(url) {
-  // Only intercept Vite HMR WebSocket connections
-  if (url && url.includes('/@vite/client')) {
-    console.log('Prevented Vite HMR WebSocket connection');
-    return {
-      send: () => {},
-      close: () => {}
-    };
+// Filter out HMR-related console messages only
+const originalConsoleWarn = console.warn;
+console.warn = function(...args) {
+  const message = args.join(' ');
+  if (!message.includes('HMR')) {
+    originalConsoleWarn.apply(console, args);
   }
-  
-  // Allow other WebSocket connections to proceed normally
-  return new OriginalWebSocket(...arguments);
 };
+
+// Basic HMR context mocking to prevent errors
+if (window.createHotContext) {
+  window.createHotContext = () => ({
+    accept: () => {},
+    dispose: () => {},
+    data: {}
+  });
+}
 
 console.log('HMR disabled to prevent refresh loops');

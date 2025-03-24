@@ -22,7 +22,7 @@ async function setupVite(app, server) {
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
-        hmr: false, // Completely disable HMR to prevent constant refreshing
+        hmr: false, // Disable HMR but in a less aggressive way
         host: '0.0.0.0',
         allowedHosts: ["all"],
       },
