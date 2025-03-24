@@ -50,6 +50,14 @@ class IStorage {
   async getDefaultCurrency() { throw new Error("Not implemented"); }
   async createCurrencySetting(currencySetting) { throw new Error("Not implemented"); }
   async updateDefaultCurrency(id) { throw new Error("Not implemented"); }
+
+  // Users
+  async getUsers() { throw new Error("Not implemented"); }
+  async getUserById(id) { throw new Error("Not implemented"); }
+  async getUserByEmail(email) { throw new Error("Not implemented"); }
+  async createUser(userData) { throw new Error("Not implemented"); }
+  async updateUser(id, userData) { throw new Error("Not implemented"); }
+  async deleteUser(id) { throw new Error("Not implemented"); }
 }
 
 /**
@@ -65,6 +73,7 @@ class MemStorage {
     this.orders = new Map();
     this.testimonials = new Map();
     this.currencySettings = new Map();
+    this.users = new Map();
     
     // Auto-increment IDs
     this.categoryId = 1;
@@ -74,6 +83,7 @@ class MemStorage {
     this.orderId = 1;
     this.testimonialId = 1;
     this.currencySettingId = 1;
+    this.userId = 1;
     
     // Initialize with sample data
     this.initializeData();
@@ -470,6 +480,83 @@ class MemStorage {
     const updatedCurrency = { ...currency, isDefault: true };
     this.currencySettings.set(id, updatedCurrency);
     return updatedCurrency;
+  }
+
+  /**
+   * Retrieves all users
+   * @returns {Promise<Array>} Array of user objects
+   */
+  async getUsers() {
+    return Array.from(this.users.values()).map(user => {
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+  }
+
+  /**
+   * Retrieves a user by ID
+   * @param {number} id - The user ID
+   * @returns {Promise<Object|undefined>} The user object or undefined
+   */
+  async getUserById(id) {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+
+  /**
+   * Retrieves a user by email
+   * @param {string} email - The user email
+   * @returns {Promise<Object|undefined>} The user object or undefined
+   */
+  async getUserByEmail(email) {
+    const user = Array.from(this.users.values()).find(
+      user => user.email === email
+    );
+    return user;
+  }
+
+  /**
+   * Creates a new user
+   * @param {Object} userData - The user data
+   * @returns {Promise<Object>} The created user with ID
+   */
+  async createUser(userData) {
+    const id = this.userId++;
+    // In a real implementation, we would hash the password here
+    const newUser = { ...userData, id, createdAt: new Date().toISOString() };
+    this.users.set(id, newUser);
+    
+    const { password, ...userWithoutPassword } = newUser;
+    return userWithoutPassword;
+  }
+
+  /**
+   * Updates a user
+   * @param {number} id - The user ID
+   * @param {Object} userData - The user data to update
+   * @returns {Promise<Object|undefined>} The updated user or undefined
+   */
+  async updateUser(id, userData) {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...userData };
+    this.users.set(id, updatedUser);
+    
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+  }
+
+  /**
+   * Deletes a user
+   * @param {number} id - The user ID
+   * @returns {Promise<boolean>} Whether the user was deleted
+   */
+  async deleteUser(id) {
+    return this.users.delete(id);
   }
 }
 

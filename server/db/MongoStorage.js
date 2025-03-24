@@ -5,7 +5,7 @@
  */
 
 import mongoose from 'mongoose';
-import { Category, MenuItem, Reservation, Order } from './models/index.js';
+import { Category, MenuItem, Reservation, Order, User } from './models/index.js';
 
 /**
  * MongoDB implementation of the storage interface
@@ -497,6 +497,96 @@ class MongoStorage {
     this.defaultCurrency = this.currencySettings[index];
     
     return this.currencySettings[index];
+  }
+
+  /**
+   * Retrieves all users
+   * @returns {Promise<Array>} Array of user objects
+   */
+  async getUsers() {
+    try {
+      return await User.find().select('-password');
+    } catch (error) {
+      console.error('Error getting users:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Retrieves a user by ID
+   * @param {string} id - The user ID
+   * @returns {Promise<Object|undefined>} The user object or undefined
+   */
+  async getUserById(id) {
+    try {
+      return await User.findById(id).select('-password');
+    } catch (error) {
+      console.error('Error getting user by ID:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Retrieves a user by email
+   * @param {string} email - The user email
+   * @returns {Promise<Object|undefined>} The user object or undefined
+   */
+  async getUserByEmail(email) {
+    try {
+      return await User.findOne({ email });
+    } catch (error) {
+      console.error('Error getting user by email:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Creates a new user
+   * @param {Object} userData - The user data
+   * @returns {Promise<Object>} The created user with ID
+   */
+  async createUser(userData) {
+    try {
+      const newUser = new User(userData);
+      return await newUser.save();
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Updates a user
+   * @param {string} id - The user ID
+   * @param {Object} userData - The user data to update
+   * @returns {Promise<Object|undefined>} The updated user or undefined
+   */
+  async updateUser(id, userData) {
+    try {
+      return await User.findByIdAndUpdate(
+        id,
+        userData,
+        { new: true }
+      ).select('-password');
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Deletes a user
+   * @param {string} id - The user ID
+   * @returns {Promise<boolean>} Whether the user was deleted
+   */
+  async deleteUser(id) {
+    try {
+      const result = await User.findByIdAndDelete(id);
+      return !!result;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
   }
 }
 
