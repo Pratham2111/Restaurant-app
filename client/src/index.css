@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Disable HMR-related transitions to prevent flashing during development */
+*::before,
+*::after {
+  transition: none !important;
+  animation: none !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
