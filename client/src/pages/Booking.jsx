@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BOOKING_SECTION, RESTAURANT_INFO } from "../lib/constants";
 import { timeSlots, guestOptions, formatDate, getMinDate, isValidEmail, isValidPhone } from "../lib/utils";
 import { apiRequest } from "../lib/queryClient";
 import { useToast } from "../hooks/use-toast.jsx";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Booking page component
  */
 function Booking() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const minDate = getMinDate();
   
   // Form state
@@ -21,6 +23,18 @@ function Booking() {
     guests: 2,
     specialRequests: "",
   });
+  
+  // Auto-fill user data if logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prevData => ({
+        ...prevData,
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || prevData.phone,
+      }));
+    }
+  }, [user]);
   
   // Form validation errors
   const [errors, setErrors] = useState({});
@@ -104,24 +118,19 @@ function Booking() {
         date: formatDate(new Date(formData.date)),
       };
       
-      // API integration will be implemented later
-      // For now simulate a successful booking
-      // Uncomment the below code when API is ready
-      /*
       // Call API to create reservation
       const response = await apiRequest('/api/reservations', {
         method: 'POST',
         body: JSON.stringify(bookingData),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include' // Include cookies for authentication if user is logged in
       });
       
       // Handle success
       setIsSuccess(true);
-      setBookingReference(response.id || "BR" + Math.floor(Math.random() * 10000));
-      */
-      
-      // Simulate successful booking for now
-      setIsSuccess(true);
-      setBookingReference("BR" + Math.floor(Math.random() * 10000));
+      setBookingReference(response._id || response.id || "BR" + Math.floor(Math.random() * 10000));
       
       // Reset form
       setFormData({
