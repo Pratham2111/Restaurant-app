@@ -8,10 +8,10 @@ import { useCurrency } from "./useCurrency";
  * @returns {Object} Cart methods and state with currency formatting
  */
 export const useCart = () => {
-  const cart = useContext(CartContext);
-  const { convert, formatPrice } = useCurrency();
+  const cartContext = useContext(CartContext);
+  const { formatPrice, convertPrice } = useCurrency();
   
-  if (!cart) {
+  if (!cartContext) {
     throw new Error("useCart must be used within a CartProvider");
   }
   
@@ -20,7 +20,7 @@ export const useCart = () => {
    * @returns {string} Formatted subtotal
    */
   const getFormattedSubtotal = () => {
-    return formatPrice(cart.getSubtotal());
+    return formatPrice(cartContext.getSubtotal());
   };
   
   /**
@@ -28,7 +28,7 @@ export const useCart = () => {
    * @returns {number} Converted delivery fee
    */
   const getConvertedDeliveryFee = () => {
-    return convert(cart.getDeliveryFee());
+    return convertPrice(cartContext.getDeliveryFee());
   };
   
   /**
@@ -36,7 +36,7 @@ export const useCart = () => {
    * @returns {string} Formatted delivery fee
    */
   const getFormattedDeliveryFee = () => {
-    return formatPrice(cart.getDeliveryFee());
+    return formatPrice(cartContext.getDeliveryFee());
   };
   
   /**
@@ -44,7 +44,7 @@ export const useCart = () => {
    * @returns {number} Converted tax
    */
   const getConvertedTax = () => {
-    return convert(cart.getTax());
+    return convertPrice(cartContext.getTax());
   };
   
   /**
@@ -52,7 +52,7 @@ export const useCart = () => {
    * @returns {string} Formatted tax
    */
   const getFormattedTax = () => {
-    return formatPrice(cart.getTax());
+    return formatPrice(cartContext.getTax());
   };
   
   /**
@@ -60,7 +60,7 @@ export const useCart = () => {
    * @returns {number} Converted total
    */
   const getConvertedTotal = () => {
-    return convert(cart.getTotal());
+    return convertPrice(cartContext.getTotal());
   };
   
   /**
@@ -68,7 +68,7 @@ export const useCart = () => {
    * @returns {string} Formatted total
    */
   const getFormattedTotal = () => {
-    return formatPrice(cart.getTotal());
+    return formatPrice(cartContext.getTotal());
   };
   
   /**
@@ -86,12 +86,12 @@ export const useCart = () => {
    * @param {number} quantity - The quantity of the item
    * @returns {string} Formatted price with quantity
    */
-  const formatItemTotal = (price, quantity) => {
+  const formatItemTotalPrice = (price, quantity) => {
     return formatPrice(price * quantity);
   };
   
   return {
-    ...cart,
+    ...cartContext,
     getFormattedSubtotal,
     getConvertedDeliveryFee,
     getFormattedDeliveryFee,
@@ -100,6 +100,6 @@ export const useCart = () => {
     getConvertedTotal,
     getFormattedTotal,
     formatItemPrice,
-    formatItemTotal
+    formatItemTotalPrice
   };
 };

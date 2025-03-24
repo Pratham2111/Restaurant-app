@@ -8,14 +8,13 @@ import { QueryClient } from "@tanstack/react-query";
  */
 async function throwIfResNotOk(res) {
   if (!res.ok) {
-    let errorText;
+    let errorText = "";
     try {
-      const data = await res.json();
-      errorText = data.message || data.error || res.statusText;
+      const errorData = await res.json();
+      errorText = errorData.message || errorData.error || res.statusText;
     } catch (e) {
       errorText = res.statusText;
     }
-    
     const error = new Error(errorText);
     error.status = res.status;
     throw error;
@@ -35,24 +34,29 @@ export async function apiRequest(path, options = {}) {
     },
   };
   
-  const mergedOptions = { ...defaultOptions, ...options };
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    headers: {
+      ...defaultOptions.headers,
+      ...options.headers,
+    },
+  };
   
-  if (mergedOptions.body && typeof mergedOptions.body !== "string") {
+  // Convert body to JSON string if needed
+  if (mergedOptions.body && typeof mergedOptions.body === "object") {
     mergedOptions.body = JSON.stringify(mergedOptions.body);
   }
   
   const res = await fetch(path, mergedOptions);
   await throwIfResNotOk(res);
   
-  // Check if there's content to parse
-  const contentType = res.headers.get("content-type");
-  if (contentType && contentType.includes("application/json")) {
-    const contentLength = res.headers.get("content-length");
-    if (contentLength === "0") return null;
-    return res.json();
+  // Return null for 204 No Content
+  if (res.status === 204) {
+    return null;
   }
   
-  return null;
+  return res.json();
 }
 
 /**
@@ -62,13 +66,26 @@ export async function apiRequest(path, options = {}) {
  */
 export const getQueryFn = (options = { on401: "throw" }) => {
   return async ({ queryKey }) => {
-    const [path] = queryKey;
+    let [path, ...params] = queryKey;
     
     try {
+      // If there are parameters, append them to the path as query string
+      if (params && params.length > 0 && params[0] !== undefined) {
+        if (path.includes("/")) {
+          path = path.replace(/\/\d+$/, `/${params[0]}`);
+        } else {
+          const queryParams = new URLSearchParams(params[0]);
+          path = `${path}?${queryParams}`;
+        }
+      }
+      
       return await apiRequest(path);
     } catch (error) {
-      if (error.status === 401 && options.on401 === "returnNull") {
-        return null;
+      // Handle unauthorized errors according to options
+      if (error.status === 401) {
+        if (options.on401 === "returnNull") {
+          return null;
+        }
       }
       throw error;
     }

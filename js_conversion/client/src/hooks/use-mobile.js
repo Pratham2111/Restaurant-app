@@ -8,27 +8,28 @@ import { useState, useEffect } from "react";
  */
 export function useMediaQuery(query) {
   const [matches, setMatches] = useState(false);
-  
+
   useEffect(() => {
-    const mediaQuery = window.matchMedia(query);
+    // Create media query to check
+    const media = window.matchMedia(query);
     
-    // Set initial value
-    setMatches(mediaQuery.matches);
+    // Set the initial value
+    setMatches(media.matches);
     
-    // Handle changes
+    // Handle media query change
     const handleChange = (event) => {
       setMatches(event.matches);
     };
     
-    // Add listener
-    mediaQuery.addEventListener("change", handleChange);
+    // Add event listener
+    media.addEventListener("change", handleChange);
     
     // Clean up
     return () => {
-      mediaQuery.removeEventListener("change", handleChange);
+      media.removeEventListener("change", handleChange);
     };
   }, [query]);
-  
+
   return matches;
 }
 
@@ -37,7 +38,7 @@ export function useMediaQuery(query) {
  * @returns {boolean} Whether screen is mobile size
  */
 export function useMobile() {
-  return useMediaQuery("(max-width: 639px)");
+  return useMediaQuery("(max-width: 640px)");
 }
 
 /**
@@ -45,7 +46,7 @@ export function useMobile() {
  * @returns {boolean} Whether screen is tablet size
  */
 export function useTablet() {
-  return useMediaQuery("(min-width: 640px) and (max-width: 1023px)");
+  return useMediaQuery("(min-width: 641px) and (max-width: 1024px)");
 }
 
 /**
@@ -53,5 +54,5 @@ export function useTablet() {
  * @returns {boolean} Whether screen is desktop size
  */
 export function useDesktop() {
-  return useMediaQuery("(min-width: 1024px)");
+  return useMediaQuery("(min-width: 1025px)");
 }
