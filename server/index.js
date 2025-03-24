@@ -2,6 +2,7 @@ import express from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import passport from "passport";
+import cookieParser from "cookie-parser";
 import http from "http";
 import { registerRoutes } from "./routes.js";
 import { log, setupVite, serveStatic } from "./vite.js";
@@ -56,6 +57,7 @@ async function main() {
     // Configure Express middleware
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
 
     // Configure session management
     app.use(

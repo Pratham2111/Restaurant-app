@@ -10,7 +10,13 @@ import {
   insertOrderSchema,
   insertTestimonialSchema,
   insertCurrencySettingSchema,
+  insertUserSchema,
+  loginUserSchema,
 } from "../shared/schema.js";
+
+// Import route modules
+import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/admin.js';
 
 /**
  * Handles Zod validation errors and returns a formatted response
@@ -42,6 +48,12 @@ const handleZodError = (error, res) => {
  * @returns {Promise<Server>} HTTP server
  */
 async function registerRoutes(app) {
+  // Store storage as a local variable for middleware to access
+  app.locals.storage = storage;
+  
+  // Register auth and admin routes
+  app.use('/api/auth', authRoutes);
+  app.use('/api/admin', adminRoutes);
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {

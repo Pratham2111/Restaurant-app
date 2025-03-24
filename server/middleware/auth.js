@@ -2,10 +2,8 @@
  * Authentication middleware
  */
 import jwt from 'jsonwebtoken';
-import { User } from '../db/models/index.js';
 
-// JWT Secret - in production this would be an environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'la-mason-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'la-mason-jwt-secret';
 
 /**
  * Generate JWT token
@@ -13,15 +11,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'la-mason-secret-key';
  * @returns {string} JWT token
  */
 export const generateToken = (user) => {
-  const payload = {
-    id: user._id,
-    username: user.username,
-    email: user.email,
-    role: user.role
-  };
+  const { password, ...userForToken } = user;
   
-  // Token expires in 24 hours
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+  return jwt.sign(userForToken, JWT_SECRET, {
+    expiresIn: '24h'
+  });
 };
 
 /**
@@ -33,19 +27,26 @@ export const generateToken = (user) => {
  */
 export const authenticate = async (req, res, next) => {
   try {
-    // Get token from authorization header or cookie
-    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+    // Get token from cookie or header
+    let token = req.cookies?.token;
+    
+    // If no token in cookie, check header
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
+    }
     
     if (!token) {
-      return res.status(401).json({ message: "Authentication required" });
+      return res.status(401).json({ message: "Authorization required" });
     }
     
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
     
-    // Find user by ID
-    const user = await User.findById(decoded.id).select('-password');
-    
+    // Get user from database to ensure they still exist and have correct permissions
+    const user = await req.app.locals.storage.getUserById(decoded.id);
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
@@ -54,8 +55,14 @@ export const authenticate = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error("Authentication error:", error);
-    return res.status(401).json({ message: "Invalid token" });
+    console.error('Authentication error:', error);
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: "Token expired" });
+    }
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    res.status(500).json({ message: "Authentication error" });
   }
 };
 
@@ -68,9 +75,13 @@ export const authenticate = async (req, res, next) => {
  * @param {Express.NextFunction} next - Express next function
  */
 export const authorizeAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403).json({ message: "Admin access required" });
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authenticated" });
   }
+  
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  
+  next();
 };
