@@ -6,6 +6,7 @@
 
 import mongoose from 'mongoose';
 import { Category, MenuItem, Reservation, Order, User } from './models/index.js';
+import { createDefaultAdminIfNeeded } from './createDefaultAdmin.js';
 
 /**
  * MongoDB implementation of the storage interface
@@ -158,6 +159,9 @@ class MongoStorage {
       } else {
         console.log('MongoDB collections already contain data, skipping initialization');
       }
+      
+      // Create default admin user if needed
+      await createDefaultAdminIfNeeded();
     } catch (error) {
       console.error('Error initializing sample data:', error);
     }
