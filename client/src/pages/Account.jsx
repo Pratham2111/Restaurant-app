@@ -31,7 +31,7 @@ function Account() {
         console.log('Current user in Account page:', user);
         
         // Get token from localStorage
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('la_mason_auth_token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
         console.log('Using auth token for API requests:', token ? 'present' : 'not present');

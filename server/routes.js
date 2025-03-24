@@ -234,11 +234,37 @@ async function registerRoutes(app) {
 
   app.post("/api/reservations", async (req, res) => {
     try {
-      const reservationData = insertReservationSchema.parse(req.body);
-      const reservation = await storage.createReservation(reservationData);
-      res.status(201).json(reservation);
+      // Try to authenticate but proceed even if it fails
+      optionalAuth(req, res, async () => {
+        try {
+          const reservationData = insertReservationSchema.parse(req.body);
+          
+          // If user is authenticated, associate the reservation with their userId
+          if (req.user) {
+            const userId = req.user.id || req.user._id;
+            console.log(`Associating reservation with authenticated user ID: ${userId}`);
+            reservationData.userId = userId;
+            
+            // Also ensure email matches the logged-in user if possible
+            if (!reservationData.email && req.user.email) {
+              reservationData.email = req.user.email;
+            }
+            
+            // Also ensure name matches the logged-in user if possible
+            if (!reservationData.name && req.user.name) {
+              reservationData.name = req.user.name;
+            }
+          }
+          
+          const reservation = await storage.createReservation(reservationData);
+          res.status(201).json(reservation);
+        } catch (error) {
+          handleZodError(error, res);
+        }
+      });
     } catch (error) {
-      handleZodError(error, res);
+      console.error("Error creating reservation:", error);
+      res.status(500).json({ message: "Failed to create reservation" });
     }
   });
 
