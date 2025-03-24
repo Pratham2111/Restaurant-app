@@ -87,10 +87,24 @@ async function registerRoutes(app) {
         
         // Verify current password using bcrypt
         const bcrypt = await import('bcryptjs');
-        const isPasswordValid = await bcrypt.compare(currentPassword, fullUser.password);
         
-        if (!isPasswordValid) {
-          return res.status(400).json({ message: "Current password is incorrect" });
+        // Log detailed password verification information (remove in production)
+        console.log('Password verification details:', {
+          currentPasswordProvided: !!currentPassword,
+          storedPasswordLength: fullUser.password?.length,
+          passwordType: typeof fullUser.password
+        });
+        
+        try {
+          const isPasswordValid = await bcrypt.compare(currentPassword, fullUser.password);
+          console.log('Password comparison result:', isPasswordValid);
+          
+          if (!isPasswordValid) {
+            return res.status(400).json({ message: "Current password is incorrect" });
+          }
+        } catch (error) {
+          console.error('Password comparison error:', error);
+          return res.status(500).json({ message: "Error verifying password" });
         }
         
         // Hash the new password
