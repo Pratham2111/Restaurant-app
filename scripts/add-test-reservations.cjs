@@ -28,6 +28,15 @@ async function connectToMongoDB() {
   }
 }
 
+// Define User schema to properly retrieve user data
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  username: String,
+  phone: String,
+  role: String
+});
+
 // Define Reservation schema
 const reservationSchema = new mongoose.Schema({
   userId: {
@@ -80,65 +89,74 @@ const reservationSchema = new mongoose.Schema({
 
 // Create models
 const Reservation = mongoose.model('Reservation', reservationSchema);
-const User = mongoose.model('User', new mongoose.Schema({}));
+const User = mongoose.model('User', userSchema);
 
 // Create test reservations
 async function createTestReservations() {
   try {
-    // Get users from database
-    const users = await User.find({});
-    if (users.length === 0) {
-      throw new Error('No users found in the database');
-    }
-    console.log(`Found ${users.length} users`);
-    
-    // Generate test reservations
-    for (const user of users) {
-      // Skip admin users
-      if (user.role === 'admin') {
-        console.log(`Skipping admin user: ${user.email}`);
-        continue;
+    // Create fixed test reservations to ensure we have good data
+    const testReservations = [
+      {
+        name: "Rock",
+        email: "tl@tl.com",
+        phone: "555-123-4567",
+        date: new Date(2025, 2, 26), // March 26, 2025
+        time: "7:00 PM",
+        guests: 4,
+        status: "confirmed",
+        specialRequests: "Anniversary dinner"
+      },
+      {
+        name: "Rock",
+        email: "tl@tl.com", 
+        phone: "555-123-4567",
+        date: new Date(2025, 3, 15), // April 15, 2025
+        time: "6:30 PM",
+        guests: 2,
+        status: "pending",
+        specialRequests: ""
+      },
+      {
+        name: "Peter Patel",
+        email: "tl2@tl.com",
+        phone: "555-987-6543",
+        date: new Date(2025, 2, 30), // March 30, 2025
+        time: "8:00 PM",
+        guests: 6,
+        status: "confirmed",
+        specialRequests: "Birthday celebration"
+      },
+      {
+        name: "Peter Patel",
+        email: "tl2@tl.com",
+        phone: "555-987-6543",
+        date: new Date(2025, 3, 10), // April 10, 2025
+        time: "12:30 PM",
+        guests: 3,
+        status: "completed",
+        specialRequests: "Window seat preferred"
       }
-      
-      console.log(`Creating test reservations for user: ${user.email} (ID: ${user._id})`);
-      
-      // Create 2 reservations per user
-      for (let i = 0; i < 2; i++) {
-        // Create random dates within the next 14 days
-        const daysToAdd = Math.floor(Math.random() * 14) + 1;
-        const reservationDate = new Date();
-        reservationDate.setDate(reservationDate.getDate() + daysToAdd);
+    ];
+
+    // Try to find matching users for our test reservations
+    for (const reservation of testReservations) {
+      try {
+        // Find user by email
+        const user = await User.findOne({ email: reservation.email });
         
-        // Random time slots
-        const timeSlots = [
-          '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', 
-          '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM'
-        ];
-        const randomTimeIndex = Math.floor(Math.random() * timeSlots.length);
-        const randomTime = timeSlots[randomTimeIndex];
+        if (user) {
+          console.log(`Found user for ${reservation.email}: ${user._id}`);
+          reservation.userId = user._id;
+        } else {
+          console.log(`No user found for ${reservation.email}, creating reservation without userId`);
+        }
         
-        // Random guest count
-        const guests = Math.floor(Math.random() * 6) + 1;
-        
-        // Vary reservation status
-        const statusOptions = ['pending', 'confirmed', 'completed'];
-        const randomStatus = statusOptions[Math.floor(Math.random() * statusOptions.length)];
-        
-        const reservation = new Reservation({
-          userId: user._id,
-          name: user.name || user.username || 'Customer',
-          email: user.email,
-          phone: user.phone || '555-123-4567',
-          date: reservationDate,
-          time: randomTime,
-          guests: guests,
-          status: randomStatus,
-          specialRequests: i % 2 === 0 ? "Window seat preferred" : "",
-          createdAt: new Date(),
-        });
-        
-        await reservation.save();
-        console.log(`Created reservation ${i+1} for user ${user.email} - Date: ${reservationDate.toLocaleDateString()}, Time: ${randomTime}, Status: ${randomStatus}`);
+        // Create the reservation
+        const newReservation = new Reservation(reservation);
+        await newReservation.save();
+        console.log(`Created reservation for ${reservation.name} on ${reservation.date.toLocaleDateString()} at ${reservation.time}`);
+      } catch (error) {
+        console.error(`Error creating reservation for ${reservation.email}:`, error.message);
       }
     }
     
@@ -156,6 +174,18 @@ async function main() {
     // Check if we already have reservations in the database
     const reservationCount = await Reservation.countDocuments();
     console.log(`Found ${reservationCount} existing reservations`);
+    
+    // Get user count for diagnostics
+    const userCount = await User.countDocuments();
+    console.log(`Found ${userCount} users in the database`);
+    
+    if (userCount > 0) {
+      // Show some user data to debug
+      const users = await User.find().limit(5);
+      users.forEach(user => {
+        console.log(`User: ${user.name || 'unnamed'} | Email: ${user.email || 'no email'} | Role: ${user.role || 'no role'}`);
+      });
+    }
     
     if (reservationCount < 5) {
       await createTestReservations();
