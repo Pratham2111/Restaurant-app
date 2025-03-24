@@ -5,6 +5,10 @@
 import mongoose from 'mongoose';
 
 const reservationSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.Mixed, // Use Mixed to handle different ID formats
+    ref: 'User',
+  },
   name: {
     type: String,
     required: true,
@@ -41,7 +45,7 @@ const reservationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled'],
+    enum: ['pending', 'confirmed', 'completed', 'cancelled'],
     default: 'pending',
   },
   createdAt: {

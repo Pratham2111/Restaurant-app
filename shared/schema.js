@@ -18,6 +18,7 @@ const insertMenuItemSchema = z.object({
 
 // Reservations
 const insertReservationSchema = z.object({
+  userId: z.union([z.string(), z.number()]).optional(), // Will be set by the server for authenticated users
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(5, "Phone number is required"),
