@@ -660,13 +660,28 @@ class MongoStorage {
     try {
       // If includePassword is true, don't exclude the password field
       const selection = includePassword ? '' : '-password';
-      const user = await User.findById(id).select(selection);
-      if (!user) return undefined;
       
-      // Convert Mongoose document to plain object and ensure consistent id field
+      console.log(`Getting user by ID: ${id}, including password: ${includePassword}`);
+      const user = await User.findById(id).select(selection);
+      
+      if (!user) {
+        console.log(`User not found with ID: ${id}`);
+        return undefined;
+      }
+      
+      // Add the comparePassword method to the returned object
+      // This allows using the model's password comparison method
       const userObject = user.toObject();
       userObject.id = userObject._id.toString();
       
+      // Attach the comparePassword method if we're including the password
+      if (includePassword && user.comparePassword) {
+        userObject.comparePassword = async (candidatePassword) => {
+          return user.comparePassword(candidatePassword);
+        };
+      }
+      
+      console.log(`User found with ID: ${id}, has password: ${!!userObject.password}`);
       return userObject;
     } catch (error) {
       console.error('Error getting user by ID:', error);

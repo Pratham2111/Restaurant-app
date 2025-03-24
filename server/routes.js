@@ -96,9 +96,18 @@ async function registerRoutes(app) {
         });
         
         try {
-          const isPasswordValid = await bcrypt.compare(currentPassword, fullUser.password);
-          console.log('Password comparison result:', isPasswordValid);
+          // Try comparing using the direct bcrypt compare first
+          let isPasswordValid = await bcrypt.compare(currentPassword, fullUser.password);
+          console.log('Direct bcrypt password comparison result:', isPasswordValid);
           
+          // If direct comparison fails, try using Mongoose model method if available
+          if (!isPasswordValid && fullUser.comparePassword) {
+            console.log('Using Mongoose User.comparePassword method...');
+            isPasswordValid = await fullUser.comparePassword(currentPassword);
+            console.log('Mongoose comparePassword method result:', isPasswordValid);
+          }
+          
+          // If both methods failed, return error
           if (!isPasswordValid) {
             return res.status(400).json({ message: "Current password is incorrect" });
           }
